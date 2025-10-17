@@ -13,8 +13,24 @@ A React Native betting app where friends can challenge each other with accountab
 
 ### Inside of WSL
 
-1. Install Java Development Kit (JDK)
+1. Install OpenJDK17 (Java)
 2. `mkdir -p ~/Android/sdk`
+3. Download and Set Up Command-Line Tools
+
+```bash
+cd /tmp
+wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+unzip commandlinetools-linux-*.zip
+
+mkdir -p ~/Android/sdk/cmdline-tools
+mv cmdline-tools ~/Android/sdk/cmdline-tools/latest
+```
+
+4. Install SDK Packages (Platform Tools and Platforms)
+
+```bash
+chang sucks
+```
 
 ## Running on Development (MacOS)
 
