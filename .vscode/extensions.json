@@ -5,6 +5,7 @@
     "ms-vscode.vscode-typescript-next",
     "dsznajder.es7-react-js-snippets",
     "expo.vscode-expo-tools",
-    "mquandalle.graphql"
+    "mquandalle.graphql",
+    "ms-azuretools.vscode-docker"
   ]
 }

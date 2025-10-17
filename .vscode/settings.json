@@ -20,8 +20,7 @@
   },
   "files.exclude": {
     "**/.expo": true,
-    "**/.expo-shared": true,
-    "**/node_modules": true
+    "**/.expo-shared": true
   },
   "search.exclude": {
     "**/node_modules": true,
