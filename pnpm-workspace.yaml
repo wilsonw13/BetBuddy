@@ -1,2 +1,12 @@
 packages:
   - backend
+
+ignoredBuiltDependencies:
+  - "@apollo/protobufjs"
+  - "@prisma/client"
+  - "@prisma/engines"
+  - esbuild
+  - prisma
+
+onlyBuiltDependencies:
+  - bcrypt

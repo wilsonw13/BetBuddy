@@ -1,5 +1,6 @@
 services:
   postgres:
+    container_name: betbuddy-postgres
     image: postgres:18
     restart: unless-stopped
     environment:
