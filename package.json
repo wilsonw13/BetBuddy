@@ -4,11 +4,11 @@
   "main": "expo/AppEntry.js",
   "private": true,
   "scripts": {
-    "start": "expo start",
     "android": "expo start --android",
+    "format": "prettier --write .",
     "ios": "expo start --ios",
-    "web": "expo start --web",
-    "format": "prettier --write ."
+    "start": "expo start",
+    "web": "expo start --web"
   },
   "dependencies": {
     "@apollo/client": "^3.8.8",
