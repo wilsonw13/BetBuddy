@@ -2,7 +2,7 @@
 
 A React Native betting app where friends can challenge each other with accountability bets, track progress with AI-powered photo verification, and compete on leaderboards.
 
-## Running on Development (Windows)
+## Setting Up Development (Windows)
 
 1. Install [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install)
    1. Choose any distro
@@ -29,7 +29,37 @@ mv cmdline-tools ~/Android/sdk/cmdline-tools/latest
 4. Install SDK Packages (Platform Tools and Platforms)
 
 ```bash
-chang sucks
+cd ~/Android/sdk/cmdline-tools/latest/bin
+./sdkmanager --licenses
+./sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+```
+
+5. Set Environment Variables in `.bashrc`
+
+Note: Replace `<USER>` with your linux username
+
+```
+# Android SDK for Build Tools (Gradle)
+export ANDROID_HOME="$HOME/Android/sdk"
+export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/build-tools/35.0.0 # Adjust if you installed a different build-tools version
+
+# ADB Bridge to Windows Host
+export WSL_HOST=$(tail -1 /etc/resolv.conf | cut -d' ' -f2)
+export ADB_SERVER_SOCKET=tcp:$WSL_HOST:5037
+```
+
+6. Restart terminal or activate changes: `source ~/.bashrc`
+
+## Running Development (Windows)
+
+On Windows:
+
+```ps
+adb kill-server
+adb -a nodaemon server start
 ```
 
 ## Running on Development (MacOS)
