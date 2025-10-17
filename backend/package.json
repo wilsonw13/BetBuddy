@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "private": true,
+  "license": "MIT",
+  "keywords": [],
   "scripts": {
     "dev": "node --import=tsx --watch src/index.ts",
     "build": "prisma generate && tsup",
@@ -13,9 +15,6 @@
     "prisma:push": "prisma db push",
     "test": "jest"
   },
-  "keywords": [],
-  "author": "",
-  "license": "MIT",
   "dependencies": {
     "@apollo/server": "^4.9.5",
     "@prisma/client": "^5.7.1",

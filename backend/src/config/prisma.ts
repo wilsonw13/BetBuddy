@@ -19,10 +19,10 @@ if (process.env.NODE_ENV !== "production") {
 prisma
   .$connect()
   .then(() => {
-    console.log("✅ Database connected successfully (Prisma)");
+    console.log("Database connected successfully (Prisma)");
   })
   .catch((error) => {
-    console.error("❌ Database connection failed:", error);
+    console.error("Database connection failed:", error);
     process.exit(1);
   });
 

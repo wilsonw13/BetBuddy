@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "main": "expo/AppEntry.js",
   "private": true,
+  "license": "MIT",
+  "keywords": [],
   "scripts": {
     "android": "expo start --android",
     "format": "prettier --write .",
