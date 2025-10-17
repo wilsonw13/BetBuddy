@@ -2,6 +2,22 @@
 
 A React Native betting app where friends can challenge each other with accountability bets, track progress with AI-powered photo verification, and compete on leaderboards.
 
+## Running on Development (Windows)
+
+1. Install [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install)
+   1. Choose any distro
+2. Install [Docker Desktop](https://docs.docker.com/desktop/features/wsl/)
+3. Install Node
+4. Install pnpm
+   1. `npm i -g pnpm@latest`
+
+### Inside of WSL
+
+1. Install Java Development Kit (JDK)
+2. `mkdir -p ~/Android/sdk`
+
+## Running on Development (MacOS)
+
 ## Features
 
 ### Bottom Navigation
