@@ -1,6 +1,6 @@
-import { OAuth2Client } from 'google-auth-library';
-import { prisma } from '../config/prisma';
-import { GoogleProfile, User } from '../types';
+import { OAuth2Client } from "google-auth-library";
+import { prisma } from "../config/prisma";
+import { GoogleProfile, User } from "../types";
 
 export class GoogleOAuthService {
   private client: OAuth2Client;
@@ -8,7 +8,7 @@ export class GoogleOAuthService {
   constructor() {
     const clientId = process.env.GOOGLE_CLIENT_ID;
     if (!clientId) {
-      throw new Error('GOOGLE_CLIENT_ID environment variable is not set');
+      throw new Error("GOOGLE_CLIENT_ID environment variable is not set");
     }
     this.client = new OAuth2Client(clientId);
   }
@@ -24,19 +24,19 @@ export class GoogleOAuthService {
       const payload = ticket.getPayload();
 
       if (!payload) {
-        throw new Error('Invalid token payload');
+        throw new Error("Invalid token payload");
       }
 
       return {
         googleId: payload.sub,
         email: payload.email!,
         emailVerified: payload.email_verified || false,
-        displayName: payload.name || payload.email!.split('@')[0],
+        displayName: payload.name || payload.email!.split("@")[0],
         profilePicture: payload.picture,
       };
     } catch (error) {
-      console.error('Google token verification error:', error);
-      throw new Error('Invalid Google token');
+      console.error("Google token verification error:", error);
+      throw new Error("Invalid Google token");
     }
   }
 
@@ -86,7 +86,9 @@ export class GoogleOAuthService {
       if (user) {
         // If already has a different Google ID, throw error
         if (user.googleId && user.googleId !== googleProfile.googleId) {
-          throw new Error('This email is already linked to a different Google account');
+          throw new Error(
+            "This email is already linked to a different Google account",
+          );
         }
 
         // Link Google account
@@ -148,11 +150,13 @@ export class GoogleOAuthService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
     if (!user.passwordHash) {
-      throw new Error('Cannot unlink Google account without setting a password first');
+      throw new Error(
+        "Cannot unlink Google account without setting a password first",
+      );
     }
 
     await prisma.user.update({

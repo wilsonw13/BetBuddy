@@ -1,10 +1,10 @@
-import { GraphQLError } from 'graphql';
-import { DateTimeResolver } from 'graphql-scalars';
-import bcrypt from 'bcrypt';
-import Joi from 'joi';
-import { prisma } from '../config/prisma';
-import { tokenService } from '../services/tokenService';
-import { googleOAuthService } from '../services/googleOAuth';
+import { GraphQLError } from "graphql";
+import { DateTimeResolver } from "graphql-scalars";
+import bcrypt from "bcrypt";
+import Joi from "joi";
+import { prisma } from "../config/prisma";
+import { tokenService } from "../services/tokenService";
+import { googleOAuthService } from "../services/googleOAuth";
 
 const BCRYPT_ROUNDS = 12;
 
@@ -16,9 +16,9 @@ const registerSchema = Joi.object({
     .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .required()
     .messages({
-      'string.pattern.base':
-        'Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number',
-      'string.min': 'Password must be at least 8 characters long',
+      "string.pattern.base":
+        "Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number",
+      "string.min": "Password must be at least 8 characters long",
     }),
   displayName: Joi.string().min(2).max(50).required(),
 });
@@ -39,12 +39,12 @@ export const resolvers = {
   DateTime: DateTimeResolver,
 
   Query: {
-    health: () => 'OK',
+    health: () => "OK",
 
     me: async (_: any, __: any, context: Context) => {
       if (!context.user) {
-        throw new GraphQLError('Not authenticated', {
-          extensions: { code: 'UNAUTHENTICATED' },
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
         });
       }
 
@@ -63,8 +63,8 @@ export const resolvers = {
       });
 
       if (!user) {
-        throw new GraphQLError('User not found', {
-          extensions: { code: 'NOT_FOUND' },
+        throw new GraphQLError("User not found", {
+          extensions: { code: "NOT_FOUND" },
         });
       }
 
@@ -78,7 +78,7 @@ export const resolvers = {
       const { error, value } = registerSchema.validate(input);
       if (error) {
         throw new GraphQLError(error.details[0].message, {
-          extensions: { code: 'BAD_USER_INPUT' },
+          extensions: { code: "BAD_USER_INPUT" },
         });
       }
 
@@ -90,8 +90,8 @@ export const resolvers = {
       });
 
       if (existingUser) {
-        throw new GraphQLError('User with this email already exists', {
-          extensions: { code: 'USER_EXISTS' },
+        throw new GraphQLError("User with this email already exists", {
+          extensions: { code: "USER_EXISTS" },
         });
       }
 
@@ -119,7 +119,10 @@ export const resolvers = {
 
       // Generate tokens
       const accessToken = tokenService.generateAccessToken(user.id, user.email);
-      const refreshToken = await tokenService.generateRefreshToken(user.id, user.email);
+      const refreshToken = await tokenService.generateRefreshToken(
+        user.id,
+        user.email,
+      );
 
       return {
         user,
@@ -133,7 +136,7 @@ export const resolvers = {
       const { error, value } = loginSchema.validate(input);
       if (error) {
         throw new GraphQLError(error.details[0].message, {
-          extensions: { code: 'BAD_USER_INPUT' },
+          extensions: { code: "BAD_USER_INPUT" },
         });
       }
 
@@ -145,24 +148,27 @@ export const resolvers = {
       });
 
       if (!user) {
-        throw new GraphQLError('Invalid email or password', {
-          extensions: { code: 'INVALID_CREDENTIALS' },
+        throw new GraphQLError("Invalid email or password", {
+          extensions: { code: "INVALID_CREDENTIALS" },
         });
       }
 
       // Check if user has password
       if (!user.passwordHash) {
-        throw new GraphQLError('This account uses Google Sign-In. Please login with Google.', {
-          extensions: { code: 'OAUTH_ONLY_ACCOUNT' },
-        });
+        throw new GraphQLError(
+          "This account uses Google Sign-In. Please login with Google.",
+          {
+            extensions: { code: "OAUTH_ONLY_ACCOUNT" },
+          },
+        );
       }
 
       // Verify password
       const isValidPassword = await bcrypt.compare(password, user.passwordHash);
 
       if (!isValidPassword) {
-        throw new GraphQLError('Invalid email or password', {
-          extensions: { code: 'INVALID_CREDENTIALS' },
+        throw new GraphQLError("Invalid email or password", {
+          extensions: { code: "INVALID_CREDENTIALS" },
         });
       }
 
@@ -174,7 +180,10 @@ export const resolvers = {
 
       // Generate tokens
       const accessToken = tokenService.generateAccessToken(user.id, user.email);
-      const refreshToken = await tokenService.generateRefreshToken(user.id, user.email);
+      const refreshToken = await tokenService.generateRefreshToken(
+        user.id,
+        user.email,
+      );
 
       // Return user without password hash
       const { passwordHash, ...userWithoutPassword } = user;
@@ -190,21 +199,29 @@ export const resolvers = {
       const { idToken } = input;
 
       if (!idToken) {
-        throw new GraphQLError('Google ID token is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
+        throw new GraphQLError("Google ID token is required", {
+          extensions: { code: "BAD_USER_INPUT" },
         });
       }
 
       try {
         // Verify Google token and get profile
-        const googleProfile = await googleOAuthService.verifyGoogleToken(idToken);
+        const googleProfile =
+          await googleOAuthService.verifyGoogleToken(idToken);
 
         // Find or create user
-        const user = await googleOAuthService.findOrCreateGoogleUser(googleProfile);
+        const user =
+          await googleOAuthService.findOrCreateGoogleUser(googleProfile);
 
         // Generate tokens
-        const accessToken = tokenService.generateAccessToken(user.id, user.email);
-        const refreshToken = await tokenService.generateRefreshToken(user.id, user.email);
+        const accessToken = tokenService.generateAccessToken(
+          user.id,
+          user.email,
+        );
+        const refreshToken = await tokenService.generateRefreshToken(
+          user.id,
+          user.email,
+        );
 
         return {
           user,
@@ -212,9 +229,12 @@ export const resolvers = {
           refreshToken,
         };
       } catch (error: any) {
-        throw new GraphQLError(error.message || 'Google authentication failed', {
-          extensions: { code: 'GOOGLE_AUTH_FAILED' },
-        });
+        throw new GraphQLError(
+          error.message || "Google authentication failed",
+          {
+            extensions: { code: "GOOGLE_AUTH_FAILED" },
+          },
+        );
       }
     },
 
@@ -222,8 +242,8 @@ export const resolvers = {
       const { refreshToken } = input;
 
       if (!refreshToken) {
-        throw new GraphQLError('Refresh token is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
+        throw new GraphQLError("Refresh token is required", {
+          extensions: { code: "BAD_USER_INPUT" },
         });
       }
 
@@ -232,11 +252,14 @@ export const resolvers = {
         const payload = await tokenService.verifyRefreshToken(refreshToken);
 
         // Generate new tokens with rotation
-        const newAccessToken = tokenService.generateAccessToken(payload.userId, payload.email);
+        const newAccessToken = tokenService.generateAccessToken(
+          payload.userId,
+          payload.email,
+        );
         const newRefreshToken = await tokenService.rotateRefreshToken(
           refreshToken,
           payload.userId,
-          payload.email
+          payload.email,
         );
 
         return {
@@ -244,16 +267,19 @@ export const resolvers = {
           refreshToken: newRefreshToken,
         };
       } catch (error: any) {
-        throw new GraphQLError(error.message || 'Invalid or expired refresh token', {
-          extensions: { code: 'INVALID_TOKEN' },
-        });
+        throw new GraphQLError(
+          error.message || "Invalid or expired refresh token",
+          {
+            extensions: { code: "INVALID_TOKEN" },
+          },
+        );
       }
     },
 
     logout: async (_: any, { refreshToken }: any) => {
       if (!refreshToken) {
-        throw new GraphQLError('Refresh token is required', {
-          extensions: { code: 'BAD_USER_INPUT' },
+        throw new GraphQLError("Refresh token is required", {
+          extensions: { code: "BAD_USER_INPUT" },
         });
       }
 
@@ -261,19 +287,19 @@ export const resolvers = {
         await tokenService.revokeRefreshToken(refreshToken);
         return {
           success: true,
-          message: 'Logged out successfully',
+          message: "Logged out successfully",
         };
       } catch (error: any) {
-        throw new GraphQLError('Logout failed', {
-          extensions: { code: 'LOGOUT_FAILED' },
+        throw new GraphQLError("Logout failed", {
+          extensions: { code: "LOGOUT_FAILED" },
         });
       }
     },
 
     logoutAll: async (_: any, __: any, context: Context) => {
       if (!context.user) {
-        throw new GraphQLError('Not authenticated', {
-          extensions: { code: 'UNAUTHENTICATED' },
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
         });
       }
 
@@ -281,11 +307,11 @@ export const resolvers = {
         await tokenService.revokeAllUserTokens(context.user.userId);
         return {
           success: true,
-          message: 'Logged out from all devices successfully',
+          message: "Logged out from all devices successfully",
         };
       } catch (error: any) {
-        throw new GraphQLError('Logout failed', {
-          extensions: { code: 'LOGOUT_FAILED' },
+        throw new GraphQLError("Logout failed", {
+          extensions: { code: "LOGOUT_FAILED" },
         });
       }
     },

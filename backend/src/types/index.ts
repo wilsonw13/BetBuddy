@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import { Request } from "express";
 
 // User Types
 export interface User {
@@ -45,7 +45,7 @@ export interface RefreshTokenRequest {
 
 // Auth Response Types
 export interface AuthResponse {
-  user: Omit<User, 'password_hash'>;
+  user: Omit<User, "password_hash">;
   accessToken: string;
   refreshToken: string;
 }
@@ -53,7 +53,7 @@ export interface AuthResponse {
 export interface TokenPayload {
   userId: string;
   email: string;
-  type: 'access' | 'refresh';
+  type: "access" | "refresh";
 }
 
 // Express Request with User

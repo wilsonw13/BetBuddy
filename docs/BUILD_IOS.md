@@ -14,6 +14,7 @@ npm run ios
 ```
 
 **Advantages:**
+
 - No native code management
 - Automatic dependency updates
 - OTA updates
@@ -31,6 +32,7 @@ npx expo prebuild
 ```
 
 This will:
+
 - Create `ios/` folder with Xcode project
 - Auto-configure CocoaPods
 - Set up native dependencies
@@ -66,6 +68,7 @@ open ios/betbuddy.xcworkspace
 ```
 
 Then in Xcode:
+
 1. Select simulator/device from top bar
 2. Press ⌘R or click Run button
 
@@ -182,12 +185,14 @@ Create `.vscode/launch.json` for debugging:
 ## Troubleshooting
 
 ### "No simulators available"
+
 ```bash
 # Check if Xcode Command Line Tools are set
 sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 ```
 
 ### CocoaPods errors
+
 ```bash
 # Update CocoaPods
 sudo gem install cocoapods
@@ -200,6 +205,7 @@ cd ..
 ```
 
 ### Metro bundler issues
+
 ```bash
 # Clear all caches
 npm start -- --reset-cache
@@ -208,6 +214,7 @@ npm install
 ```
 
 ### Build errors after adding dependencies
+
 ```bash
 # For managed workflow
 npm install
@@ -220,18 +227,19 @@ npx expo run:ios
 
 ## Comparison: Xcode vs VSCode
 
-| Feature | Xcode | VSCode |
-|---------|-------|--------|
-| Native debugging | ✅ Better | ⚠️ Limited |
-| JS debugging | ❌ No | ✅ Excellent |
-| Build speed | ✅ Faster | ⚠️ Same |
-| Interface Builder | ✅ Yes | ❌ No |
-| Terminal-based | ❌ No | ✅ Yes |
-| Lighter weight | ❌ Heavy | ✅ Light |
+| Feature           | Xcode     | VSCode       |
+| ----------------- | --------- | ------------ |
+| Native debugging  | ✅ Better | ⚠️ Limited   |
+| JS debugging      | ❌ No     | ✅ Excellent |
+| Build speed       | ✅ Faster | ⚠️ Same      |
+| Interface Builder | ✅ Yes    | ❌ No        |
+| Terminal-based    | ❌ No     | ✅ Yes       |
+| Lighter weight    | ❌ Heavy  | ✅ Light     |
 
 ## Recommended Workflow
 
 **For most development (Expo managed):**
+
 ```bash
 # Terminal 1: Metro bundler
 npm start
@@ -240,6 +248,7 @@ npm start
 ```
 
 **When you need native modules:**
+
 ```bash
 npx expo prebuild
 cd ios && pod install && cd ..
@@ -247,6 +256,7 @@ npx expo run:ios
 ```
 
 **For debugging:**
+
 - Use VSCode for JS debugging (breakpoints, console)
 - Use Xcode for native iOS debugging (crashes, native logs)
 

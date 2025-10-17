@@ -31,8 +31,5 @@
     "**/ios/build": true,
     "**/android/app/build": true
   },
-  "reactnative.ios.runArguments": [
-    "--simulator",
-    "iPhone 15 Pro"
-  ]
+  "reactnative.ios.runArguments": ["--simulator", "iPhone 15 Pro"]
 }

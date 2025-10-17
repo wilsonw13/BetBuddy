@@ -23,13 +23,13 @@ Server runs on `http://localhost:3000`
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Build TypeScript to JavaScript |
-| `npm start` | Start production server |
-| `npm run migrate` | Run database migrations |
-| `npm run migrate down` | Rollback last migration |
+| Command                | Description                              |
+| ---------------------- | ---------------------------------------- |
+| `npm run dev`          | Start development server with hot reload |
+| `npm run build`        | Build TypeScript to JavaScript           |
+| `npm start`            | Start production server                  |
+| `npm run migrate`      | Run database migrations                  |
+| `npm run migrate down` | Rollback last migration                  |
 
 ## Environment Variables
 
@@ -57,6 +57,7 @@ GOOGLE_CLIENT_SECRET=your_secret
 ### Authentication
 
 **POST /api/auth/register**
+
 ```json
 {
   "email": "user@example.com",
@@ -66,6 +67,7 @@ GOOGLE_CLIENT_SECRET=your_secret
 ```
 
 **POST /api/auth/login**
+
 ```json
 {
   "email": "user@example.com",
@@ -74,6 +76,7 @@ GOOGLE_CLIENT_SECRET=your_secret
 ```
 
 **POST /api/auth/google/mobile**
+
 ```json
 {
   "idToken": "google_id_token_here"
@@ -81,6 +84,7 @@ GOOGLE_CLIENT_SECRET=your_secret
 ```
 
 **POST /api/auth/refresh**
+
 ```json
 {
   "refreshToken": "refresh_token_here"
@@ -88,6 +92,7 @@ GOOGLE_CLIENT_SECRET=your_secret
 ```
 
 **POST /api/auth/logout**
+
 ```json
 {
   "refreshToken": "refresh_token_here"
@@ -95,6 +100,7 @@ GOOGLE_CLIENT_SECRET=your_secret
 ```
 
 **POST /api/auth/logout-all** (Protected)
+
 ```
 Headers: Authorization: Bearer <access_token>
 ```
@@ -102,6 +108,7 @@ Headers: Authorization: Bearer <access_token>
 ## Database Schema
 
 ### users
+
 - `id` (UUID, PK)
 - `email` (VARCHAR, UNIQUE)
 - `password_hash` (VARCHAR, nullable for OAuth users)
@@ -114,6 +121,7 @@ Headers: Authorization: Bearer <access_token>
 - `last_login` (TIMESTAMP, nullable)
 
 ### refresh_tokens
+
 - `id` (UUID, PK)
 - `user_id` (UUID, FK to users)
 - `token_hash` (VARCHAR)
@@ -179,6 +187,7 @@ npm start
 ## Testing with curl
 
 **Register:**
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
@@ -186,6 +195,7 @@ curl -X POST http://localhost:3000/api/auth/register \
 ```
 
 **Login:**
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
@@ -193,6 +203,7 @@ curl -X POST http://localhost:3000/api/auth/login \
 ```
 
 **Refresh Token:**
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/refresh \
   -H "Content-Type: application/json" \
@@ -200,6 +211,7 @@ curl -X POST http://localhost:3000/api/auth/refresh \
 ```
 
 **Protected Endpoint:**
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/logout-all \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
@@ -208,6 +220,7 @@ curl -X POST http://localhost:3000/api/auth/logout-all \
 ## Troubleshooting
 
 **Database connection fails:**
+
 ```bash
 # Check PostgreSQL is running
 psql postgres -c "SELECT 1"
@@ -217,11 +230,13 @@ psql postgres -c "\l" | grep betbuddy
 ```
 
 **Port already in use:**
+
 ```bash
 lsof -ti:3000 | xargs kill -9
 ```
 
 **Migration errors:**
+
 ```bash
 # Rollback and retry
 npm run migrate down

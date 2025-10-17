@@ -1,7 +1,7 @@
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
-import { prisma } from '../config/prisma';
-import { TokenPayload } from '../types';
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { prisma } from "../config/prisma";
+import { TokenPayload } from "../types";
 
 export class TokenService {
   private accessSecret: string;
@@ -10,10 +10,10 @@ export class TokenService {
   private refreshExpiresIn: string;
 
   constructor() {
-    this.accessSecret = process.env.JWT_ACCESS_SECRET || 'access_secret';
-    this.refreshSecret = process.env.JWT_REFRESH_SECRET || 'refresh_secret';
-    this.accessExpiresIn = process.env.JWT_ACCESS_EXPIRES_IN || '15m';
-    this.refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
+    this.accessSecret = process.env.JWT_ACCESS_SECRET || "access_secret";
+    this.refreshSecret = process.env.JWT_REFRESH_SECRET || "refresh_secret";
+    this.accessExpiresIn = process.env.JWT_ACCESS_EXPIRES_IN || "15m";
+    this.refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || "7d";
   }
 
   // Generate access token (short-lived)
@@ -21,7 +21,7 @@ export class TokenService {
     const payload: TokenPayload = {
       userId,
       email,
-      type: 'access',
+      type: "access",
     };
 
     return jwt.sign(payload, this.accessSecret, {
@@ -34,7 +34,7 @@ export class TokenService {
     const payload: TokenPayload = {
       userId,
       email,
-      type: 'refresh',
+      type: "refresh",
     };
 
     const token = jwt.sign(payload, this.refreshSecret, {
@@ -61,17 +61,17 @@ export class TokenService {
     try {
       const payload = jwt.verify(token, this.accessSecret) as TokenPayload;
 
-      if (payload.type !== 'access') {
-        throw new Error('Invalid token type');
+      if (payload.type !== "access") {
+        throw new Error("Invalid token type");
       }
 
       return payload;
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
-        throw new Error('Access token expired');
+        throw new Error("Access token expired");
       }
       if (error instanceof jwt.JsonWebTokenError) {
-        throw new Error('Invalid access token');
+        throw new Error("Invalid access token");
       }
       throw error;
     }
@@ -82,8 +82,8 @@ export class TokenService {
     try {
       const payload = jwt.verify(token, this.refreshSecret) as TokenPayload;
 
-      if (payload.type !== 'refresh') {
-        throw new Error('Invalid token type');
+      if (payload.type !== "refresh") {
+        throw new Error("Invalid token type");
       }
 
       // Check if token exists and is not revoked in database
@@ -97,16 +97,16 @@ export class TokenService {
       });
 
       if (!refreshToken) {
-        throw new Error('Refresh token not found or expired');
+        throw new Error("Refresh token not found or expired");
       }
 
       return payload;
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
-        throw new Error('Refresh token expired');
+        throw new Error("Refresh token expired");
       }
       if (error instanceof jwt.JsonWebTokenError) {
-        throw new Error('Invalid refresh token');
+        throw new Error("Invalid refresh token");
       }
       throw error;
     }
@@ -134,7 +134,7 @@ export class TokenService {
   async rotateRefreshToken(
     oldToken: string,
     userId: string,
-    email: string
+    email: string,
   ): Promise<string> {
     await this.revokeRefreshToken(oldToken);
     return await this.generateRefreshToken(userId, email);
@@ -144,17 +144,14 @@ export class TokenService {
   async cleanupExpiredTokens(): Promise<void> {
     await prisma.refreshToken.deleteMany({
       where: {
-        OR: [
-          { expiresAt: { lt: new Date() } },
-          { revoked: true },
-        ],
+        OR: [{ expiresAt: { lt: new Date() } }, { revoked: true }],
       },
     });
   }
 
   // Hash token for storage
   private hashToken(token: string): string {
-    return crypto.createHash('sha256').update(token).digest('hex');
+    return crypto.createHash("sha256").update(token).digest("hex");
   }
 }
 

@@ -3,6 +3,7 @@
 ## Overview
 
 Complete authentication system with:
+
 - **Backend**: Node.js + Express + PostgreSQL
 - **Frontend**: React Native with Expo
 - Email/Password authentication with JWT tokens
@@ -45,6 +46,7 @@ cp .env.example .env
 ```
 
 Edit `.env`:
+
 ```env
 PORT=3000
 NODE_ENV=development
@@ -65,6 +67,7 @@ GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
 ```
 
 **Generate secrets:**
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
@@ -76,6 +79,7 @@ npm run migrate
 ```
 
 This creates:
+
 - `users` table (id, email, password_hash, google_id, display_name, profile_picture, email_verified, timestamps)
 - `refresh_tokens` table (id, user_id, token_hash, expires_at, revoked, created_at)
 
@@ -89,14 +93,14 @@ Server runs on `http://localhost:3000`
 
 ### API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register with email/password |
-| POST | `/api/auth/login` | Login with email/password |
-| POST | `/api/auth/google/mobile` | Login with Google (mobile) |
-| POST | `/api/auth/refresh` | Refresh access token |
-| POST | `/api/auth/logout` | Logout (revoke refresh token) |
-| POST | `/api/auth/logout-all` | Logout from all devices |
+| Method | Endpoint                  | Description                   |
+| ------ | ------------------------- | ----------------------------- |
+| POST   | `/api/auth/register`      | Register with email/password  |
+| POST   | `/api/auth/login`         | Login with email/password     |
+| POST   | `/api/auth/google/mobile` | Login with Google (mobile)    |
+| POST   | `/api/auth/refresh`       | Refresh access token          |
+| POST   | `/api/auth/logout`        | Logout (revoke refresh token) |
+| POST   | `/api/auth/logout-all`    | Logout from all devices       |
 
 ---
 
@@ -132,7 +136,7 @@ Edit `src/contexts/AuthContext.tsx`:
 
 ```typescript
 GoogleSignin.configure({
-  webClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com', // From step 2
+  webClientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com", // From step 2
   offlineAccess: true,
   forceCodeForRefreshToken: true,
 });
@@ -150,6 +154,7 @@ npm install
 ```
 
 New dependencies added:
+
 - `axios` - HTTP client
 - `@react-native-google-signin/google-signin` - Google Sign-In
 - `expo-secure-store` - Secure token storage
@@ -161,10 +166,11 @@ Edit `src/services/authService.ts`:
 
 ```typescript
 // Replace with your computer's local IP address
-const API_BASE_URL = 'http://YOUR_LOCAL_IP:3000/api/auth';
+const API_BASE_URL = "http://YOUR_LOCAL_IP:3000/api/auth";
 ```
 
 **Find your local IP:**
+
 ```bash
 # macOS/Linux
 ifconfig | grep "inet " | grep -v 127.0.0.1
@@ -282,11 +288,13 @@ npm start
 ### 1. Test Email/Password Registration
 
 Using the app:
+
 1. Open RegisterScreen
 2. Fill in display name, email, password
 3. Tap "Sign Up"
 
 Or via curl:
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
@@ -300,11 +308,13 @@ curl -X POST http://localhost:3000/api/auth/register \
 ### 2. Test Email/Password Login
 
 Using the app:
+
 1. Open LoginScreen
 2. Enter email and password
 3. Tap "Sign In"
 
 Or via curl:
+
 ```bash
 curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
@@ -346,12 +356,14 @@ curl http://localhost:3000/api/auth/logout-all \
 ### Implemented:
 
 ✅ **Password Requirements**
+
 - Minimum 8 characters
 - At least 1 uppercase letter
 - At least 1 lowercase letter
 - At least 1 number
 
 ✅ **Token Security**
+
 - Short-lived access tokens (15 min)
 - Long-lived refresh tokens (7 days)
 - Refresh token rotation on use
@@ -359,19 +371,23 @@ curl http://localhost:3000/api/auth/logout-all \
 - Only hashed refresh tokens in database
 
 ✅ **Rate Limiting**
+
 - 5 auth requests per 15 minutes per IP
 
 ✅ **Database Security**
+
 - Password hashing with bcrypt (cost factor 12)
 - Prepared statements (SQL injection protection)
 - Transactions for atomic operations
 
 ✅ **OAuth Security**
+
 - Google tokens verified on backend
 - Never trust client-side verification
 - Automatic account linking by email
 
 ✅ **Error Handling**
+
 - Generic error messages (no info leakage)
 - Detailed server logs for debugging
 - Network error handling in mobile app
@@ -430,6 +446,7 @@ betbuddy/
 ### Backend Issues
 
 **Database connection failed:**
+
 ```bash
 # Check PostgreSQL is running
 brew services list
@@ -440,6 +457,7 @@ psql betbuddy -c "SELECT 1;"
 ```
 
 **Migration errors:**
+
 ```bash
 # Rollback last migration
 npm run migrate down
@@ -449,6 +467,7 @@ npm run migrate
 ```
 
 **Port already in use:**
+
 ```bash
 # Find process using port 3000
 lsof -ti:3000
@@ -460,18 +479,21 @@ kill -9 $(lsof -ti:3000)
 ### Mobile App Issues
 
 **Cannot connect to backend:**
+
 1. Make sure backend is running: `curl http://localhost:3000/health`
 2. Use your local IP, not localhost
 3. Ensure phone and computer on same WiFi
 4. Check firewall settings
 
 **Google Sign-In not working:**
+
 1. Verify `webClientId` is correct in `AuthContext.tsx`
 2. Check OAuth credentials in Google Cloud Console
 3. Ensure iOS/Android client IDs are created
 4. Check bundle ID matches
 
 **Tokens not persisting:**
+
 1. Clear SecureStore: `SecureStore.deleteItemAsync('refreshToken')`
 2. Restart app completely
 3. Check backend logs for token errors
@@ -479,16 +501,19 @@ kill -9 $(lsof -ti:3000)
 ### Common Errors
 
 **"Invalid email or password"**
+
 - Check email is lowercase
 - Verify password meets requirements
 - Check user exists in database
 
 **"Token expired"**
+
 - Normal behavior after 15 minutes
 - App should auto-refresh
 - Check refresh token is valid
 
 **"CORS error"**
+
 - Backend needs CORS configured (already done)
 - Check backend URL is correct
 
@@ -518,11 +543,13 @@ kill -9 $(lsof -ti:3000)
 ### Mobile App
 
 1. **Update backend URL:**
+
    ```typescript
-   const API_BASE_URL = 'https://your-api.com/api/auth';
+   const API_BASE_URL = "https://your-api.com/api/auth";
    ```
 
 2. **Build for production:**
+
    ```bash
    eas build --platform ios
    eas build --platform android
@@ -576,6 +603,7 @@ See full API docs at: `backend/API_DOCS.md`
 ## Support
 
 For issues:
+
 1. Check this guide
 2. Review code comments
 3. Check backend logs: `npm run dev`

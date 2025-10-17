@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,82 +9,82 @@ import {
   Modal,
   FlatList,
   Alert,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { User, RedeemableItem, UserRank } from '../types';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { User, RedeemableItem, UserRank } from "../types";
 
 // Mock data - replace with real data from your backend
 const mockUser: User = {
-  id: 'currentUser',
-  name: 'You',
+  id: "currentUser",
+  name: "You",
   successRate: 0.85,
   totalBets: 20,
   successfulBets: 17,
   points: 850,
-  rank: 'advanced',
-  friendGroups: ['Friends', 'Gym Buddies'],
+  rank: "advanced",
+  friendGroups: ["Friends", "Gym Buddies"],
   pranksActive: [],
 };
 
 const redeemableItems: RedeemableItem[] = [
   {
-    id: '1',
-    name: 'Draw on Banner',
+    id: "1",
+    name: "Draw on Banner",
     description: "Draw on your opponent's banner for 24 hours",
     pointsCost: 200,
-    type: 'prank',
+    type: "prank",
     duration: 24,
   },
   {
-    id: '2',
-    name: 'Chinese Mode',
+    id: "2",
+    name: "Chinese Mode",
     description: "Change opponent's app to Chinese for 12 hours",
     pointsCost: 150,
-    type: 'prank',
+    type: "prank",
     duration: 12,
   },
   {
-    id: '3',
-    name: 'Icon Swap',
+    id: "3",
+    name: "Icon Swap",
     description: "Change opponent's app icon for 48 hours",
     pointsCost: 300,
-    type: 'prank',
+    type: "prank",
     duration: 48,
   },
   {
-    id: '4',
-    name: 'Loading Screen',
+    id: "4",
+    name: "Loading Screen",
     description: "Customize opponent's loading screen for 24 hours",
     pointsCost: 250,
-    type: 'prank',
+    type: "prank",
     duration: 24,
   },
   {
-    id: '5',
-    name: 'Profile Border',
-    description: 'Add a special border to your profile',
+    id: "5",
+    name: "Profile Border",
+    description: "Add a special border to your profile",
     pointsCost: 500,
-    type: 'cosmetic',
+    type: "cosmetic",
   },
   {
-    id: '6',
-    name: 'Custom Badge',
-    description: 'Create a custom achievement badge',
+    id: "6",
+    name: "Custom Badge",
+    description: "Create a custom achievement badge",
     pointsCost: 400,
-    type: 'cosmetic',
+    type: "cosmetic",
   },
 ];
 
 const getRankInfo = (rank: UserRank) => {
   switch (rank) {
-    case 'legendary':
-      return { color: '#FFD700', icon: 'sparkles', label: 'Legendary' };
-    case 'advanced':
-      return { color: '#C0C0C0', icon: 'star', label: 'Advanced' };
-    case 'intermediate':
-      return { color: '#CD7F32', icon: 'ribbon', label: 'Intermediate' };
+    case "legendary":
+      return { color: "#FFD700", icon: "sparkles", label: "Legendary" };
+    case "advanced":
+      return { color: "#C0C0C0", icon: "star", label: "Advanced" };
+    case "intermediate":
+      return { color: "#CD7F32", icon: "ribbon", label: "Intermediate" };
     default:
-      return { color: '#8E8E93', icon: 'leaf', label: 'Beginner' };
+      return { color: "#8E8E93", icon: "leaf", label: "Beginner" };
   }
 };
 
@@ -96,24 +96,27 @@ export default function ProfileScreen() {
 
   const handleRedeem = (item: RedeemableItem) => {
     if (user.points < item.pointsCost) {
-      Alert.alert('Not Enough Points', 'You need more points to redeem this item.');
+      Alert.alert(
+        "Not Enough Points",
+        "You need more points to redeem this item.",
+      );
       return;
     }
 
     Alert.alert(
-      'Redeem Item',
+      "Redeem Item",
       `Redeem "${item.name}" for ${item.pointsCost} points?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Redeem',
+          text: "Redeem",
           onPress: () => {
             setUser({ ...user, points: user.points - item.pointsCost });
-            Alert.alert('Success', `You redeemed "${item.name}"!`);
+            Alert.alert("Success", `You redeemed "${item.name}"!`);
             setShopModalVisible(false);
           },
         },
-      ]
+      ],
     );
   };
 
@@ -125,9 +128,9 @@ export default function ProfileScreen() {
     >
       <View style={styles.shopItemIcon}>
         <Ionicons
-          name={item.type === 'prank' ? 'skull' : 'gift'}
+          name={item.type === "prank" ? "skull" : "gift"}
           size={32}
-          color={user.points >= item.pointsCost ? '#007AFF' : '#C7C7CC'}
+          color={user.points >= item.pointsCost ? "#007AFF" : "#C7C7CC"}
         />
       </View>
       <View style={styles.shopItemInfo}>
@@ -171,15 +174,16 @@ export default function ProfileScreen() {
       <View style={styles.profileSection}>
         <View style={styles.avatarContainer}>
           {user.profilePicture ? (
-            <Image source={{ uri: user.profilePicture }} style={styles.avatar} />
+            <Image
+              source={{ uri: user.profilePicture }}
+              style={styles.avatar}
+            />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
               <Ionicons name="person" size={48} color="#8E8E93" />
             </View>
           )}
-          <View
-            style={[styles.rankBadge, { backgroundColor: rankInfo.color }]}
-          >
+          <View style={[styles.rankBadge, { backgroundColor: rankInfo.color }]}>
             <Ionicons name={rankInfo.icon as any} size={20} color="white" />
           </View>
         </View>
@@ -290,25 +294,25 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
   },
   bannerContainer: {
     height: 150,
   },
   banner: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   bannerPlaceholder: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
   },
   profileSection: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: -50,
     paddingBottom: 20,
   },
   avatarContainer: {
-    position: 'relative',
+    position: "relative",
     marginBottom: 12,
   },
   avatar: {
@@ -316,53 +320,53 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     borderWidth: 4,
-    borderColor: 'white',
+    borderColor: "white",
   },
   avatarPlaceholder: {
-    backgroundColor: '#F2F2F7',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F2F2F7",
+    justifyContent: "center",
+    alignItems: "center",
   },
   rankBadge: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     right: 0,
     width: 36,
     height: 36,
     borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 3,
-    borderColor: 'white',
+    borderColor: "white",
   },
   userName: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#000',
+    fontWeight: "700",
+    color: "#000",
     marginBottom: 4,
   },
   rankContainer: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 16,
   },
   rankText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   statsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 16,
     gap: 12,
   },
   statCard: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -370,19 +374,19 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#007AFF',
+    fontWeight: "700",
+    color: "#007AFF",
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   shopButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#007AFF',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#007AFF",
     marginHorizontal: 16,
     marginBottom: 20,
     padding: 16,
@@ -390,12 +394,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   shopButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   section: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 12,
@@ -403,14 +407,14 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
+    fontWeight: "700",
+    color: "#000",
     marginBottom: 12,
   },
   groupCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F2F2F7',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F2F2F7",
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
@@ -418,85 +422,85 @@ const styles = StyleSheet.create({
   groupName: {
     flex: 1,
     fontSize: 16,
-    color: '#000',
+    color: "#000",
     marginLeft: 12,
   },
   achievementsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
   },
   achievementCard: {
-    width: '48%',
-    backgroundColor: '#F2F2F7',
+    width: "48%",
+    backgroundColor: "#F2F2F7",
     borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   achievementLocked: {
     opacity: 0.5,
   },
   achievementText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: "600",
+    color: "#000",
     marginTop: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   achievementTextLocked: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#8E8E93',
+    fontWeight: "600",
+    color: "#8E8E93",
     marginTop: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '80%',
+    maxHeight: "80%",
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: "#E5E5EA",
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
+    fontWeight: "700",
+    color: "#000",
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginTop: 4,
   },
   shopList: {
     padding: 16,
   },
   shopItem: {
-    flexDirection: 'row',
-    backgroundColor: '#F2F2F7',
+    flexDirection: "row",
+    backgroundColor: "#F2F2F7",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   shopItemIcon: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   shopItemInfo: {
@@ -504,33 +508,33 @@ const styles = StyleSheet.create({
   },
   shopItemName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: "600",
+    color: "#000",
     marginBottom: 4,
   },
   shopItemDescription: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginBottom: 4,
   },
   shopItemDuration: {
     fontSize: 11,
-    color: '#007AFF',
-    fontWeight: '500',
+    color: "#007AFF",
+    fontWeight: "500",
   },
   shopItemPrice: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   shopItemPriceText: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#007AFF',
+    fontWeight: "700",
+    color: "#007AFF",
   },
   shopItemPriceLabel: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   shopItemDisabled: {
-    color: '#C7C7CC',
+    color: "#C7C7CC",
   },
 });

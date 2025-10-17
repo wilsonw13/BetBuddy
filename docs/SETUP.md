@@ -3,6 +3,7 @@
 ## Installation
 
 1. **Install dependencies:**
+
 ```bash
 npm install
 ```
@@ -12,17 +13,19 @@ npm install
 Open `src/services/geminiService.ts` and replace the placeholder:
 
 ```typescript
-const API_KEY = 'YOUR_GEMINI_API_KEY_HERE';
+const API_KEY = "YOUR_GEMINI_API_KEY_HERE";
 ```
 
 Get your free API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
 
 3. **Start the app:**
+
 ```bash
 npm start
 ```
 
 4. **Run on your device:**
+
 - **iOS**: Press `i` in the terminal (requires Mac with Xcode)
 - **Android**: Press `a` in the terminal (requires Android Studio)
 - **Physical Device**: Scan the QR code with the Expo Go app
@@ -30,6 +33,7 @@ npm start
 ## Features Overview
 
 ### 1. Bets Tab
+
 - View all active bets
 - Create new bets with the floating + button
 - Use "AI Suggest" to get personalized bet ideas from Gemini
@@ -42,6 +46,7 @@ npm start
   - Points to stake
 
 ### 2. Leaderboard Tab
+
 - See rankings of all friends
 - Weighted scoring (60% success rate + 40% total wins)
 - Four rank levels:
@@ -53,6 +58,7 @@ npm start
 - Top 3 get medal icons
 
 ### 3. Profile Tab
+
 - View your stats (points, success rate, wins, total bets)
 - Your current rank level
 - Achievement badges
@@ -70,19 +76,24 @@ npm start
 ### 4. AI Features
 
 #### Bet Suggestions
+
 When creating a new bet, tap "AI Suggest" to get 5 personalized bet ideas based on:
+
 - Your interests
 - Your past betting history
 - Achievable and measurable activities
 
 #### Photo Verification
+
 When uploading proof for a bet, the AI analyzes the photo for:
+
 - Screenshots from the internet
 - Old/reused photos
 - Photo manipulation
 - Activity matching bet requirements
 
 The AI provides:
+
 - Suspicious/Not suspicious flag
 - Confidence level (0-100%)
 - Reasoning for the decision
@@ -163,22 +174,26 @@ betbuddy/
 ## Troubleshooting
 
 ### "Cannot find module" errors
+
 ```bash
 rm -rf node_modules package-lock.json
 npm install
 ```
 
 ### Metro bundler cache issues
+
 ```bash
 npm start -- --clear
 ```
 
 ### Expo Go app not connecting
+
 - Make sure your phone and computer are on the same WiFi network
 - Try restarting the Expo dev server
 - Check firewall settings
 
 ### Gemini API errors
+
 - Verify your API key is correct
 - Check you have quota remaining
 - Ensure you're using a supported region (currently US only)
@@ -193,6 +208,7 @@ npm start -- --clear
 ## Support
 
 For issues or questions, check:
+
 - README.md for detailed documentation
 - GitHub issues (if applicable)
 - Expo forums for platform-specific questions

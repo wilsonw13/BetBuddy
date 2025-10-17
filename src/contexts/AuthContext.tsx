@@ -1,10 +1,16 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useMutation } from '@apollo/client';
-import * as SecureStore from 'expo-secure-store';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { setAccessToken } from '../config/apolloClient';
-import { REGISTER, LOGIN, GOOGLE_AUTH, LOGOUT, LOGOUT_ALL } from '../graphql/mutations';
-import { GET_ME } from '../graphql/queries';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { useMutation } from "@apollo/client";
+import * as SecureStore from "expo-secure-store";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { setAccessToken } from "../config/apolloClient";
+import {
+  REGISTER,
+  LOGIN,
+  GOOGLE_AUTH,
+  LOGOUT,
+  LOGOUT_ALL,
+} from "../graphql/mutations";
+import { GET_ME } from "../graphql/queries";
 
 interface User {
   id: string;
@@ -22,7 +28,11 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, displayName: string) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    displayName: string,
+  ) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   error: string | null;
@@ -33,7 +43,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Configure Google Sign-In
 GoogleSignin.configure({
-  webClientId: 'YOUR_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com', // From Google Cloud Console
+  webClientId: "YOUR_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com", // From Google Cloud Console
   offlineAccess: true,
   forceCodeForRefreshToken: true,
 });
@@ -57,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkAuthStatus = async () => {
     try {
       setIsLoading(true);
-      const refreshToken = await SecureStore.getItemAsync('refreshToken');
+      const refreshToken = await SecureStore.getItemAsync("refreshToken");
 
       if (refreshToken) {
         // Try to get user info with current tokens
@@ -69,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setAccessToken(null);
       }
     } catch (error) {
-      console.error('Auth check error:', error);
+      console.error("Auth check error:", error);
       setUser(null);
       setAccessToken(null);
     } finally {
@@ -77,7 +87,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const register = async (email: string, password: string, displayName: string) => {
+  const register = async (
+    email: string,
+    password: string,
+    displayName: string,
+  ) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -97,12 +111,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Store tokens
         setAccessToken(accessToken);
-        await SecureStore.setItemAsync('refreshToken', refreshToken);
+        await SecureStore.setItemAsync("refreshToken", refreshToken);
 
         setUser(user);
       }
     } catch (error: any) {
-      const message = error.graphQLErrors?.[0]?.message || error.message || 'Registration failed';
+      const message =
+        error.graphQLErrors?.[0]?.message ||
+        error.message ||
+        "Registration failed";
       setError(message);
       throw new Error(message);
     } finally {
@@ -129,12 +146,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Store tokens
         setAccessToken(accessToken);
-        await SecureStore.setItemAsync('refreshToken', refreshToken);
+        await SecureStore.setItemAsync("refreshToken", refreshToken);
 
         setUser(user);
       }
     } catch (error: any) {
-      const message = error.graphQLErrors?.[0]?.message || error.message || 'Login failed';
+      const message =
+        error.graphQLErrors?.[0]?.message || error.message || "Login failed";
       setError(message);
       throw new Error(message);
     } finally {
@@ -157,7 +175,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const idToken = googleUser.idToken;
 
       if (!idToken) {
-        throw new Error('Failed to get Google ID token');
+        throw new Error("Failed to get Google ID token");
       }
 
       // Authenticate with backend
@@ -174,20 +192,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Store tokens
         setAccessToken(accessToken);
-        await SecureStore.setItemAsync('refreshToken', refreshToken);
+        await SecureStore.setItemAsync("refreshToken", refreshToken);
 
         setUser(user);
       }
     } catch (error: any) {
-      console.error('Google sign in error:', error);
+      console.error("Google sign in error:", error);
 
-      let message = 'Google sign in failed';
-      if (error.code === 'SIGN_IN_CANCELLED') {
-        message = 'Google sign in was cancelled';
-      } else if (error.code === 'IN_PROGRESS') {
-        message = 'Google sign in already in progress';
-      } else if (error.code === 'PLAY_SERVICES_NOT_AVAILABLE') {
-        message = 'Play services not available';
+      let message = "Google sign in failed";
+      if (error.code === "SIGN_IN_CANCELLED") {
+        message = "Google sign in was cancelled";
+      } else if (error.code === "IN_PROGRESS") {
+        message = "Google sign in already in progress";
+      } else if (error.code === "PLAY_SERVICES_NOT_AVAILABLE") {
+        message = "Play services not available";
       } else if (error.graphQLErrors?.[0]?.message) {
         message = error.graphQLErrors[0].message;
       } else if (error.message) {
@@ -206,7 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       setError(null);
 
-      const refreshToken = await SecureStore.getItemAsync('refreshToken');
+      const refreshToken = await SecureStore.getItemAsync("refreshToken");
 
       if (refreshToken) {
         try {
@@ -216,13 +234,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             },
           });
         } catch (err) {
-          console.error('Logout mutation error:', err);
+          console.error("Logout mutation error:", err);
         }
       }
 
       // Clear tokens
       setAccessToken(null);
-      await SecureStore.deleteItemAsync('refreshToken');
+      await SecureStore.deleteItemAsync("refreshToken");
 
       // Sign out from Google if signed in
       const isGoogleSignedIn = await GoogleSignin.isSignedIn();
@@ -232,8 +250,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setUser(null);
     } catch (error: any) {
-      console.error('Logout error:', error);
-      setError(error.message || 'Logout failed');
+      console.error("Logout error:", error);
+      setError(error.message || "Logout failed");
     } finally {
       setIsLoading(false);
     }
@@ -265,7 +283,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

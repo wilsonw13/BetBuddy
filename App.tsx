@@ -1,19 +1,19 @@
-import React from 'react';
-import { ApolloProvider } from '@apollo/client';
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
-import { Ionicons } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
+import React from "react";
+import { ApolloProvider } from "@apollo/client";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
+import { Ionicons } from "@expo/vector-icons";
+import { StatusBar } from "expo-status-bar";
 
-import { apolloClient } from './src/config/apolloClient';
-import { AuthProvider, useAuth } from './src/contexts/AuthContext';
+import { apolloClient } from "./src/config/apolloClient";
+import { AuthProvider, useAuth } from "./src/contexts/AuthContext";
 
-import LoginScreen from './src/screens/LoginScreen';
-import RegisterScreen from './src/screens/RegisterScreen';
-import BetsScreen from './src/screens/BetsScreen';
-import LeaderboardScreen from './src/screens/LeaderboardScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
+import LoginScreen from "./src/screens/LoginScreen";
+import RegisterScreen from "./src/screens/RegisterScreen";
+import BetsScreen from "./src/screens/BetsScreen";
+import LeaderboardScreen from "./src/screens/LeaderboardScreen";
+import ProfileScreen from "./src/screens/ProfileScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -31,25 +31,25 @@ function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#8E8E93',
+        tabBarActiveTintColor: "#007AFF",
+        tabBarInactiveTintColor: "#8E8E93",
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: "#FFFFFF",
           borderTopWidth: 1,
-          borderTopColor: '#E5E5EA',
+          borderTopColor: "#E5E5EA",
           paddingBottom: 5,
           paddingTop: 5,
           height: 60,
         },
         headerStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: "#FFFFFF",
           elevation: 0,
           shadowOpacity: 0,
           borderBottomWidth: 1,
-          borderBottomColor: '#E5E5EA',
+          borderBottomColor: "#E5E5EA",
         },
         headerTitleStyle: {
-          fontWeight: '600',
+          fontWeight: "600",
           fontSize: 18,
         },
       }}

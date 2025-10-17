@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,27 +10,27 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Bet, BetFrequency, ProofType } from '../types';
-import { suggestBets } from '../services/geminiService';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Bet, BetFrequency, ProofType } from "../types";
+import { suggestBets } from "../services/geminiService";
 
 // Mock data - replace with real data from your backend
 const mockBets: Bet[] = [
   {
-    id: '1',
-    userId1: 'user1',
-    userId2: 'user2',
-    betActivity: 'Go to gym 3x a week',
-    proofType: 'live_photo',
-    frequency: '3x/week',
+    id: "1",
+    userId1: "user1",
+    userId2: "user2",
+    betActivity: "Go to gym 3x a week",
+    proofType: "live_photo",
+    frequency: "3x/week",
     betLength: 30,
-    startDate: new Date('2024-01-01'),
-    endDate: new Date('2024-01-31'),
-    status: 'active',
+    startDate: new Date("2024-01-01"),
+    endDate: new Date("2024-01-31"),
+    status: "active",
     pointsStaked: 100,
     proofs: [],
-    createdAt: new Date('2024-01-01'),
+    createdAt: new Date("2024-01-01"),
   },
 ];
 
@@ -40,10 +40,10 @@ export default function BetsScreen() {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [newBet, setNewBet] = useState({
-    activity: '',
-    opponent: '',
-    frequency: '1x/week' as BetFrequency,
-    proofType: 'live_photo' as ProofType,
+    activity: "",
+    opponent: "",
+    frequency: "1x/week" as BetFrequency,
+    proofType: "live_photo" as ProofType,
     betLength: 30,
     pointsStaked: 50,
   });
@@ -51,12 +51,12 @@ export default function BetsScreen() {
   const handleGetSuggestions = async () => {
     setLoadingSuggestions(true);
     try {
-      const userInterests = ['fitness', 'productivity', 'health'];
+      const userInterests = ["fitness", "productivity", "health"];
       const pastBets = bets.map((bet) => bet.betActivity);
       const betSuggestions = await suggestBets(userInterests, pastBets);
       setSuggestions(betSuggestions);
     } catch (error) {
-      Alert.alert('Error', 'Failed to get bet suggestions');
+      Alert.alert("Error", "Failed to get bet suggestions");
     } finally {
       setLoadingSuggestions(false);
     }
@@ -64,13 +64,13 @@ export default function BetsScreen() {
 
   const handleAddBet = () => {
     if (!newBet.activity || !newBet.opponent) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      Alert.alert("Error", "Please fill in all required fields");
       return;
     }
 
     const bet: Bet = {
       id: Date.now().toString(),
-      userId1: 'currentUser',
+      userId1: "currentUser",
       userId2: newBet.opponent,
       betActivity: newBet.activity,
       proofType: newBet.proofType,
@@ -78,7 +78,7 @@ export default function BetsScreen() {
       betLength: newBet.betLength,
       startDate: new Date(),
       endDate: new Date(Date.now() + newBet.betLength * 24 * 60 * 60 * 1000),
-      status: 'active',
+      status: "active",
       pointsStaked: newBet.pointsStaked,
       proofs: [],
       createdAt: new Date(),
@@ -87,10 +87,10 @@ export default function BetsScreen() {
     setBets([bet, ...bets]);
     setModalVisible(false);
     setNewBet({
-      activity: '',
-      opponent: '',
-      frequency: '1x/week',
-      proofType: 'live_photo',
+      activity: "",
+      opponent: "",
+      frequency: "1x/week",
+      proofType: "live_photo",
       betLength: 30,
       pointsStaked: 50,
     });
@@ -98,7 +98,7 @@ export default function BetsScreen() {
 
   const renderBetItem = ({ item }: { item: Bet }) => {
     const daysLeft = Math.ceil(
-      (item.endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+      (item.endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
     );
 
     return (
@@ -121,12 +121,12 @@ export default function BetsScreen() {
         <View style={styles.betFooter}>
           <View style={styles.proofTypeContainer}>
             <Ionicons
-              name={item.proofType === 'live_photo' ? 'camera' : 'location'}
+              name={item.proofType === "live_photo" ? "camera" : "location"}
               size={14}
               color="#8E8E93"
             />
             <Text style={styles.proofTypeText}>
-              {item.proofType === 'live_photo' ? 'Live Photo' : 'Location'}
+              {item.proofType === "live_photo" ? "Live Photo" : "Location"}
             </Text>
           </View>
           <Text style={styles.daysLeft}>{daysLeft} days left</Text>
@@ -146,7 +146,9 @@ export default function BetsScreen() {
           <View style={styles.emptyContainer}>
             <Ionicons name="hand-left-outline" size={64} color="#C7C7CC" />
             <Text style={styles.emptyText}>No active bets</Text>
-            <Text style={styles.emptySubtext}>Create your first bet to get started!</Text>
+            <Text style={styles.emptySubtext}>
+              Create your first bet to get started!
+            </Text>
           </View>
         }
       />
@@ -202,7 +204,9 @@ export default function BetsScreen() {
                     <TouchableOpacity
                       key={index}
                       style={styles.suggestionChip}
-                      onPress={() => setNewBet({ ...newBet, activity: suggestion })}
+                      onPress={() =>
+                        setNewBet({ ...newBet, activity: suggestion })
+                      }
                     >
                       <Text style={styles.suggestionText}>{suggestion}</Text>
                     </TouchableOpacity>
@@ -214,7 +218,9 @@ export default function BetsScreen() {
                 style={styles.input}
                 placeholder="e.g., Go to gym 3x a week"
                 value={newBet.activity}
-                onChangeText={(text) => setNewBet({ ...newBet, activity: text })}
+                onChangeText={(text) =>
+                  setNewBet({ ...newBet, activity: text })
+                }
               />
 
               <Text style={styles.label}>Opponent (User ID)</Text>
@@ -222,32 +228,42 @@ export default function BetsScreen() {
                 style={styles.input}
                 placeholder="Enter user ID"
                 value={newBet.opponent}
-                onChangeText={(text) => setNewBet({ ...newBet, opponent: text })}
+                onChangeText={(text) =>
+                  setNewBet({ ...newBet, opponent: text })
+                }
               />
 
               <Text style={styles.label}>Frequency</Text>
               <View style={styles.optionsContainer}>
-                {['1x/week', '2x/week', '3x/week', '4x/week', 'daily', '1x/month', '2x/month'].map(
-                  (freq) => (
-                    <TouchableOpacity
-                      key={freq}
+                {[
+                  "1x/week",
+                  "2x/week",
+                  "3x/week",
+                  "4x/week",
+                  "daily",
+                  "1x/month",
+                  "2x/month",
+                ].map((freq) => (
+                  <TouchableOpacity
+                    key={freq}
+                    style={[
+                      styles.optionButton,
+                      newBet.frequency === freq && styles.optionButtonActive,
+                    ]}
+                    onPress={() =>
+                      setNewBet({ ...newBet, frequency: freq as BetFrequency })
+                    }
+                  >
+                    <Text
                       style={[
-                        styles.optionButton,
-                        newBet.frequency === freq && styles.optionButtonActive,
+                        styles.optionText,
+                        newBet.frequency === freq && styles.optionTextActive,
                       ]}
-                      onPress={() => setNewBet({ ...newBet, frequency: freq as BetFrequency })}
                     >
-                      <Text
-                        style={[
-                          styles.optionText,
-                          newBet.frequency === freq && styles.optionTextActive,
-                        ]}
-                      >
-                        {freq}
-                      </Text>
-                    </TouchableOpacity>
-                  )
-                )}
+                      {freq}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
 
               <Text style={styles.label}>Proof Type</Text>
@@ -255,19 +271,25 @@ export default function BetsScreen() {
                 <TouchableOpacity
                   style={[
                     styles.optionButton,
-                    newBet.proofType === 'live_photo' && styles.optionButtonActive,
+                    newBet.proofType === "live_photo" &&
+                      styles.optionButtonActive,
                   ]}
-                  onPress={() => setNewBet({ ...newBet, proofType: 'live_photo' })}
+                  onPress={() =>
+                    setNewBet({ ...newBet, proofType: "live_photo" })
+                  }
                 >
                   <Ionicons
                     name="camera"
                     size={18}
-                    color={newBet.proofType === 'live_photo' ? '#007AFF' : '#8E8E93'}
+                    color={
+                      newBet.proofType === "live_photo" ? "#007AFF" : "#8E8E93"
+                    }
                   />
                   <Text
                     style={[
                       styles.optionText,
-                      newBet.proofType === 'live_photo' && styles.optionTextActive,
+                      newBet.proofType === "live_photo" &&
+                        styles.optionTextActive,
                     ]}
                   >
                     Live Photo
@@ -276,19 +298,25 @@ export default function BetsScreen() {
                 <TouchableOpacity
                   style={[
                     styles.optionButton,
-                    newBet.proofType === 'location' && styles.optionButtonActive,
+                    newBet.proofType === "location" &&
+                      styles.optionButtonActive,
                   ]}
-                  onPress={() => setNewBet({ ...newBet, proofType: 'location' })}
+                  onPress={() =>
+                    setNewBet({ ...newBet, proofType: "location" })
+                  }
                 >
                   <Ionicons
                     name="location"
                     size={18}
-                    color={newBet.proofType === 'location' ? '#007AFF' : '#8E8E93'}
+                    color={
+                      newBet.proofType === "location" ? "#007AFF" : "#8E8E93"
+                    }
                   />
                   <Text
                     style={[
                       styles.optionText,
-                      newBet.proofType === 'location' && styles.optionTextActive,
+                      newBet.proofType === "location" &&
+                        styles.optionTextActive,
                     ]}
                   >
                     Location
@@ -318,7 +346,10 @@ export default function BetsScreen() {
                 }
               />
 
-              <TouchableOpacity style={styles.createButton} onPress={handleAddBet}>
+              <TouchableOpacity
+                style={styles.createButton}
+                onPress={handleAddBet}
+              >
                 <Text style={styles.createButtonText}>Create Bet</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -332,34 +363,34 @@ export default function BetsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
   },
   listContainer: {
     padding: 16,
   },
   betCard: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   betHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 12,
   },
   betIconContainer: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#E3F2FD',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#E3F2FD",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   betInfo: {
@@ -367,72 +398,72 @@ const styles = StyleSheet.create({
   },
   betActivity: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: "600",
+    color: "#000",
     marginBottom: 4,
   },
   betDetails: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   betStatus: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   pointsStaked: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#007AFF',
+    fontWeight: "700",
+    color: "#007AFF",
   },
   betFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F2F2F7',
+    borderTopColor: "#F2F2F7",
   },
   proofTypeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   proofTypeText: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginLeft: 4,
   },
   daysLeft: {
     fontSize: 12,
-    color: '#8E8E93',
-    fontWeight: '500',
+    color: "#8E8E93",
+    fontWeight: "500",
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingTop: 100,
   },
   emptyText: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: "600",
+    color: "#000",
     marginTop: 16,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: "#8E8E93",
     marginTop: 8,
   },
   addButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 24,
     right: 24,
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    backgroundColor: "#007AFF",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
@@ -440,95 +471,95 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '90%',
+    maxHeight: "90%",
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: "#E5E5EA",
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
+    fontWeight: "700",
+    color: "#000",
   },
   modalBody: {
     padding: 20,
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: "600",
+    color: "#000",
     marginBottom: 8,
     marginTop: 16,
   },
   input: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
     borderRadius: 10,
     padding: 12,
     fontSize: 16,
-    color: '#000',
+    color: "#000",
   },
   optionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
   },
   optionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F2F2F7',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F2F2F7",
     borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 16,
     gap: 4,
   },
   optionButtonActive: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: "#E3F2FD",
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: "#007AFF",
   },
   optionText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   optionTextActive: {
-    color: '#007AFF',
-    fontWeight: '600',
+    color: "#007AFF",
+    fontWeight: "600",
   },
   createButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 24,
     marginBottom: 16,
   },
   createButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   suggestionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 0,
   },
   suggestButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E3F2FD',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E3F2FD",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -536,24 +567,24 @@ const styles = StyleSheet.create({
   },
   suggestButtonText: {
     fontSize: 12,
-    color: '#007AFF',
-    fontWeight: '600',
+    color: "#007AFF",
+    fontWeight: "600",
   },
   suggestionsScroll: {
     marginVertical: 12,
   },
   suggestionChip: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: "#007AFF",
   },
   suggestionText: {
     fontSize: 13,
-    color: '#007AFF',
-    fontWeight: '500',
+    color: "#007AFF",
+    fontWeight: "500",
   },
 });

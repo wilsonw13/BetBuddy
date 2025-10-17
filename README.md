@@ -5,11 +5,13 @@ A React Native betting app where friends can challenge each other with accountab
 ## Features
 
 ### Bottom Navigation
+
 - **Bets**: View and create bets with friends
 - **Leaderboard**: See rankings based on weighted success rate and total wins
 - **Profile**: View stats, achievements, and redeem points
 
 ### Bets System
+
 - Create bets with custom activities (e.g., "Go to gym 3x a week")
 - Choose opponent from friends
 - Set frequency (1x-4x/week, daily, 1x-2x/month)
@@ -18,6 +20,7 @@ A React Native betting app where friends can challenge each other with accountab
 - Track bet duration (typically 1 month)
 
 ### AI Integration
+
 1. **Bet Suggestions**: Gemini AI suggests personalized bets based on interests
 2. **Photo Verification**: AI analyzes submitted photos for suspicious content
    - Detects screenshots from internet
@@ -26,19 +29,23 @@ A React Native betting app where friends can challenge each other with accountab
    - Verifies activity matches bet requirements
 
 ### Leaderboard
+
 - Weighted ranking system (60% success rate, 40% total successful bets)
 - Rankings: Beginner, Intermediate, Advanced, Legendary
 - Filter by friend groups
 - Medal icons for top 3 positions
 
 ### Profile & Points
+
 - Profile picture with customizable banner
 - Quick stats: success rate, total bets, wins, points
 - Achievement badges
 - Multiple friend group support
 
 ### Points Redemption Shop
+
 Redeem points for pranks and cosmetics:
+
 - **Draw on Banner** (200 pts): Draw on opponent's banner for 24h
 - **Chinese Mode** (150 pts): Change opponent's app to Chinese for 12h
 - **Icon Swap** (300 pts): Change opponent's app icon for 48h
@@ -49,6 +56,7 @@ Redeem points for pranks and cosmetics:
 ## Setup Instructions
 
 ### Prerequisites
+
 - Node.js 16+
 - npm or yarn
 - Expo CLI
@@ -57,6 +65,7 @@ Redeem points for pranks and cosmetics:
 ### Installation
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
@@ -67,6 +76,7 @@ npm install
    - Replace `YOUR_GEMINI_API_KEY_HERE` with your actual API key
 
 3. Start the development server:
+
 ```bash
 npm start
 ```
@@ -108,18 +118,21 @@ betbuddy/
 ## Key Components
 
 ### BetsScreen
+
 - Displays active bets in card format
 - Floating action button to create new bets
 - Modal with form for bet creation
 - Visual indicators for proof type and days remaining
 
 ### LeaderboardScreen
+
 - Sortable friend rankings
 - Visual rank badges (Beginner → Legendary)
 - Medal icons for top performers
 - Success rate and bet statistics
 
 ### ProfileScreen
+
 - Banner with profile picture
 - Rank badge overlay
 - Stats cards (points, success rate, wins, total bets)
@@ -128,6 +141,7 @@ betbuddy/
 - Achievement badges grid
 
 ### Gemini AI Service
+
 - `verifyBetPhoto()`: Analyzes photos for authenticity
 - `suggestBets()`: Generates personalized bet ideas
 - Returns structured JSON responses
@@ -135,13 +149,16 @@ betbuddy/
 ## Next Steps
 
 ### Backend Integration
+
 Currently uses mock data. Implement:
+
 - User authentication (Firebase, Auth0, etc.)
 - Database (Firebase Firestore, Supabase, etc.)
 - Real-time updates
 - Push notifications for bet reminders
 
 ### Additional Features
+
 - In-app camera for live photos
 - Location tracking and geofencing
 - Chat between bet participants
@@ -150,6 +167,7 @@ Currently uses mock data. Implement:
 - Custom friend groups management
 
 ### Production Setup
+
 1. Configure environment variables
 2. Set up backend API
 3. Enable push notifications
@@ -160,6 +178,7 @@ Currently uses mock data. Implement:
 ## Environment Variables
 
 Create a `.env` file:
+
 ```
 GEMINI_API_KEY=your_api_key_here
 BACKEND_API_URL=your_backend_url

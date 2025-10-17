@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,53 +6,53 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LeaderboardEntry, User } from '../types';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LeaderboardEntry, User } from "../types";
 
 // Mock data - replace with real data from your backend
 const mockUsers: User[] = [
   {
-    id: 'user1',
-    name: 'John Doe',
+    id: "user1",
+    name: "John Doe",
     successRate: 0.85,
     totalBets: 20,
     successfulBets: 17,
     points: 850,
-    rank: 'advanced',
+    rank: "advanced",
     friendGroups: [],
     pranksActive: [],
   },
   {
-    id: 'user2',
-    name: 'Jane Smith',
+    id: "user2",
+    name: "Jane Smith",
     successRate: 0.92,
     totalBets: 25,
     successfulBets: 23,
     points: 1200,
-    rank: 'legendary',
+    rank: "legendary",
     friendGroups: [],
     pranksActive: [],
   },
   {
-    id: 'user3',
-    name: 'Bob Johnson',
+    id: "user3",
+    name: "Bob Johnson",
     successRate: 0.75,
     totalBets: 12,
     successfulBets: 9,
     points: 450,
-    rank: 'intermediate',
+    rank: "intermediate",
     friendGroups: [],
     pranksActive: [],
   },
   {
-    id: 'user4',
-    name: 'Alice Williams',
-    successRate: 0.60,
+    id: "user4",
+    name: "Alice Williams",
+    successRate: 0.6,
     totalBets: 10,
     successfulBets: 6,
     points: 300,
-    rank: 'beginner',
+    rank: "beginner",
     friendGroups: [],
     pranksActive: [],
   },
@@ -67,26 +67,26 @@ const calculateScore = (user: User): number => {
 
 const getRankColor = (rank: string): string => {
   switch (rank) {
-    case 'legendary':
-      return '#FFD700';
-    case 'advanced':
-      return '#C0C0C0';
-    case 'intermediate':
-      return '#CD7F32';
+    case "legendary":
+      return "#FFD700";
+    case "advanced":
+      return "#C0C0C0";
+    case "intermediate":
+      return "#CD7F32";
     default:
-      return '#8E8E93';
+      return "#8E8E93";
   }
 };
 
 const getRankIcon = (rank: number): string => {
-  if (rank === 1) return '🥇';
-  if (rank === 2) return '🥈';
-  if (rank === 3) return '🥉';
+  if (rank === 1) return "🥇";
+  if (rank === 2) return "🥈";
+  if (rank === 3) return "🥉";
   return `${rank}`;
 };
 
 export default function LeaderboardScreen() {
-  const [selectedGroup, setSelectedGroup] = useState('All Friends');
+  const [selectedGroup, setSelectedGroup] = useState("All Friends");
 
   const leaderboard: LeaderboardEntry[] = mockUsers
     .map((user) => ({
@@ -178,19 +178,27 @@ export default function LeaderboardScreen() {
         <Text style={styles.legendTitle}>Rank Levels</Text>
         <View style={styles.legendRow}>
           <View style={styles.legendItem}>
-            <View style={[styles.legendBadge, { backgroundColor: '#8E8E93' }]} />
+            <View
+              style={[styles.legendBadge, { backgroundColor: "#8E8E93" }]}
+            />
             <Text style={styles.legendText}>Beginner</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendBadge, { backgroundColor: '#CD7F32' }]} />
+            <View
+              style={[styles.legendBadge, { backgroundColor: "#CD7F32" }]}
+            />
             <Text style={styles.legendText}>Intermediate</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendBadge, { backgroundColor: '#C0C0C0' }]} />
+            <View
+              style={[styles.legendBadge, { backgroundColor: "#C0C0C0" }]}
+            />
             <Text style={styles.legendText}>Advanced</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendBadge, { backgroundColor: '#FFD700' }]} />
+            <View
+              style={[styles.legendBadge, { backgroundColor: "#FFD700" }]}
+            />
             <Text style={styles.legendText}>Legendary</Text>
           </View>
         </View>
@@ -209,54 +217,54 @@ export default function LeaderboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: "#F2F2F7",
   },
   header: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: "#E5E5EA",
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#000',
+    fontWeight: "700",
+    color: "#000",
     marginBottom: 12,
   },
   groupSelector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F2F2F7',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F2F2F7",
     padding: 10,
     borderRadius: 8,
   },
   groupSelectorText: {
     fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '600',
+    color: "#007AFF",
+    fontWeight: "600",
     marginRight: 4,
   },
   legendContainer: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 16,
     marginTop: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    borderBottomColor: "#E5E5EA",
   },
   legendTitle: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#8E8E93',
+    fontWeight: "600",
+    color: "#8E8E93",
     marginBottom: 8,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   legendRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   legendBadge: {
     width: 12,
@@ -266,19 +274,19 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 11,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   listContainer: {
     padding: 16,
   },
   leaderboardCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
     borderRadius: 12,
     padding: 12,
     marginBottom: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -286,24 +294,24 @@ const styles = StyleSheet.create({
   },
   topThreeCard: {
     borderWidth: 2,
-    borderColor: '#FFD700',
+    borderColor: "#FFD700",
     shadowOpacity: 0.15,
     shadowRadius: 4,
   },
   rankContainer: {
     width: 40,
-    alignItems: 'center',
+    alignItems: "center",
   },
   rankEmoji: {
     fontSize: 24,
   },
   rankNumber: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#8E8E93',
+    fontWeight: "700",
+    color: "#8E8E93",
   },
   avatarContainer: {
-    position: 'relative',
+    position: "relative",
     marginRight: 12,
   },
   avatar: {
@@ -312,59 +320,59 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   avatarPlaceholder: {
-    backgroundColor: '#F2F2F7',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F2F2F7",
+    justifyContent: "center",
+    alignItems: "center",
   },
   rankBadge: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -2,
     right: -2,
     width: 20,
     height: 20,
     borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: "white",
   },
   rankBadgeText: {
     fontSize: 10,
-    fontWeight: '700',
-    color: 'white',
+    fontWeight: "700",
+    color: "white",
   },
   userInfo: {
     flex: 1,
   },
   userName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: "600",
+    color: "#000",
     marginBottom: 4,
   },
   statsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   statText: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   pointsContainer: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   pointsValue: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#007AFF',
+    fontWeight: "700",
+    color: "#007AFF",
   },
   pointsLabel: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
 });

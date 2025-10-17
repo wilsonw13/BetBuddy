@@ -1,11 +1,17 @@
-import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, fromPromise } from '@apollo/client';
-import { setContext } from '@apollo/client/link/context';
-import { onError } from '@apollo/client/link/error';
-import * as SecureStore from 'expo-secure-store';
-import { REFRESH_TOKEN } from '../graphql/mutations';
+import {
+  ApolloClient,
+  InMemoryCache,
+  HttpLink,
+  ApolloLink,
+  fromPromise,
+} from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
+import { onError } from "@apollo/client/link/error";
+import * as SecureStore from "expo-secure-store";
+import { REFRESH_TOKEN } from "../graphql/mutations";
 
 // Replace with your local IP address or deployed backend URL
-const GRAPHQL_ENDPOINT = 'http://192.168.1.100:3000/graphql';
+const GRAPHQL_ENDPOINT = "http://192.168.1.100:3000/graphql";
 
 let accessToken: string | null = null;
 
@@ -19,7 +25,7 @@ export const setAccessToken = (token: string | null) => {
 
 // Get refresh token from secure storage
 const getRefreshToken = async () => {
-  return await SecureStore.getItemAsync('refreshToken');
+  return await SecureStore.getItemAsync("refreshToken");
 };
 
 // Refresh token function
@@ -28,13 +34,13 @@ const refreshAccessToken = async () => {
     const refreshToken = await getRefreshToken();
 
     if (!refreshToken) {
-      throw new Error('No refresh token available');
+      throw new Error("No refresh token available");
     }
 
     const response = await fetch(GRAPHQL_ENDPOINT, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         query: `
@@ -64,13 +70,13 @@ const refreshAccessToken = async () => {
 
     // Update tokens
     setAccessToken(newAccessToken);
-    await SecureStore.setItemAsync('refreshToken', newRefreshToken);
+    await SecureStore.setItemAsync("refreshToken", newRefreshToken);
 
     return newAccessToken;
   } catch (error) {
     // Clear tokens on refresh failure
     setAccessToken(null);
-    await SecureStore.deleteItemAsync('refreshToken');
+    await SecureStore.deleteItemAsync("refreshToken");
     throw error;
   }
 };
@@ -87,48 +93,53 @@ const authLink = setContext(async (_, { headers }) => {
   return {
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : '',
+      authorization: token ? `Bearer ${token}` : "",
     },
   };
 });
 
 // Error Link - handles token expiration
-const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
-  if (graphQLErrors) {
-    for (const err of graphQLErrors) {
-      // Check if error is due to expired token
-      if (err.extensions?.code === 'UNAUTHENTICATED' || err.message.includes('expired')) {
-        // Try to refresh token
-        return fromPromise(
-          refreshAccessToken().catch((error) => {
-            // Token refresh failed, user needs to login again
-            setAccessToken(null);
-            SecureStore.deleteItemAsync('refreshToken');
-            // You can dispatch a logout action here if using Redux
-            return;
-          })
-        )
-          .filter((value) => Boolean(value))
-          .flatMap((newAccessToken) => {
-            // Retry the request with new token
-            const oldHeaders = operation.getContext().headers;
-            operation.setContext({
-              headers: {
-                ...oldHeaders,
-                authorization: `Bearer ${newAccessToken}`,
-              },
-            });
+const errorLink = onError(
+  ({ graphQLErrors, networkError, operation, forward }) => {
+    if (graphQLErrors) {
+      for (const err of graphQLErrors) {
+        // Check if error is due to expired token
+        if (
+          err.extensions?.code === "UNAUTHENTICATED" ||
+          err.message.includes("expired")
+        ) {
+          // Try to refresh token
+          return fromPromise(
+            refreshAccessToken().catch((error) => {
+              // Token refresh failed, user needs to login again
+              setAccessToken(null);
+              SecureStore.deleteItemAsync("refreshToken");
+              // You can dispatch a logout action here if using Redux
+              return;
+            }),
+          )
+            .filter((value) => Boolean(value))
+            .flatMap((newAccessToken) => {
+              // Retry the request with new token
+              const oldHeaders = operation.getContext().headers;
+              operation.setContext({
+                headers: {
+                  ...oldHeaders,
+                  authorization: `Bearer ${newAccessToken}`,
+                },
+              });
 
-            return forward(operation);
-          });
+              return forward(operation);
+            });
+        }
       }
     }
-  }
 
-  if (networkError) {
-    console.log(`[Network error]: ${networkError}`);
-  }
-});
+    if (networkError) {
+      console.log(`[Network error]: ${networkError}`);
+    }
+  },
+);
 
 // Create Apollo Client
 export const apolloClient = new ApolloClient({
@@ -136,15 +147,15 @@ export const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
   defaultOptions: {
     watchQuery: {
-      fetchPolicy: 'cache-and-network',
-      errorPolicy: 'all',
+      fetchPolicy: "cache-and-network",
+      errorPolicy: "all",
     },
     query: {
-      fetchPolicy: 'network-only',
-      errorPolicy: 'all',
+      fetchPolicy: "network-only",
+      errorPolicy: "all",
     },
     mutate: {
-      errorPolicy: 'all',
+      errorPolicy: "all",
     },
   },
 });

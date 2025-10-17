@@ -104,6 +104,7 @@ mutation Register($input: RegisterInput!) {
 ```
 
 **Variables:**
+
 ```json
 {
   "input": {
@@ -131,6 +132,7 @@ mutation Login($input: LoginInput!) {
 ```
 
 **Variables:**
+
 ```json
 {
   "input": {
@@ -158,6 +160,7 @@ mutation GoogleAuth($input: GoogleAuthInput!) {
 ```
 
 **Variables:**
+
 ```json
 {
   "input": {
@@ -178,6 +181,7 @@ mutation RefreshToken($input: RefreshTokenInput!) {
 ```
 
 **Variables:**
+
 ```json
 {
   "input": {
@@ -209,6 +213,7 @@ mutation LogoutAll {
 ```
 
 **Headers:**
+
 ```json
 {
   "authorization": "Bearer YOUR_ACCESS_TOKEN"
@@ -233,6 +238,7 @@ query GetMe {
 ```
 
 **Headers:**
+
 ```json
 {
   "authorization": "Bearer YOUR_ACCESS_TOKEN"
@@ -251,6 +257,7 @@ npm install
 ```
 
 New packages:
+
 - `@apollo/client` - GraphQL client
 - `graphql` - GraphQL implementation
 
@@ -259,7 +266,7 @@ New packages:
 Edit `src/config/apolloClient.ts`:
 
 ```typescript
-const GRAPHQL_ENDPOINT = 'http://YOUR_LOCAL_IP:3000/graphql';
+const GRAPHQL_ENDPOINT = "http://YOUR_LOCAL_IP:3000/graphql";
 ```
 
 ### 3. Run the App
@@ -298,23 +305,23 @@ npm start
 ### Apollo Client Features
 
 **Auto-refresh on token expiration:**
+
 ```typescript
 // In apolloClient.ts
 const errorLink = onError(({ graphQLErrors, operation, forward }) => {
   if (graphQLErrors) {
     for (const err of graphQLErrors) {
-      if (err.extensions?.code === 'UNAUTHENTICATED') {
+      if (err.extensions?.code === "UNAUTHENTICATED") {
         // Automatically refresh token and retry
-        return fromPromise(refreshAccessToken())
-          .flatMap((newToken) => {
-            // Retry with new token
-            operation.setContext({
-              headers: {
-                authorization: `Bearer ${newToken}`,
-              },
-            });
-            return forward(operation);
+        return fromPromise(refreshAccessToken()).flatMap((newToken) => {
+          // Retry with new token
+          operation.setContext({
+            headers: {
+              authorization: `Bearer ${newToken}`,
+            },
           });
+          return forward(operation);
+        });
       }
     }
   }
@@ -322,6 +329,7 @@ const errorLink = onError(({ graphQLErrors, operation, forward }) => {
 ```
 
 **Auth context in every request:**
+
 ```typescript
 // In authLink
 const authLink = setContext(async (_, { headers }) => {
@@ -329,7 +337,7 @@ const authLink = setContext(async (_, { headers }) => {
   return {
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : '',
+      authorization: token ? `Bearer ${token}` : "",
     },
   };
 });
@@ -347,11 +355,13 @@ Navigate to `http://localhost:3000/graphql` in your browser
 
 ```graphql
 mutation {
-  register(input: {
-    email: "test@test.com"
-    password: "Test1234"
-    displayName: "Test User"
-  }) {
+  register(
+    input: {
+      email: "test@test.com"
+      password: "Test1234"
+      displayName: "Test User"
+    }
+  ) {
     user {
       id
       email
@@ -367,10 +377,7 @@ mutation {
 
 ```graphql
 mutation {
-  login(input: {
-    email: "test@test.com"
-    password: "Test1234"
-  }) {
+  login(input: { email: "test@test.com", password: "Test1234" }) {
     user {
       id
       email
@@ -386,6 +393,7 @@ mutation {
 First, copy the `accessToken` from above, then:
 
 **Set HTTP Headers in Playground:**
+
 ```json
 {
   "authorization": "Bearer YOUR_ACCESS_TOKEN_HERE"
@@ -393,6 +401,7 @@ First, copy the `accessToken` from above, then:
 ```
 
 **Run query:**
+
 ```graphql
 query {
   me {
@@ -408,14 +417,14 @@ query {
 
 ## GraphQL vs REST Comparison
 
-| Feature | REST | GraphQL |
-|---------|------|---------|
-| **Endpoints** | Multiple (`/register`, `/login`, etc.) | Single (`/graphql`) |
-| **Over-fetching** | Returns all fields | Request only what you need |
-| **Type Safety** | Manual typing | Auto-generated types |
-| **Documentation** | Separate (Swagger) | Self-documenting (Schema) |
-| **Playground** | Postman/Insomnia | Built-in GraphQL Playground |
-| **Real-time** | Polling/WebSockets | GraphQL Subscriptions |
+| Feature           | REST                                   | GraphQL                     |
+| ----------------- | -------------------------------------- | --------------------------- |
+| **Endpoints**     | Multiple (`/register`, `/login`, etc.) | Single (`/graphql`)         |
+| **Over-fetching** | Returns all fields                     | Request only what you need  |
+| **Type Safety**   | Manual typing                          | Auto-generated types        |
+| **Documentation** | Separate (Swagger)                     | Self-documenting (Schema)   |
+| **Playground**    | Postman/Insomnia                       | Built-in GraphQL Playground |
+| **Real-time**     | Polling/WebSockets                     | GraphQL Subscriptions       |
 
 ### Advantages of GraphQL for BetBuddy:
 
@@ -526,6 +535,7 @@ GraphQL errors are structured:
 ```
 
 **Error codes:**
+
 - `BAD_USER_INPUT` - Validation error
 - `USER_EXISTS` - Email already registered
 - `INVALID_CREDENTIALS` - Wrong email/password
@@ -535,11 +545,12 @@ GraphQL errors are structured:
 - `INVALID_TOKEN` - Refresh token invalid/expired
 
 **Access errors in React Native:**
+
 ```typescript
 try {
   await login({ variables: { input } });
 } catch (error) {
-  const message = error.graphQLErrors?.[0]?.message || 'Login failed';
+  const message = error.graphQLErrors?.[0]?.message || "Login failed";
   const code = error.graphQLErrors?.[0]?.extensions?.code;
   console.log(message, code);
 }
@@ -565,7 +576,7 @@ const server = new ApolloServer({
   resolvers,
   plugins: [
     ApolloServerPluginLandingPageProductionDefault({
-      graphRef: 'your-graph-id@production',
+      graphRef: "your-graph-id@production",
     }),
   ],
 });
@@ -576,6 +587,7 @@ const server = new ApolloServer({
 ## Next Steps
 
 1. **Subscriptions** - Real-time bet updates
+
 ```graphql
 subscription OnBetUpdate($betId: ID!) {
   betUpdated(betId: $betId) {
@@ -590,6 +602,7 @@ subscription OnBetUpdate($betId: ID!) {
 ```
 
 2. **Pagination** - For bets list
+
 ```graphql
 query GetBets($limit: Int!, $offset: Int!) {
   bets(limit: $limit, offset: $offset) {
@@ -607,6 +620,7 @@ query GetBets($limit: Int!, $offset: Int!) {
 ```
 
 3. **Batch Operations** - Multiple mutations at once
+
 ```graphql
 mutation BatchVerifyProofs($proofIds: [ID!]!) {
   verifyProofs(ids: $proofIds) {
@@ -624,18 +638,22 @@ mutation BatchVerifyProofs($proofIds: [ID!]!) {
 ## Troubleshooting
 
 **"Cannot query field 'me' on type 'Query'"**
+
 - Schema not loaded correctly
 - Restart server: `npm run dev`
 
 **Token not being sent**
+
 - Check `apolloClient.ts` authLink
 - Verify token in memory with `getAccessToken()`
 
 **CORS errors**
+
 - Apollo Server has built-in CORS
 - Check `GRAPHQL_ENDPOINT` URL is correct
 
 **Playground not available**
+
 - Only enabled in development
 - Set `NODE_ENV=development`
 
