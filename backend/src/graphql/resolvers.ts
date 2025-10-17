@@ -2,9 +2,9 @@ import { GraphQLError } from "graphql";
 import { DateTimeResolver } from "graphql-scalars";
 import bcrypt from "bcrypt";
 import Joi from "joi";
-import { prisma } from "../config/prisma";
-import { tokenService } from "../services/tokenService";
-import { googleOAuthService } from "../services/googleOAuth";
+import { prisma } from "@/config/prisma";
+import { tokenService } from "@/services/tokenService";
+import { googleOAuthService } from "@/services/googleOAuth";
 
 const BCRYPT_ROUNDS = 12;
 

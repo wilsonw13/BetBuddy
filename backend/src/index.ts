@@ -1,10 +1,10 @@
+import dotenv from "dotenv";
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
-import dotenv from "dotenv";
-import { typeDefs } from "./graphql/schema";
-import { resolvers } from "./graphql/resolvers";
-import { tokenService } from "./services/tokenService";
-import { disconnectPrisma } from "./config/prisma";
+import { typeDefs } from "@/graphql/schema";
+import { resolvers } from "@/graphql/resolvers";
+import { tokenService } from "@/services/tokenService";
+import { disconnectPrisma } from "@/config/prisma";
 
 dotenv.config();
 
@@ -64,9 +64,9 @@ startStandaloneServer(server, {
     return {};
   },
 }).then(({ url }) => {
-  console.log(`🚀 GraphQL Server ready at ${url}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`🎮 GraphQL Playground: ${url}`);
+  console.log(`GraphQL Server ready at ${url}`);
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`GraphQL Playground: ${url}`);
 });
 
 // Graceful shutdown
@@ -81,5 +81,3 @@ process.on("SIGINT", async () => {
   await disconnectPrisma();
   process.exit(0);
 });
-
-export default server;
