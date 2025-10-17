@@ -12,8 +12,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Bet, BetFrequency, ProofType } from "../types";
-import { suggestBets } from "../services/geminiService";
+import { Bet, BetFrequency, ProofType } from "@/types";
+import { suggestBets } from "@/services/geminiService";
 
 // Mock data - replace with real data from your backend
 const mockBets: Bet[] = [

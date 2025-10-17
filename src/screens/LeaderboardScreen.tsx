@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { LeaderboardEntry, User } from "../types";
+import { LeaderboardEntry, User } from "@/types";
 
 // Mock data - replace with real data from your backend
 const mockUsers: User[] = [

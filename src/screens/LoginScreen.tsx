@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");

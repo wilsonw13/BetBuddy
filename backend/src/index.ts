@@ -1,14 +1,10 @@
-import dotenv from "dotenv";
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import { typeDefs } from "@/graphql/schema";
 import { resolvers } from "@/graphql/resolvers";
 import { tokenService } from "@/services/tokenService";
 import { disconnectPrisma } from "@/config/prisma";
-
-dotenv.config();
-
-const PORT = parseInt(process.env.PORT || "3000");
+import { HOST, PORT } from "@/config/env";
 
 interface Context {
   user?: {
@@ -37,7 +33,7 @@ const server = new ApolloServer({
 
 // Start server with context
 startStandaloneServer(server, {
-  listen: { port: PORT },
+  listen: { host: HOST, port: PORT },
   context: async ({ req }): Promise<Context> => {
     // Extract token from Authorization header
     const authHeader = req.headers.authorization || "";
