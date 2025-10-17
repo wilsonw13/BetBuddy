@@ -1,14 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Alert, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { verifyBetPhoto } from "../services/geminiService";
@@ -32,14 +23,10 @@ export default function PhotoVerificationScreen({
   const [verificationResult, setVerificationResult] = useState<any>(null);
 
   const pickImage = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      Alert.alert(
-        "Permission Required",
-        "Permission to access camera roll is required!",
-      );
+      Alert.alert("Permission Required", "Permission to access camera roll is required!");
       return;
     }
 
@@ -60,10 +47,7 @@ export default function PhotoVerificationScreen({
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      Alert.alert(
-        "Permission Required",
-        "Permission to access camera is required!",
-      );
+      Alert.alert("Permission Required", "Permission to access camera is required!");
       return;
     }
 
@@ -127,9 +111,7 @@ export default function PhotoVerificationScreen({
         {!imageUri ? (
           <View style={styles.uploadContainer}>
             <Ionicons name="camera-outline" size={80} color="#C7C7CC" />
-            <Text style={styles.uploadText}>
-              Take a photo or choose from library
-            </Text>
+            <Text style={styles.uploadText}>Take a photo or choose from library</Text>
 
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.button} onPress={takePhoto}>
@@ -137,10 +119,7 @@ export default function PhotoVerificationScreen({
                 <Text style={styles.buttonText}>Take Photo</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.button, styles.buttonSecondary]}
-                onPress={pickImage}
-              >
+              <TouchableOpacity style={[styles.button, styles.buttonSecondary]} onPress={pickImage}>
                 <Ionicons name="images" size={24} color="#007AFF" />
                 <Text style={styles.buttonTextSecondary}>Choose Photo</Text>
               </TouchableOpacity>
@@ -155,10 +134,7 @@ export default function PhotoVerificationScreen({
             </TouchableOpacity>
 
             {!verificationResult && !verifying && (
-              <TouchableOpacity
-                style={styles.verifyButton}
-                onPress={handleVerifyPhoto}
-              >
+              <TouchableOpacity style={styles.verifyButton} onPress={handleVerifyPhoto}>
                 <Ionicons name="shield-checkmark" size={20} color="white" />
                 <Text style={styles.verifyButtonText}>Verify with AI</Text>
               </TouchableOpacity>
@@ -175,69 +151,47 @@ export default function PhotoVerificationScreen({
               <View
                 style={[
                   styles.resultCard,
-                  verificationResult.isSuspicious
-                    ? styles.resultCardWarning
-                    : styles.resultCardSuccess,
+                  verificationResult.isSuspicious ? styles.resultCardWarning : styles.resultCardSuccess,
                 ]}
               >
                 <View style={styles.resultHeader}>
                   <Ionicons
-                    name={
-                      verificationResult.isSuspicious
-                        ? "alert-circle"
-                        : "checkmark-circle"
-                    }
+                    name={verificationResult.isSuspicious ? "alert-circle" : "checkmark-circle"}
                     size={32}
-                    color={
-                      verificationResult.isSuspicious ? "#FF9500" : "#34C759"
-                    }
+                    color={verificationResult.isSuspicious ? "#FF9500" : "#34C759"}
                   />
                   <Text style={styles.resultTitle}>
-                    {verificationResult.isSuspicious
-                      ? "Suspicious Photo Detected"
-                      : "Photo Looks Good"}
+                    {verificationResult.isSuspicious ? "Suspicious Photo Detected" : "Photo Looks Good"}
                   </Text>
                 </View>
 
-                <Text style={styles.resultReason}>
-                  {verificationResult.reason}
-                </Text>
+                <Text style={styles.resultReason}>{verificationResult.reason}</Text>
 
                 {verificationResult.suggestions.length > 0 && (
                   <View style={styles.suggestionsContainer}>
                     <Text style={styles.suggestionsTitle}>Suggestions:</Text>
-                    {verificationResult.suggestions.map(
-                      (suggestion: string, index: number) => (
-                        <Text key={index} style={styles.suggestionItem}>
-                          • {suggestion}
-                        </Text>
-                      ),
-                    )}
+                    {verificationResult.suggestions.map((suggestion: string, index: number) => (
+                      <Text key={index} style={styles.suggestionItem}>
+                        • {suggestion}
+                      </Text>
+                    ))}
                   </View>
                 )}
 
                 <Text style={styles.confidenceText}>
-                  Confidence: {(verificationResult.confidence * 100).toFixed(0)}
-                  %
+                  Confidence: {(verificationResult.confidence * 100).toFixed(0)}%
                 </Text>
               </View>
             )}
 
             {verificationResult && (
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={handleSubmitProof}
-              >
-                <Text style={styles.submitButtonText}>
-                  Submit Proof for Review
-                </Text>
+              <TouchableOpacity style={styles.submitButton} onPress={handleSubmitProof}>
+                <Text style={styles.submitButtonText}>Submit Proof for Review</Text>
               </TouchableOpacity>
             )}
 
             {verificationResult && verificationResult.isSuspicious && (
-              <Text style={styles.warningText}>
-                Note: Your opponent will need to verify this photo manually
-              </Text>
+              <Text style={styles.warningText}>Note: Your opponent will need to verify this photo manually</Text>
             )}
           </View>
         )}

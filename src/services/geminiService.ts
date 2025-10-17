@@ -18,10 +18,7 @@ export interface PhotoVerificationResult {
  * @param betContext - Context about the bet (e.g., "gym workout", "running")
  * @returns Verification result with suspicious flag and reasoning
  */
-export async function verifyBetPhoto(
-  imageUri: string,
-  betContext: string,
-): Promise<PhotoVerificationResult> {
+export async function verifyBetPhoto(imageUri: string, betContext: string): Promise<PhotoVerificationResult> {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -91,18 +88,13 @@ Be strict but fair. If the photo looks legitimate, mark it as not suspicious.`;
  * @param pastBets - Array of past bet activities
  * @returns Array of suggested bet activities
  */
-export async function suggestBets(
-  userInterests: string[],
-  pastBets: string[],
-): Promise<string[]> {
+export async function suggestBets(userInterests: string[], pastBets: string[]): Promise<string[]> {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `You are a bet suggestion assistant. Based on these user interests: ${userInterests.join(
       ", ",
-    )} and past bets: ${pastBets.join(
-      ", ",
-    )}, suggest 5 creative and achievable bet ideas.
+    )} and past bets: ${pastBets.join(", ")}, suggest 5 creative and achievable bet ideas.
 
 Requirements:
 - Bets should be measurable and verifiable

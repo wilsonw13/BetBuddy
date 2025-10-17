@@ -1,19 +1,8 @@
 export type ProofType = "live_photo" | "location";
 
-export type BetFrequency =
-  | "1x/week"
-  | "2x/week"
-  | "3x/week"
-  | "4x/week"
-  | "1x/month"
-  | "2x/month"
-  | "daily";
+export type BetFrequency = "1x/week" | "2x/week" | "3x/week" | "4x/week" | "1x/month" | "2x/month" | "daily";
 
-export type BetStatus =
-  | "active"
-  | "completed"
-  | "failed"
-  | "pending_verification";
+export type BetStatus = "active" | "completed" | "failed" | "pending_verification";
 
 export type UserRank = "beginner" | "intermediate" | "advanced" | "legendary";
 
@@ -80,12 +69,7 @@ export interface FriendGroup {
 
 export interface Prank {
   id: string;
-  type:
-    | "banner_draw"
-    | "chinese_language"
-    | "icon_change"
-    | "loading_screen"
-    | "custom";
+  type: "banner_draw" | "chinese_language" | "icon_change" | "loading_screen" | "custom";
   appliedBy: string;
   expiresAt: Date;
   data?: any; // custom data for the prank

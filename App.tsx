@@ -58,27 +58,21 @@ function MainTabs() {
         name="Bets"
         component={BetsScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="hand-left" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <Ionicons name="hand-left" size={size} color={color} />,
         }}
       />
       <Tab.Screen
         name="Leaderboard"
         component={LeaderboardScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="trophy" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <Ionicons name="trophy" size={size} color={color} />,
         }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
         }}
       />
     </Tab.Navigator>
@@ -92,11 +86,7 @@ function AppNavigator() {
     return null; // Add loading screen here if desired
   }
 
-  return (
-    <NavigationContainer>
-      {isAuthenticated ? <MainTabs /> : <AuthStack />}
-    </NavigationContainer>
-  );
+  return <NavigationContainer>{isAuthenticated ? <MainTabs /> : <AuthStack />}</NavigationContainer>;
 }
 
 export default function App() {

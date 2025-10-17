@@ -3,13 +3,7 @@ import { useMutation } from "@apollo/client";
 import * as SecureStore from "expo-secure-store";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { setAccessToken } from "../config/apolloClient";
-import {
-  REGISTER,
-  LOGIN,
-  GOOGLE_AUTH,
-  LOGOUT,
-  LOGOUT_ALL,
-} from "../graphql/mutations";
+import { REGISTER, LOGIN, GOOGLE_AUTH, LOGOUT, LOGOUT_ALL } from "../graphql/mutations";
 import { GET_ME } from "../graphql/queries";
 
 interface User {
@@ -28,11 +22,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (
-    email: string,
-    password: string,
-    displayName: string,
-  ) => Promise<void>;
+  register: (email: string, password: string, displayName: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   error: string | null;
@@ -87,11 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const register = async (
-    email: string,
-    password: string,
-    displayName: string,
-  ) => {
+  const register = async (email: string, password: string, displayName: string) => {
     try {
       setIsLoading(true);
       setError(null);
@@ -116,10 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(user);
       }
     } catch (error: any) {
-      const message =
-        error.graphQLErrors?.[0]?.message ||
-        error.message ||
-        "Registration failed";
+      const message = error.graphQLErrors?.[0]?.message || error.message || "Registration failed";
       setError(message);
       throw new Error(message);
     } finally {
@@ -151,8 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(user);
       }
     } catch (error: any) {
-      const message =
-        error.graphQLErrors?.[0]?.message || error.message || "Login failed";
+      const message = error.graphQLErrors?.[0]?.message || error.message || "Login failed";
       setError(message);
       throw new Error(message);
     } finally {

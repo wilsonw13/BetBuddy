@@ -78,9 +78,7 @@ class AuthService {
             this.isRefreshing = false;
 
             // Retry all queued requests with new token
-            this.refreshSubscribers.forEach((callback) =>
-              callback(newTokens.accessToken),
-            );
+            this.refreshSubscribers.forEach((callback) => callback(newTokens.accessToken));
             this.refreshSubscribers = [];
 
             originalRequest.headers.Authorization = `Bearer ${newTokens.accessToken}`;
@@ -100,20 +98,13 @@ class AuthService {
   }
 
   // Register with email/password
-  async registerWithEmail(
-    email: string,
-    password: string,
-    displayName: string,
-  ): Promise<AuthResponse> {
+  async registerWithEmail(email: string, password: string, displayName: string): Promise<AuthResponse> {
     try {
-      const response = await this.api.post<ApiResponse<AuthResponse>>(
-        "/register",
-        {
-          email,
-          password,
-          display_name: displayName,
-        },
-      );
+      const response = await this.api.post<ApiResponse<AuthResponse>>("/register", {
+        email,
+        password,
+        display_name: displayName,
+      });
 
       if (!response.data.success || !response.data.data) {
         throw new Error(response.data.error || "Registration failed");
@@ -125,22 +116,17 @@ class AuthService {
 
       return response.data.data;
     } catch (error: any) {
-      throw new Error(
-        error.response?.data?.error || error.message || "Registration failed",
-      );
+      throw new Error(error.response?.data?.error || error.message || "Registration failed");
     }
   }
 
   // Login with email/password
   async loginWithEmail(email: string, password: string): Promise<AuthResponse> {
     try {
-      const response = await this.api.post<ApiResponse<AuthResponse>>(
-        "/login",
-        {
-          email,
-          password,
-        },
-      );
+      const response = await this.api.post<ApiResponse<AuthResponse>>("/login", {
+        email,
+        password,
+      });
 
       if (!response.data.success || !response.data.data) {
         throw new Error(response.data.error || "Login failed");
@@ -152,21 +138,16 @@ class AuthService {
 
       return response.data.data;
     } catch (error: any) {
-      throw new Error(
-        error.response?.data?.error || error.message || "Login failed",
-      );
+      throw new Error(error.response?.data?.error || error.message || "Login failed");
     }
   }
 
   // Login with Google
   async loginWithGoogle(idToken: string): Promise<AuthResponse> {
     try {
-      const response = await this.api.post<ApiResponse<AuthResponse>>(
-        "/google/mobile",
-        {
-          idToken,
-        },
-      );
+      const response = await this.api.post<ApiResponse<AuthResponse>>("/google/mobile", {
+        idToken,
+      });
 
       if (!response.data.success || !response.data.data) {
         throw new Error(response.data.error || "Google login failed");
@@ -178,9 +159,7 @@ class AuthService {
 
       return response.data.data;
     } catch (error: any) {
-      throw new Error(
-        error.response?.data?.error || error.message || "Google login failed",
-      );
+      throw new Error(error.response?.data?.error || error.message || "Google login failed");
     }
   }
 
@@ -193,9 +172,7 @@ class AuthService {
         throw new Error("No refresh token available");
       }
 
-      const response = await this.api.post<
-        ApiResponse<{ accessToken: string; refreshToken: string }>
-      >("/refresh", {
+      const response = await this.api.post<ApiResponse<{ accessToken: string; refreshToken: string }>>("/refresh", {
         refreshToken,
       });
 
@@ -209,9 +186,7 @@ class AuthService {
 
       return response.data.data;
     } catch (error: any) {
-      throw new Error(
-        error.response?.data?.error || error.message || "Token refresh failed",
-      );
+      throw new Error(error.response?.data?.error || error.message || "Token refresh failed");
     }
   }
 
@@ -246,10 +221,7 @@ class AuthService {
   }
 
   // Store tokens securely
-  private async storeTokens(
-    accessToken: string,
-    refreshToken: string,
-  ): Promise<void> {
+  private async storeTokens(accessToken: string, refreshToken: string): Promise<void> {
     await SecureStore.setItemAsync("refreshToken", refreshToken);
     this.accessToken = accessToken;
   }

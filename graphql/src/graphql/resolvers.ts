@@ -16,8 +16,7 @@ const registerSchema = Joi.object({
     .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .required()
     .messages({
-      "string.pattern.base":
-        "Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number",
+      "string.pattern.base": "Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number",
       "string.min": "Password must be at least 8 characters long",
     }),
   displayName: Joi.string().min(2).max(50).required(),
@@ -119,10 +118,7 @@ export const resolvers = {
 
       // Generate tokens
       const accessToken = tokenService.generateAccessToken(user.id, user.email);
-      const refreshToken = await tokenService.generateRefreshToken(
-        user.id,
-        user.email,
-      );
+      const refreshToken = await tokenService.generateRefreshToken(user.id, user.email);
 
       return {
         user,
@@ -155,12 +151,9 @@ export const resolvers = {
 
       // Check if user has password
       if (!user.passwordHash) {
-        throw new GraphQLError(
-          "This account uses Google Sign-In. Please login with Google.",
-          {
-            extensions: { code: "OAUTH_ONLY_ACCOUNT" },
-          },
-        );
+        throw new GraphQLError("This account uses Google Sign-In. Please login with Google.", {
+          extensions: { code: "OAUTH_ONLY_ACCOUNT" },
+        });
       }
 
       // Verify password
@@ -180,10 +173,7 @@ export const resolvers = {
 
       // Generate tokens
       const accessToken = tokenService.generateAccessToken(user.id, user.email);
-      const refreshToken = await tokenService.generateRefreshToken(
-        user.id,
-        user.email,
-      );
+      const refreshToken = await tokenService.generateRefreshToken(user.id, user.email);
 
       // Return user without password hash
       const { passwordHash, ...userWithoutPassword } = user;
@@ -206,22 +196,14 @@ export const resolvers = {
 
       try {
         // Verify Google token and get profile
-        const googleProfile =
-          await googleOAuthService.verifyGoogleToken(idToken);
+        const googleProfile = await googleOAuthService.verifyGoogleToken(idToken);
 
         // Find or create user
-        const user =
-          await googleOAuthService.findOrCreateGoogleUser(googleProfile);
+        const user = await googleOAuthService.findOrCreateGoogleUser(googleProfile);
 
         // Generate tokens
-        const accessToken = tokenService.generateAccessToken(
-          user.id,
-          user.email,
-        );
-        const refreshToken = await tokenService.generateRefreshToken(
-          user.id,
-          user.email,
-        );
+        const accessToken = tokenService.generateAccessToken(user.id, user.email);
+        const refreshToken = await tokenService.generateRefreshToken(user.id, user.email);
 
         return {
           user,
@@ -229,12 +211,9 @@ export const resolvers = {
           refreshToken,
         };
       } catch (error: any) {
-        throw new GraphQLError(
-          error.message || "Google authentication failed",
-          {
-            extensions: { code: "GOOGLE_AUTH_FAILED" },
-          },
-        );
+        throw new GraphQLError(error.message || "Google authentication failed", {
+          extensions: { code: "GOOGLE_AUTH_FAILED" },
+        });
       }
     },
 
@@ -252,27 +231,17 @@ export const resolvers = {
         const payload = await tokenService.verifyRefreshToken(refreshToken);
 
         // Generate new tokens with rotation
-        const newAccessToken = tokenService.generateAccessToken(
-          payload.userId,
-          payload.email,
-        );
-        const newRefreshToken = await tokenService.rotateRefreshToken(
-          refreshToken,
-          payload.userId,
-          payload.email,
-        );
+        const newAccessToken = tokenService.generateAccessToken(payload.userId, payload.email);
+        const newRefreshToken = await tokenService.rotateRefreshToken(refreshToken, payload.userId, payload.email);
 
         return {
           accessToken: newAccessToken,
           refreshToken: newRefreshToken,
         };
       } catch (error: any) {
-        throw new GraphQLError(
-          error.message || "Invalid or expired refresh token",
-          {
-            extensions: { code: "INVALID_TOKEN" },
-          },
-        );
+        throw new GraphQLError(error.message || "Invalid or expired refresh token", {
+          extensions: { code: "INVALID_TOKEN" },
+        });
       }
     },
 

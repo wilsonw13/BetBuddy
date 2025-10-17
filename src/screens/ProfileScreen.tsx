@@ -1,15 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  Modal,
-  FlatList,
-  Alert,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Modal, FlatList, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { User, RedeemableItem, UserRank } from "../types";
 
@@ -96,28 +86,21 @@ export default function ProfileScreen() {
 
   const handleRedeem = (item: RedeemableItem) => {
     if (user.points < item.pointsCost) {
-      Alert.alert(
-        "Not Enough Points",
-        "You need more points to redeem this item.",
-      );
+      Alert.alert("Not Enough Points", "You need more points to redeem this item.");
       return;
     }
 
-    Alert.alert(
-      "Redeem Item",
-      `Redeem "${item.name}" for ${item.pointsCost} points?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Redeem",
-          onPress: () => {
-            setUser({ ...user, points: user.points - item.pointsCost });
-            Alert.alert("Success", `You redeemed "${item.name}"!`);
-            setShopModalVisible(false);
-          },
+    Alert.alert("Redeem Item", `Redeem "${item.name}" for ${item.pointsCost} points?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Redeem",
+        onPress: () => {
+          setUser({ ...user, points: user.points - item.pointsCost });
+          Alert.alert("Success", `You redeemed "${item.name}"!`);
+          setShopModalVisible(false);
         },
-      ],
-    );
+      },
+    ]);
   };
 
   const renderRedeemableItem = ({ item }: { item: RedeemableItem }) => (
@@ -134,26 +117,12 @@ export default function ProfileScreen() {
         />
       </View>
       <View style={styles.shopItemInfo}>
-        <Text
-          style={[
-            styles.shopItemName,
-            user.points < item.pointsCost && styles.shopItemDisabled,
-          ]}
-        >
-          {item.name}
-        </Text>
+        <Text style={[styles.shopItemName, user.points < item.pointsCost && styles.shopItemDisabled]}>{item.name}</Text>
         <Text style={styles.shopItemDescription}>{item.description}</Text>
-        {item.duration && (
-          <Text style={styles.shopItemDuration}>{item.duration}h duration</Text>
-        )}
+        {item.duration && <Text style={styles.shopItemDuration}>{item.duration}h duration</Text>}
       </View>
       <View style={styles.shopItemPrice}>
-        <Text
-          style={[
-            styles.shopItemPriceText,
-            user.points < item.pointsCost && styles.shopItemDisabled,
-          ]}
-        >
+        <Text style={[styles.shopItemPriceText, user.points < item.pointsCost && styles.shopItemDisabled]}>
           {item.pointsCost}
         </Text>
         <Text style={styles.shopItemPriceLabel}>pts</Text>
@@ -174,10 +143,7 @@ export default function ProfileScreen() {
       <View style={styles.profileSection}>
         <View style={styles.avatarContainer}>
           {user.profilePicture ? (
-            <Image
-              source={{ uri: user.profilePicture }}
-              style={styles.avatar}
-            />
+            <Image source={{ uri: user.profilePicture }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
               <Ionicons name="person" size={48} color="#8E8E93" />
@@ -190,9 +156,7 @@ export default function ProfileScreen() {
 
         <Text style={styles.userName}>{user.name}</Text>
         <View style={styles.rankContainer}>
-          <Text style={[styles.rankText, { color: rankInfo.color }]}>
-            {rankInfo.label}
-          </Text>
+          <Text style={[styles.rankText, { color: rankInfo.color }]}>{rankInfo.label}</Text>
         </View>
       </View>
 
@@ -202,9 +166,7 @@ export default function ProfileScreen() {
           <Text style={styles.statLabel}>Points</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>
-            {(user.successRate * 100).toFixed(0)}%
-          </Text>
+          <Text style={styles.statValue}>{(user.successRate * 100).toFixed(0)}%</Text>
           <Text style={styles.statLabel}>Success Rate</Text>
         </View>
         <View style={styles.statCard}>
@@ -217,10 +179,7 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <TouchableOpacity
-        style={styles.shopButton}
-        onPress={() => setShopModalVisible(true)}
-      >
+      <TouchableOpacity style={styles.shopButton} onPress={() => setShopModalVisible(true)}>
         <Ionicons name="gift" size={24} color="white" />
         <Text style={styles.shopButtonText}>Redeem Points</Text>
       </TouchableOpacity>
@@ -269,9 +228,7 @@ export default function ProfileScreen() {
             <View style={styles.modalHeader}>
               <View>
                 <Text style={styles.modalTitle}>Points Shop</Text>
-                <Text style={styles.modalSubtitle}>
-                  You have {user.points} points
-                </Text>
+                <Text style={styles.modalSubtitle}>You have {user.points} points</Text>
               </View>
               <TouchableOpacity onPress={() => setShopModalVisible(false)}>
                 <Ionicons name="close" size={28} color="#000" />

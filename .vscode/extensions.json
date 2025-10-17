@@ -6,6 +6,7 @@
     "dsznajder.es7-react-js-snippets",
     "expo.vscode-expo-tools",
     "mquandalle.graphql",
-    "ms-azuretools.vscode-docker"
+    "ms-azuretools.vscode-docker",
+    "editorconfig.editorconfig"
   ]
 }

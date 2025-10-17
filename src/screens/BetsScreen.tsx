@@ -97,9 +97,7 @@ export default function BetsScreen() {
   };
 
   const renderBetItem = ({ item }: { item: Bet }) => {
-    const daysLeft = Math.ceil(
-      (item.endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
-    );
+    const daysLeft = Math.ceil((item.endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
     return (
       <TouchableOpacity style={styles.betCard}>
@@ -120,14 +118,8 @@ export default function BetsScreen() {
 
         <View style={styles.betFooter}>
           <View style={styles.proofTypeContainer}>
-            <Ionicons
-              name={item.proofType === "live_photo" ? "camera" : "location"}
-              size={14}
-              color="#8E8E93"
-            />
-            <Text style={styles.proofTypeText}>
-              {item.proofType === "live_photo" ? "Live Photo" : "Location"}
-            </Text>
+            <Ionicons name={item.proofType === "live_photo" ? "camera" : "location"} size={14} color="#8E8E93" />
+            <Text style={styles.proofTypeText}>{item.proofType === "live_photo" ? "Live Photo" : "Location"}</Text>
           </View>
           <Text style={styles.daysLeft}>{daysLeft} days left</Text>
         </View>
@@ -146,17 +138,12 @@ export default function BetsScreen() {
           <View style={styles.emptyContainer}>
             <Ionicons name="hand-left-outline" size={64} color="#C7C7CC" />
             <Text style={styles.emptyText}>No active bets</Text>
-            <Text style={styles.emptySubtext}>
-              Create your first bet to get started!
-            </Text>
+            <Text style={styles.emptySubtext}>Create your first bet to get started!</Text>
           </View>
         }
       />
 
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => setModalVisible(true)}
-      >
+      <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
         <Ionicons name="add" size={28} color="white" />
       </TouchableOpacity>
 
@@ -195,18 +182,12 @@ export default function BetsScreen() {
               </View>
 
               {suggestions.length > 0 && (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.suggestionsScroll}
-                >
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.suggestionsScroll}>
                   {suggestions.map((suggestion, index) => (
                     <TouchableOpacity
                       key={index}
                       style={styles.suggestionChip}
-                      onPress={() =>
-                        setNewBet({ ...newBet, activity: suggestion })
-                      }
+                      onPress={() => setNewBet({ ...newBet, activity: suggestion })}
                     >
                       <Text style={styles.suggestionText}>{suggestion}</Text>
                     </TouchableOpacity>
@@ -218,9 +199,7 @@ export default function BetsScreen() {
                 style={styles.input}
                 placeholder="e.g., Go to gym 3x a week"
                 value={newBet.activity}
-                onChangeText={(text) =>
-                  setNewBet({ ...newBet, activity: text })
-                }
+                onChangeText={(text) => setNewBet({ ...newBet, activity: text })}
               />
 
               <Text style={styles.label}>Opponent (User ID)</Text>
@@ -228,38 +207,18 @@ export default function BetsScreen() {
                 style={styles.input}
                 placeholder="Enter user ID"
                 value={newBet.opponent}
-                onChangeText={(text) =>
-                  setNewBet({ ...newBet, opponent: text })
-                }
+                onChangeText={(text) => setNewBet({ ...newBet, opponent: text })}
               />
 
               <Text style={styles.label}>Frequency</Text>
               <View style={styles.optionsContainer}>
-                {[
-                  "1x/week",
-                  "2x/week",
-                  "3x/week",
-                  "4x/week",
-                  "daily",
-                  "1x/month",
-                  "2x/month",
-                ].map((freq) => (
+                {["1x/week", "2x/week", "3x/week", "4x/week", "daily", "1x/month", "2x/month"].map((freq) => (
                   <TouchableOpacity
                     key={freq}
-                    style={[
-                      styles.optionButton,
-                      newBet.frequency === freq && styles.optionButtonActive,
-                    ]}
-                    onPress={() =>
-                      setNewBet({ ...newBet, frequency: freq as BetFrequency })
-                    }
+                    style={[styles.optionButton, newBet.frequency === freq && styles.optionButtonActive]}
+                    onPress={() => setNewBet({ ...newBet, frequency: freq as BetFrequency })}
                   >
-                    <Text
-                      style={[
-                        styles.optionText,
-                        newBet.frequency === freq && styles.optionTextActive,
-                      ]}
-                    >
+                    <Text style={[styles.optionText, newBet.frequency === freq && styles.optionTextActive]}>
                       {freq}
                     </Text>
                   </TouchableOpacity>
@@ -269,56 +228,20 @@ export default function BetsScreen() {
               <Text style={styles.label}>Proof Type</Text>
               <View style={styles.optionsContainer}>
                 <TouchableOpacity
-                  style={[
-                    styles.optionButton,
-                    newBet.proofType === "live_photo" &&
-                      styles.optionButtonActive,
-                  ]}
-                  onPress={() =>
-                    setNewBet({ ...newBet, proofType: "live_photo" })
-                  }
+                  style={[styles.optionButton, newBet.proofType === "live_photo" && styles.optionButtonActive]}
+                  onPress={() => setNewBet({ ...newBet, proofType: "live_photo" })}
                 >
-                  <Ionicons
-                    name="camera"
-                    size={18}
-                    color={
-                      newBet.proofType === "live_photo" ? "#007AFF" : "#8E8E93"
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.optionText,
-                      newBet.proofType === "live_photo" &&
-                        styles.optionTextActive,
-                    ]}
-                  >
+                  <Ionicons name="camera" size={18} color={newBet.proofType === "live_photo" ? "#007AFF" : "#8E8E93"} />
+                  <Text style={[styles.optionText, newBet.proofType === "live_photo" && styles.optionTextActive]}>
                     Live Photo
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[
-                    styles.optionButton,
-                    newBet.proofType === "location" &&
-                      styles.optionButtonActive,
-                  ]}
-                  onPress={() =>
-                    setNewBet({ ...newBet, proofType: "location" })
-                  }
+                  style={[styles.optionButton, newBet.proofType === "location" && styles.optionButtonActive]}
+                  onPress={() => setNewBet({ ...newBet, proofType: "location" })}
                 >
-                  <Ionicons
-                    name="location"
-                    size={18}
-                    color={
-                      newBet.proofType === "location" ? "#007AFF" : "#8E8E93"
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.optionText,
-                      newBet.proofType === "location" &&
-                        styles.optionTextActive,
-                    ]}
-                  >
+                  <Ionicons name="location" size={18} color={newBet.proofType === "location" ? "#007AFF" : "#8E8E93"} />
+                  <Text style={[styles.optionText, newBet.proofType === "location" && styles.optionTextActive]}>
                     Location
                   </Text>
                 </TouchableOpacity>
@@ -330,9 +253,7 @@ export default function BetsScreen() {
                 placeholder="30"
                 keyboardType="numeric"
                 value={newBet.betLength.toString()}
-                onChangeText={(text) =>
-                  setNewBet({ ...newBet, betLength: parseInt(text) || 30 })
-                }
+                onChangeText={(text) => setNewBet({ ...newBet, betLength: parseInt(text) || 30 })}
               />
 
               <Text style={styles.label}>Points to Stake</Text>
@@ -341,15 +262,10 @@ export default function BetsScreen() {
                 placeholder="50"
                 keyboardType="numeric"
                 value={newBet.pointsStaked.toString()}
-                onChangeText={(text) =>
-                  setNewBet({ ...newBet, pointsStaked: parseInt(text) || 50 })
-                }
+                onChangeText={(text) => setNewBet({ ...newBet, pointsStaked: parseInt(text) || 50 })}
               />
 
-              <TouchableOpacity
-                style={styles.createButton}
-                onPress={handleAddBet}
-              >
+              <TouchableOpacity style={styles.createButton} onPress={handleAddBet}>
                 <Text style={styles.createButtonText}>Create Bet</Text>
               </TouchableOpacity>
             </ScrollView>

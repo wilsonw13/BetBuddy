@@ -44,14 +44,8 @@ export default function LoginScreen({ navigation }: any) {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Text style={styles.title}>Welcome Back!</Text>
           <Text style={styles.subtitle}>Sign in to continue</Text>
@@ -66,12 +60,7 @@ export default function LoginScreen({ navigation }: any) {
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Ionicons
-              name="mail-outline"
-              size={20}
-              color="#8E8E93"
-              style={styles.inputIcon}
-            />
+            <Ionicons name="mail-outline" size={20} color="#8E8E93" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="Email"
@@ -84,12 +73,7 @@ export default function LoginScreen({ navigation }: any) {
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons
-              name="lock-closed-outline"
-              size={20}
-              color="#8E8E93"
-              style={styles.inputIcon}
-            />
+            <Ionicons name="lock-closed-outline" size={20} color="#8E8E93" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="Password"
@@ -99,24 +83,12 @@ export default function LoginScreen({ navigation }: any) {
               autoCapitalize="none"
             />
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Ionicons
-                name={showPassword ? "eye-off-outline" : "eye-outline"}
-                size={20}
-                color="#8E8E93"
-              />
+              <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#8E8E93" />
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={handleLogin}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={styles.loginButtonText}>Sign In</Text>
-            )}
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isLoading}>
+            {isLoading ? <ActivityIndicator color="white" /> : <Text style={styles.loginButtonText}>Sign In</Text>}
           </TouchableOpacity>
 
           <View style={styles.divider}>
@@ -125,11 +97,7 @@ export default function LoginScreen({ navigation }: any) {
             <View style={styles.dividerLine} />
           </View>
 
-          <TouchableOpacity
-            style={styles.googleButton}
-            onPress={handleGoogleLogin}
-            disabled={isLoading}
-          >
+          <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin} disabled={isLoading}>
             <Ionicons name="logo-google" size={20} color="#DB4437" />
             <Text style={styles.googleButtonText}>Continue with Google</Text>
           </TouchableOpacity>

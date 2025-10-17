@@ -69,14 +69,8 @@ export default function RegisterScreen({ navigation }: any) {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join BetBuddy today</Text>
@@ -91,12 +85,7 @@ export default function RegisterScreen({ navigation }: any) {
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Ionicons
-              name="person-outline"
-              size={20}
-              color="#8E8E93"
-              style={styles.inputIcon}
-            />
+            <Ionicons name="person-outline" size={20} color="#8E8E93" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="Display Name"
@@ -107,12 +96,7 @@ export default function RegisterScreen({ navigation }: any) {
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons
-              name="mail-outline"
-              size={20}
-              color="#8E8E93"
-              style={styles.inputIcon}
-            />
+            <Ionicons name="mail-outline" size={20} color="#8E8E93" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="Email"
@@ -125,12 +109,7 @@ export default function RegisterScreen({ navigation }: any) {
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons
-              name="lock-closed-outline"
-              size={20}
-              color="#8E8E93"
-              style={styles.inputIcon}
-            />
+            <Ionicons name="lock-closed-outline" size={20} color="#8E8E93" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="Password"
@@ -140,21 +119,12 @@ export default function RegisterScreen({ navigation }: any) {
               autoCapitalize="none"
             />
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Ionicons
-                name={showPassword ? "eye-off-outline" : "eye-outline"}
-                size={20}
-                color="#8E8E93"
-              />
+              <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#8E8E93" />
             </TouchableOpacity>
           </View>
 
           <View style={styles.inputContainer}>
-            <Ionicons
-              name="lock-closed-outline"
-              size={20}
-              color="#8E8E93"
-              style={styles.inputIcon}
-            />
+            <Ionicons name="lock-closed-outline" size={20} color="#8E8E93" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               placeholder="Confirm Password"
@@ -166,20 +136,11 @@ export default function RegisterScreen({ navigation }: any) {
           </View>
 
           <Text style={styles.passwordHint}>
-            Password must be at least 8 characters with 1 uppercase, 1
-            lowercase, and 1 number
+            Password must be at least 8 characters with 1 uppercase, 1 lowercase, and 1 number
           </Text>
 
-          <TouchableOpacity
-            style={styles.registerButton}
-            onPress={handleRegister}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={styles.registerButtonText}>Sign Up</Text>
-            )}
+          <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={isLoading}>
+            {isLoading ? <ActivityIndicator color="white" /> : <Text style={styles.registerButtonText}>Sign Up</Text>}
           </TouchableOpacity>
 
           <View style={styles.divider}>
@@ -188,11 +149,7 @@ export default function RegisterScreen({ navigation }: any) {
             <View style={styles.dividerLine} />
           </View>
 
-          <TouchableOpacity
-            style={styles.googleButton}
-            onPress={handleGoogleRegister}
-            disabled={isLoading}
-          >
+          <TouchableOpacity style={styles.googleButton} onPress={handleGoogleRegister} disabled={isLoading}>
             <Ionicons name="logo-google" size={20} color="#DB4437" />
             <Text style={styles.googleButtonText}>Continue with Google</Text>
           </TouchableOpacity>

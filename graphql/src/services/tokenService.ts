@@ -131,11 +131,7 @@ export class TokenService {
   }
 
   // Refresh token rotation - revoke old token and issue new one
-  async rotateRefreshToken(
-    oldToken: string,
-    userId: string,
-    email: string,
-  ): Promise<string> {
+  async rotateRefreshToken(oldToken: string, userId: string, email: string): Promise<string> {
     await this.revokeRefreshToken(oldToken);
     return await this.generateRefreshToken(userId, email);
   }

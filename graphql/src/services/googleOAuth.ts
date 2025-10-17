@@ -86,9 +86,7 @@ export class GoogleOAuthService {
       if (user) {
         // If already has a different Google ID, throw error
         if (user.googleId && user.googleId !== googleProfile.googleId) {
-          throw new Error(
-            "This email is already linked to a different Google account",
-          );
+          throw new Error("This email is already linked to a different Google account");
         }
 
         // Link Google account
@@ -154,9 +152,7 @@ export class GoogleOAuthService {
     }
 
     if (!user.passwordHash) {
-      throw new Error(
-        "Cannot unlink Google account without setting a password first",
-      );
+      throw new Error("Cannot unlink Google account without setting a password first");
     }
 
     await prisma.user.update({

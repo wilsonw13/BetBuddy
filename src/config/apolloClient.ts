@@ -1,10 +1,4 @@
-import {
-  ApolloClient,
-  InMemoryCache,
-  HttpLink,
-  ApolloLink,
-  fromPromise,
-} from "@apollo/client";
+import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, fromPromise } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
 import * as SecureStore from "expo-secure-store";
@@ -65,8 +59,7 @@ const refreshAccessToken = async () => {
       throw new Error(result.errors[0].message);
     }
 
-    const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-      result.data.refreshToken;
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = result.data.refreshToken;
 
     // Update tokens
     setAccessToken(newAccessToken);
@@ -99,47 +92,42 @@ const authLink = setContext(async (_, { headers }) => {
 });
 
 // Error Link - handles token expiration
-const errorLink = onError(
-  ({ graphQLErrors, networkError, operation, forward }) => {
-    if (graphQLErrors) {
-      for (const err of graphQLErrors) {
-        // Check if error is due to expired token
-        if (
-          err.extensions?.code === "UNAUTHENTICATED" ||
-          err.message.includes("expired")
-        ) {
-          // Try to refresh token
-          return fromPromise(
-            refreshAccessToken().catch((error) => {
-              // Token refresh failed, user needs to login again
-              setAccessToken(null);
-              SecureStore.deleteItemAsync("refreshToken");
-              // You can dispatch a logout action here if using Redux
-              return;
-            }),
-          )
-            .filter((value) => Boolean(value))
-            .flatMap((newAccessToken) => {
-              // Retry the request with new token
-              const oldHeaders = operation.getContext().headers;
-              operation.setContext({
-                headers: {
-                  ...oldHeaders,
-                  authorization: `Bearer ${newAccessToken}`,
-                },
-              });
-
-              return forward(operation);
+const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
+  if (graphQLErrors) {
+    for (const err of graphQLErrors) {
+      // Check if error is due to expired token
+      if (err.extensions?.code === "UNAUTHENTICATED" || err.message.includes("expired")) {
+        // Try to refresh token
+        return fromPromise(
+          refreshAccessToken().catch((error) => {
+            // Token refresh failed, user needs to login again
+            setAccessToken(null);
+            SecureStore.deleteItemAsync("refreshToken");
+            // You can dispatch a logout action here if using Redux
+            return;
+          }),
+        )
+          .filter((value) => Boolean(value))
+          .flatMap((newAccessToken) => {
+            // Retry the request with new token
+            const oldHeaders = operation.getContext().headers;
+            operation.setContext({
+              headers: {
+                ...oldHeaders,
+                authorization: `Bearer ${newAccessToken}`,
+              },
             });
-        }
+
+            return forward(operation);
+          });
       }
     }
+  }
 
-    if (networkError) {
-      console.log(`[Network error]: ${networkError}`);
-    }
-  },
-);
+  if (networkError) {
+    console.log(`[Network error]: ${networkError}`);
+  }
+});
 
 // Create Apollo Client
 export const apolloClient = new ApolloClient({

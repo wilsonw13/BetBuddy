@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Image,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LeaderboardEntry, User } from "../types";
 
@@ -104,9 +97,7 @@ export default function LeaderboardScreen() {
     const isTopThree = item.rank <= 3;
 
     return (
-      <TouchableOpacity
-        style={[styles.leaderboardCard, isTopThree && styles.topThreeCard]}
-      >
+      <TouchableOpacity style={[styles.leaderboardCard, isTopThree && styles.topThreeCard]}>
         <View style={styles.rankContainer}>
           {isTopThree ? (
             <Text style={styles.rankEmoji}>{getRankIcon(item.rank)}</Text>
@@ -117,24 +108,14 @@ export default function LeaderboardScreen() {
 
         <View style={styles.avatarContainer}>
           {item.user.profilePicture ? (
-            <Image
-              source={{ uri: item.user.profilePicture }}
-              style={styles.avatar}
-            />
+            <Image source={{ uri: item.user.profilePicture }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
               <Ionicons name="person" size={24} color="#8E8E93" />
             </View>
           )}
-          <View
-            style={[
-              styles.rankBadge,
-              { backgroundColor: getRankColor(item.user.rank) },
-            ]}
-          >
-            <Text style={styles.rankBadgeText}>
-              {item.user.rank.charAt(0).toUpperCase()}
-            </Text>
+          <View style={[styles.rankBadge, { backgroundColor: getRankColor(item.user.rank) }]}>
+            <Text style={styles.rankBadgeText}>{item.user.rank.charAt(0).toUpperCase()}</Text>
           </View>
         </View>
 
@@ -149,9 +130,7 @@ export default function LeaderboardScreen() {
             </View>
             <View style={styles.statItem}>
               <Ionicons name="trending-up" size={14} color="#8E8E93" />
-              <Text style={styles.statText}>
-                {(item.user.successRate * 100).toFixed(0)}%
-              </Text>
+              <Text style={styles.statText}>{(item.user.successRate * 100).toFixed(0)}%</Text>
             </View>
           </View>
         </View>
@@ -178,27 +157,19 @@ export default function LeaderboardScreen() {
         <Text style={styles.legendTitle}>Rank Levels</Text>
         <View style={styles.legendRow}>
           <View style={styles.legendItem}>
-            <View
-              style={[styles.legendBadge, { backgroundColor: "#8E8E93" }]}
-            />
+            <View style={[styles.legendBadge, { backgroundColor: "#8E8E93" }]} />
             <Text style={styles.legendText}>Beginner</Text>
           </View>
           <View style={styles.legendItem}>
-            <View
-              style={[styles.legendBadge, { backgroundColor: "#CD7F32" }]}
-            />
+            <View style={[styles.legendBadge, { backgroundColor: "#CD7F32" }]} />
             <Text style={styles.legendText}>Intermediate</Text>
           </View>
           <View style={styles.legendItem}>
-            <View
-              style={[styles.legendBadge, { backgroundColor: "#C0C0C0" }]}
-            />
+            <View style={[styles.legendBadge, { backgroundColor: "#C0C0C0" }]} />
             <Text style={styles.legendText}>Advanced</Text>
           </View>
           <View style={styles.legendItem}>
-            <View
-              style={[styles.legendBadge, { backgroundColor: "#FFD700" }]}
-            />
+            <View style={[styles.legendBadge, { backgroundColor: "#FFD700" }]} />
             <Text style={styles.legendText}>Legendary</Text>
           </View>
         </View>
