@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(brew install:*)"
+      "Bash(brew install:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx prisma migrate dev:*)"
     ],
     "deny": [],
     "ask": []
