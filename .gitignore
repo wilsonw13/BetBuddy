@@ -51,6 +51,8 @@ web-build/
 # Environment
 .env.local
 .env.*.local
+*.local
+*.local.*
 
 # Temporary files
 *.log
