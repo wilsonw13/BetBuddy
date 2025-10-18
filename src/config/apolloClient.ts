@@ -4,9 +4,11 @@ import { onError } from "@apollo/client/link/error";
 import * as SecureStore from "expo-secure-store";
 import { REFRESH_TOKEN } from "../graphql/mutations";
 
-// Replace with your local IP address or deployed backend URL
-// For iOS Simulator, use localhost since it shares the same network as the host
-const GRAPHQL_ENDPOINT = "http://localhost:6767/graphql";
+// For iOS Simulator, use localhost (default) since it shares the same network as the host
+// For Android Emulator, use 10.0.2.2 (.env.local)
+const GRAPHQL_ENDPOINT = process.env.EXPO_PUBLIC_GRAPHQL_ENDPOINT || "http://localhost:6767/graphql";
+
+// hi
 
 let accessToken: string | null = null;
 
@@ -148,3 +150,22 @@ export const apolloClient = new ApolloClient({
     },
   },
 });
+
+// Health check on app load
+export const pingBackendHealth = async () => {
+  try {
+    const response = await fetch(GRAPHQL_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: "query { health }" }),
+    });
+    const result = await response.json();
+    if (result.data && result.data.health === "OK") {
+      return { status: "ok", result };
+    } else {
+      return { status: "unexpected", result };
+    }
+  } catch (err) {
+    return { status: "error", error: err };
+  }
+};

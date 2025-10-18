@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ApolloProvider } from "@apollo/client";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -8,6 +8,7 @@ import { StatusBar } from "expo-status-bar";
 
 import { apolloClient } from "./src/config/apolloClient";
 import { AuthProvider, useAuth } from "./src/contexts/AuthContext";
+import { pingBackendHealth } from "./src/config/apolloClient";
 
 import LoginScreen from "./src/screens/LoginScreen";
 import RegisterScreen from "./src/screens/RegisterScreen";
@@ -112,6 +113,18 @@ function AppNavigator() {
 }
 
 export default function App() {
+  useEffect(() => {
+    pingBackendHealth().then((result) => {
+      if (result.status === "ok") {
+        console.log("[GraphQL] Connected: OK");
+      } else if (result.status === "unexpected") {
+        console.log("[GraphQL] Unexpected response:", result.result);
+      } else {
+        console.log("[GraphQL] Connection failed:", result.error);
+      }
+    });
+  }, []);
+
   return (
     <ApolloProvider client={apolloClient}>
       <AuthProvider>
