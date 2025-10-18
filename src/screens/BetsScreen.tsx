@@ -11,6 +11,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Bet, BetFrequency, ProofType } from "@/types";
@@ -70,7 +71,7 @@ export default function BetsScreen({ navigation }: any) {
   const filteredFriends = friends.filter(
     (friend) =>
       friend.displayName.toLowerCase().includes(friendSearchQuery.toLowerCase()) ||
-      friend.email.toLowerCase().includes(friendSearchQuery.toLowerCase())
+      friend.email.toLowerCase().includes(friendSearchQuery.toLowerCase()),
   );
 
   const handleGetSuggestions = async () => {
@@ -163,12 +164,8 @@ export default function BetsScreen({ navigation }: any) {
 
   const handleProofSubmitted = (proof: any) => {
     // Update the bet with the new proof
-    setBets(prevBets =>
-      prevBets.map(bet =>
-        bet.id === proof.betId
-          ? { ...bet, proofs: [...bet.proofs, proof] }
-          : bet
-      )
+    setBets((prevBets) =>
+      prevBets.map((bet) => (bet.id === proof.betId ? { ...bet, proofs: [...bet.proofs, proof] } : bet)),
     );
   };
 
@@ -221,241 +218,252 @@ export default function BetsScreen({ navigation }: any) {
   };
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={bets}
-        renderItem={renderBetItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="hand-left-outline" size={64} color="#C7C7CC" />
-            <Text style={styles.emptyText}>No active bets</Text>
-            <Text style={styles.emptySubtext}>Create your first bet to get started!</Text>
-          </View>
-        }
-      />
-
-      <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
-        <Ionicons name="add" size={28} color="white" />
-      </TouchableOpacity>
-
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Create New Bet</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={28} color="#000" />
-              </TouchableOpacity>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <FlatList
+          data={bets}
+          renderItem={renderBetItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContainer}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="hand-left-outline" size={64} color="#C7C7CC" />
+              <Text style={styles.emptyText}>No active bets</Text>
+              <Text style={styles.emptySubtext}>Create your first bet to get started!</Text>
             </View>
+          }
+        />
 
-            <ScrollView style={styles.modalBody}>
-              <View style={styles.suggestionHeader}>
-                <Text style={styles.label}>Bet Activity</Text>
-                <TouchableOpacity
-                  style={styles.suggestButton}
-                  onPress={handleGetSuggestions}
-                  disabled={loadingSuggestions}
-                >
-                  {loadingSuggestions ? (
-                    <ActivityIndicator size="small" color="#007AFF" />
-                  ) : (
-                    <>
-                      <Ionicons name="bulb" size={16} color="#007AFF" />
-                      <Text style={styles.suggestButtonText}>AI Suggest</Text>
-                    </>
-                  )}
+        <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+          <Ionicons name="add" size={28} color="white" />
+        </TouchableOpacity>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Create New Bet</Text>
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <Ionicons name="close" size={28} color="#000" />
                 </TouchableOpacity>
               </View>
 
-              {suggestions.length > 0 && (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.suggestionsScroll}>
-                  {suggestions.map((suggestion, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={[
-                        styles.suggestionChip,
-                        newBet.activity === suggestion && styles.suggestionChipSelected,
-                      ]}
-                      onPress={() => handleSuggestionSelect(suggestion)}
-                    >
-                      <Text
-                        style={[
-                          styles.suggestionText,
-                          newBet.activity === suggestion && styles.suggestionTextSelected,
-                        ]}
+              <ScrollView style={styles.modalBody}>
+                <View style={styles.suggestionHeader}>
+                  <Text style={styles.label}>Bet Activity</Text>
+                  <TouchableOpacity
+                    style={styles.suggestButton}
+                    onPress={handleGetSuggestions}
+                    disabled={loadingSuggestions}
+                  >
+                    {loadingSuggestions ? (
+                      <ActivityIndicator size="small" color="#007AFF" />
+                    ) : (
+                      <>
+                        <Ionicons name="bulb" size={16} color="#007AFF" />
+                        <Text style={styles.suggestButtonText}>AI Suggest</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                {suggestions.length > 0 && (
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.suggestionsScroll}>
+                    {suggestions.map((suggestion, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={[styles.suggestionChip, newBet.activity === suggestion && styles.suggestionChipSelected]}
+                        onPress={() => handleSuggestionSelect(suggestion)}
                       >
-                        {suggestion}
+                        <Text
+                          style={[
+                            styles.suggestionText,
+                            newBet.activity === suggestion && styles.suggestionTextSelected,
+                          ]}
+                        >
+                          {suggestion}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                )}
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g., Go to gym 3x a week"
+                  value={newBet.activity}
+                  onChangeText={(text) => setNewBet({ ...newBet, activity: text })}
+                />
+
+                <Text style={styles.label}>Opponent</Text>
+                {selectedFriend ? (
+                  <TouchableOpacity
+                    style={styles.selectedFriendContainer}
+                    onPress={() => {
+                      setSelectedFriend(null);
+                      setNewBet({ ...newBet, opponent: "" });
+                    }}
+                  >
+                    <View style={styles.selectedFriendInfo}>
+                      <View style={styles.friendAvatarSmall}>
+                        {selectedFriend.profilePicture ? (
+                          <Image source={{ uri: selectedFriend.profilePicture }} style={styles.friendAvatarImage} />
+                        ) : (
+                          <Ionicons name="person" size={20} color="#8E8E93" />
+                        )}
+                      </View>
+                      <View style={styles.selectedFriendDetails}>
+                        <Text style={styles.selectedFriendName}>{selectedFriend.displayName}</Text>
+                        <Text style={styles.selectedFriendEmail}>{selectedFriend.email}</Text>
+                      </View>
+                    </View>
+                    <Ionicons name="close-circle" size={24} color="#8E8E93" />
+                  </TouchableOpacity>
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      style={styles.friendSearchInput}
+                      onPress={() => setShowFriendsList(!showFriendsList)}
+                    >
+                      <Ionicons name="search" size={20} color="#8E8E93" />
+                      <Text style={styles.friendSearchPlaceholder}>Search friends...</Text>
+                      <Ionicons name={showFriendsList ? "chevron-up" : "chevron-down"} size={20} color="#8E8E93" />
+                    </TouchableOpacity>
+
+                    {showFriendsList && (
+                      <View style={styles.friendsListContainer}>
+                        <TextInput
+                          style={styles.friendSearchInputField}
+                          placeholder="Type to search..."
+                          value={friendSearchQuery}
+                          onChangeText={setFriendSearchQuery}
+                          autoFocus
+                        />
+                        {friendsLoading ? (
+                          <ActivityIndicator size="small" color="#007AFF" style={styles.friendsLoader} />
+                        ) : filteredFriends.length > 0 ? (
+                          <ScrollView style={styles.friendsScroll} nestedScrollEnabled>
+                            {filteredFriends.map((friend) => (
+                              <TouchableOpacity
+                                key={friend.id}
+                                style={styles.friendItem}
+                                onPress={() => handleSelectFriend(friend)}
+                              >
+                                <View style={styles.friendAvatarSmall}>
+                                  {friend.profilePicture ? (
+                                    <Image source={{ uri: friend.profilePicture }} style={styles.friendAvatarImage} />
+                                  ) : (
+                                    <Ionicons name="person" size={20} color="#8E8E93" />
+                                  )}
+                                </View>
+                                <View style={styles.friendItemDetails}>
+                                  <Text style={styles.friendItemName}>{friend.displayName}</Text>
+                                  <Text style={styles.friendItemEmail}>{friend.email}</Text>
+                                </View>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                        ) : (
+                          <View style={styles.noFriendsContainer}>
+                            <Ionicons name="people-outline" size={32} color="#C7C7CC" />
+                            <Text style={styles.noFriendsText}>
+                              {friendSearchQuery ? "No friends found" : "No friends yet"}
+                            </Text>
+                            <Text style={styles.noFriendsSubtext}>
+                              {friendSearchQuery ? "Try a different search" : "Add friends to create bets"}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                  </>
+                )}
+
+                <Text style={styles.label}>Frequency</Text>
+                <View style={styles.optionsContainer}>
+                  {["1x/week", "2x/week", "3x/week", "4x/week", "daily", "1x/month", "2x/month"].map((freq) => (
+                    <TouchableOpacity
+                      key={freq}
+                      style={[styles.optionButton, newBet.frequency === freq && styles.optionButtonActive]}
+                      onPress={() => setNewBet({ ...newBet, frequency: freq as BetFrequency })}
+                    >
+                      <Text style={[styles.optionText, newBet.frequency === freq && styles.optionTextActive]}>
+                        {freq}
                       </Text>
                     </TouchableOpacity>
                   ))}
-                </ScrollView>
-              )}
+                </View>
 
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., Go to gym 3x a week"
-                value={newBet.activity}
-                onChangeText={(text) => setNewBet({ ...newBet, activity: text })}
-              />
-
-              <Text style={styles.label}>Opponent</Text>
-              {selectedFriend ? (
-                <TouchableOpacity
-                  style={styles.selectedFriendContainer}
-                  onPress={() => {
-                    setSelectedFriend(null);
-                    setNewBet({ ...newBet, opponent: "" });
-                  }}
-                >
-                  <View style={styles.selectedFriendInfo}>
-                    <View style={styles.friendAvatarSmall}>
-                      {selectedFriend.profilePicture ? (
-                        <Image source={{ uri: selectedFriend.profilePicture }} style={styles.friendAvatarImage} />
-                      ) : (
-                        <Ionicons name="person" size={20} color="#8E8E93" />
-                      )}
-                    </View>
-                    <View style={styles.selectedFriendDetails}>
-                      <Text style={styles.selectedFriendName}>{selectedFriend.displayName}</Text>
-                      <Text style={styles.selectedFriendEmail}>{selectedFriend.email}</Text>
-                    </View>
-                  </View>
-                  <Ionicons name="close-circle" size={24} color="#8E8E93" />
-                </TouchableOpacity>
-              ) : (
-                <>
+                <Text style={styles.label}>Proof Type</Text>
+                <View style={styles.optionsContainer}>
                   <TouchableOpacity
-                    style={styles.friendSearchInput}
-                    onPress={() => setShowFriendsList(!showFriendsList)}
+                    style={[styles.optionButton, newBet.proofType === "live_photo" && styles.optionButtonActive]}
+                    onPress={() => setNewBet({ ...newBet, proofType: "live_photo" })}
                   >
-                    <Ionicons name="search" size={20} color="#8E8E93" />
-                    <Text style={styles.friendSearchPlaceholder}>Search friends...</Text>
-                    <Ionicons name={showFriendsList ? "chevron-up" : "chevron-down"} size={20} color="#8E8E93" />
-                  </TouchableOpacity>
-
-                  {showFriendsList && (
-                    <View style={styles.friendsListContainer}>
-                      <TextInput
-                        style={styles.friendSearchInputField}
-                        placeholder="Type to search..."
-                        value={friendSearchQuery}
-                        onChangeText={setFriendSearchQuery}
-                        autoFocus
-                      />
-                      {friendsLoading ? (
-                        <ActivityIndicator size="small" color="#007AFF" style={styles.friendsLoader} />
-                      ) : filteredFriends.length > 0 ? (
-                        <ScrollView style={styles.friendsScroll} nestedScrollEnabled>
-                          {filteredFriends.map((friend) => (
-                            <TouchableOpacity
-                              key={friend.id}
-                              style={styles.friendItem}
-                              onPress={() => handleSelectFriend(friend)}
-                            >
-                              <View style={styles.friendAvatarSmall}>
-                                {friend.profilePicture ? (
-                                  <Image source={{ uri: friend.profilePicture }} style={styles.friendAvatarImage} />
-                                ) : (
-                                  <Ionicons name="person" size={20} color="#8E8E93" />
-                                )}
-                              </View>
-                              <View style={styles.friendItemDetails}>
-                                <Text style={styles.friendItemName}>{friend.displayName}</Text>
-                                <Text style={styles.friendItemEmail}>{friend.email}</Text>
-                              </View>
-                            </TouchableOpacity>
-                          ))}
-                        </ScrollView>
-                      ) : (
-                        <View style={styles.noFriendsContainer}>
-                          <Ionicons name="people-outline" size={32} color="#C7C7CC" />
-                          <Text style={styles.noFriendsText}>
-                            {friendSearchQuery ? "No friends found" : "No friends yet"}
-                          </Text>
-                          <Text style={styles.noFriendsSubtext}>
-                            {friendSearchQuery ? "Try a different search" : "Add friends to create bets"}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  )}
-                </>
-              )}
-
-              <Text style={styles.label}>Frequency</Text>
-              <View style={styles.optionsContainer}>
-                {["1x/week", "2x/week", "3x/week", "4x/week", "daily", "1x/month", "2x/month"].map((freq) => (
-                  <TouchableOpacity
-                    key={freq}
-                    style={[styles.optionButton, newBet.frequency === freq && styles.optionButtonActive]}
-                    onPress={() => setNewBet({ ...newBet, frequency: freq as BetFrequency })}
-                  >
-                    <Text style={[styles.optionText, newBet.frequency === freq && styles.optionTextActive]}>
-                      {freq}
+                    <Ionicons
+                      name="camera"
+                      size={18}
+                      color={newBet.proofType === "live_photo" ? "#007AFF" : "#8E8E93"}
+                    />
+                    <Text style={[styles.optionText, newBet.proofType === "live_photo" && styles.optionTextActive]}>
+                      Live Photo
                     </Text>
                   </TouchableOpacity>
-                ))}
-              </View>
+                  <TouchableOpacity
+                    style={[styles.optionButton, newBet.proofType === "location" && styles.optionButtonActive]}
+                    onPress={() => setNewBet({ ...newBet, proofType: "location" })}
+                  >
+                    <Ionicons
+                      name="location"
+                      size={18}
+                      color={newBet.proofType === "location" ? "#007AFF" : "#8E8E93"}
+                    />
+                    <Text style={[styles.optionText, newBet.proofType === "location" && styles.optionTextActive]}>
+                      Location
+                    </Text>
+                  </TouchableOpacity>
+                </View>
 
-              <Text style={styles.label}>Proof Type</Text>
-              <View style={styles.optionsContainer}>
-                <TouchableOpacity
-                  style={[styles.optionButton, newBet.proofType === "live_photo" && styles.optionButtonActive]}
-                  onPress={() => setNewBet({ ...newBet, proofType: "live_photo" })}
-                >
-                  <Ionicons name="camera" size={18} color={newBet.proofType === "live_photo" ? "#007AFF" : "#8E8E93"} />
-                  <Text style={[styles.optionText, newBet.proofType === "live_photo" && styles.optionTextActive]}>
-                    Live Photo
-                  </Text>
+                <Text style={styles.label}>Bet Length (days)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="30"
+                  keyboardType="numeric"
+                  value={newBet.betLength.toString()}
+                  onChangeText={(text) => setNewBet({ ...newBet, betLength: parseInt(text) || 30 })}
+                />
+
+                <Text style={styles.label}>Points to Stake</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="50"
+                  keyboardType="numeric"
+                  value={newBet.pointsStaked.toString()}
+                  onChangeText={(text) => setNewBet({ ...newBet, pointsStaked: parseInt(text) || 50 })}
+                />
+
+                <TouchableOpacity style={styles.createButton} onPress={handleAddBet}>
+                  <Text style={styles.createButtonText}>Create Bet</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.optionButton, newBet.proofType === "location" && styles.optionButtonActive]}
-                  onPress={() => setNewBet({ ...newBet, proofType: "location" })}
-                >
-                  <Ionicons name="location" size={18} color={newBet.proofType === "location" ? "#007AFF" : "#8E8E93"} />
-                  <Text style={[styles.optionText, newBet.proofType === "location" && styles.optionTextActive]}>
-                    Location
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <Text style={styles.label}>Bet Length (days)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="30"
-                keyboardType="numeric"
-                value={newBet.betLength.toString()}
-                onChangeText={(text) => setNewBet({ ...newBet, betLength: parseInt(text) || 30 })}
-              />
-
-              <Text style={styles.label}>Points to Stake</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="50"
-                keyboardType="numeric"
-                value={newBet.pointsStaked.toString()}
-                onChangeText={(text) => setNewBet({ ...newBet, pointsStaked: parseInt(text) || 50 })}
-              />
-
-              <TouchableOpacity style={styles.createButton} onPress={handleAddBet}>
-                <Text style={styles.createButtonText}>Create Bet</Text>
-              </TouchableOpacity>
-            </ScrollView>
+              </ScrollView>
+            </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F2F2F7",
+  },
   container: {
     flex: 1,
     backgroundColor: "#F2F2F7",
