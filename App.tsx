@@ -15,6 +15,7 @@ import BetsScreen from "./src/screens/BetsScreen";
 import LeaderboardScreen from "./src/screens/LeaderboardScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import FriendGroupsScreen from "./src/screens/FriendGroupsScreen";
+import SubmitProofScreen from "./src/screens/SubmitProofScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -24,6 +25,15 @@ function AuthStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function BetsStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="BetsHome" component={BetsScreen} />
+      <Stack.Screen name="SubmitProof" component={SubmitProofScreen} />
     </Stack.Navigator>
   );
 }
@@ -66,9 +76,10 @@ function MainTabs() {
     >
       <Tab.Screen
         name="Bets"
-        component={BetsScreen}
+        component={BetsStack}
         options={{
           tabBarIcon: ({ color, size }) => <Ionicons name="hand-left" size={size} color={color} />,
+          headerShown: false,
         }}
       />
       <Tab.Screen

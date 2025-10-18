@@ -28,6 +28,12 @@ export const GET_MY_FRIENDS = gql`
       email
       displayName
       profilePicture
+      # Optional leaderboard stats (backend may provide these fields)
+      successRate
+      totalBets
+      successfulBets
+      points
+      rank
       createdAt
     }
   }

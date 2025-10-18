@@ -11,6 +11,11 @@ const BCRYPT_ROUNDS = 12;
 // Validation schemas
 const registerSchema = Joi.object({
   email: Joi.string().email().required(),
+  username: Joi.string().alphanum().min(3).max(20).required().messages({
+    "string.alphanum": "Username must only contain letters and numbers",
+    "string.min": "Username must be at least 3 characters long",
+    "string.max": "Username must be at most 20 characters long",
+  }),
   password: Joi.string()
     .min(8)
     .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
@@ -52,6 +57,7 @@ export const resolvers = {
         select: {
           id: true,
           email: true,
+          username: true,
           displayName: true,
           profilePicture: true,
           emailVerified: true,
@@ -87,6 +93,7 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
+              username: true,
               displayName: true,
               profilePicture: true,
               createdAt: true,
@@ -96,6 +103,7 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
+              username: true,
               displayName: true,
               profilePicture: true,
               createdAt: true,
@@ -127,6 +135,7 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
+              username: true,
               displayName: true,
               profilePicture: true,
               emailVerified: true,
@@ -138,6 +147,7 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
+              username: true,
               displayName: true,
               profilePicture: true,
               emailVerified: true,
@@ -171,6 +181,7 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
+              username: true,
               displayName: true,
               profilePicture: true,
               emailVerified: true,
@@ -182,6 +193,7 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
+              username: true,
               displayName: true,
               profilePicture: true,
               emailVerified: true,
@@ -197,13 +209,432 @@ export const resolvers = {
 
       return requests;
     },
+
+    myBets: async (_: any, __: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const bets = await prisma.bet.findMany({
+        where: {
+          OR: [
+            { creatorId: context.user.userId },
+            {
+              participants: {
+                some: {
+                  userId: context.user.userId,
+                },
+              },
+            },
+          ],
+        },
+        include: {
+          creator: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              displayName: true,
+              profilePicture: true,
+            },
+          },
+          group: true,
+          participants: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+          proofs: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return bets;
+    },
+
+    pendingBets: async (_: any, __: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const bets = await prisma.bet.findMany({
+        where: {
+          status: "pending",
+          participants: {
+            some: {
+              userId: context.user.userId,
+              status: "pending",
+            },
+          },
+        },
+        include: {
+          creator: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              displayName: true,
+              profilePicture: true,
+            },
+          },
+          group: true,
+          participants: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+          proofs: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return bets;
+    },
+
+    activeBets: async (_: any, __: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const bets = await prisma.bet.findMany({
+        where: {
+          status: "active",
+          OR: [
+            { creatorId: context.user.userId },
+            {
+              participants: {
+                some: {
+                  userId: context.user.userId,
+                },
+              },
+            },
+          ],
+        },
+        include: {
+          creator: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              displayName: true,
+              profilePicture: true,
+            },
+          },
+          group: true,
+          participants: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+          proofs: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return bets;
+    },
+
+    completedBets: async (_: any, __: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const bets = await prisma.bet.findMany({
+        where: {
+          status: "completed",
+          OR: [
+            { creatorId: context.user.userId },
+            {
+              participants: {
+                some: {
+                  userId: context.user.userId,
+                },
+              },
+            },
+          ],
+        },
+        include: {
+          creator: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              displayName: true,
+              profilePicture: true,
+            },
+          },
+          group: true,
+          participants: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+          proofs: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return bets;
+    },
+
+    bet: async (_: any, { id }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const bet = await prisma.bet.findUnique({
+        where: { id },
+        include: {
+          creator: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              displayName: true,
+              profilePicture: true,
+            },
+          },
+          group: true,
+          participants: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+          proofs: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!bet) {
+        throw new GraphQLError("Bet not found", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+
+      return bet;
+    },
+
+    myBetGroups: async (_: any, __: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const groups = await prisma.betGroup.findMany({
+        where: {
+          OR: [
+            { ownerId: context.user.userId },
+            {
+              members: {
+                some: {
+                  userId: context.user.userId,
+                },
+              },
+            },
+          ],
+        },
+        include: {
+          owner: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              displayName: true,
+              profilePicture: true,
+            },
+          },
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+          bets: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return groups;
+    },
+
+    betGroup: async (_: any, { id }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const group = await prisma.betGroup.findUnique({
+        where: { id },
+        include: {
+          owner: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              displayName: true,
+              profilePicture: true,
+            },
+          },
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+          bets: true,
+        },
+      });
+
+      if (!group) {
+        throw new GraphQLError("Bet group not found", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+
+      return group;
+    },
   },
 
   Mutation: {
     register: async (_: any, { input }: any) => {
       // Debug: log incoming register input (sanitized)
       // eslint-disable-next-line no-console
-      console.debug("Register resolver input:", { email: input?.email, displayName: input?.displayName });
+      console.debug("Register resolver input:", { email: input?.email, username: input?.username, displayName: input?.displayName });
       // Validate input
       const { error, value } = registerSchema.validate(input);
       if (error) {
@@ -212,16 +643,27 @@ export const resolvers = {
         });
       }
 
-      const { email, password, displayName } = value;
+      const { email, username, password, displayName } = value;
 
-      // Check if user exists
-      const existingUser = await prisma.user.findUnique({
+      // Check if email exists
+      const existingEmail = await prisma.user.findUnique({
         where: { email: email.toLowerCase() },
       });
 
-      if (existingUser) {
+      if (existingEmail) {
         throw new GraphQLError("User with this email already exists", {
           extensions: { code: "USER_EXISTS" },
+        });
+      }
+
+      // Check if username exists
+      const existingUsername = await prisma.user.findUnique({
+        where: { username: username.toLowerCase() },
+      });
+
+      if (existingUsername) {
+        throw new GraphQLError("Username already taken", {
+          extensions: { code: "USERNAME_EXISTS" },
         });
       }
 
@@ -232,6 +674,7 @@ export const resolvers = {
       const user = await prisma.user.create({
         data: {
           email: email.toLowerCase(),
+          username: username.toLowerCase(),
           passwordHash,
           displayName,
           emailVerified: false,
@@ -239,6 +682,7 @@ export const resolvers = {
         select: {
           id: true,
           email: true,
+          username: true,
           displayName: true,
           profilePicture: true,
           emailVerified: true,
@@ -419,16 +863,16 @@ export const resolvers = {
       }
     },
 
-    sendFriendRequest: async (_: any, { toUserEmail }: any, context: Context) => {
+    sendFriendRequest: async (_: any, { toUsername }: any, context: Context) => {
       if (!context.user) {
         throw new GraphQLError("Not authenticated", {
           extensions: { code: "UNAUTHENTICATED" },
         });
       }
 
-      // Find the user by email
+      // Find the user by username
       const toUser = await prisma.user.findUnique({
-        where: { email: toUserEmail.toLowerCase() },
+        where: { username: toUsername.toLowerCase() },
       });
 
       if (!toUser) {
@@ -487,6 +931,7 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
+              username: true,
               displayName: true,
               profilePicture: true,
               emailVerified: true,
@@ -498,6 +943,7 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
+              username: true,
               displayName: true,
               profilePicture: true,
               emailVerified: true,
@@ -630,6 +1076,535 @@ export const resolvers = {
         success: true,
         message: "Friend removed",
       };
+    },
+
+    createBetGroup: async (_: any, { input }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const { name, description, memberUsernames } = input;
+
+      // Find all users by username
+      const users = await prisma.user.findMany({
+        where: {
+          username: {
+            in: memberUsernames.map((u: string) => u.toLowerCase()),
+          },
+        },
+      });
+
+      if (users.length !== memberUsernames.length) {
+        throw new GraphQLError("One or more usernames not found", {
+          extensions: { code: "USER_NOT_FOUND" },
+        });
+      }
+
+      // Create group with members
+      const group = await prisma.betGroup.create({
+        data: {
+          name,
+          description,
+          ownerId: context.user.userId,
+          members: {
+            create: users.map((user) => ({
+              userId: user.id,
+            })),
+          },
+        },
+        include: {
+          owner: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              displayName: true,
+              profilePicture: true,
+            },
+          },
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+          bets: true,
+        },
+      });
+
+      return group;
+    },
+
+    addGroupMembers: async (_: any, { groupId, usernames }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const group = await prisma.betGroup.findUnique({
+        where: { id: groupId },
+      });
+
+      if (!group) {
+        throw new GraphQLError("Bet group not found", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+
+      if (group.ownerId !== context.user.userId) {
+        throw new GraphQLError("Only group owner can add members", {
+          extensions: { code: "UNAUTHORIZED" },
+        });
+      }
+
+      // Find all users by username
+      const users = await prisma.user.findMany({
+        where: {
+          username: {
+            in: usernames.map((u: string) => u.toLowerCase()),
+          },
+        },
+      });
+
+      if (users.length !== usernames.length) {
+        throw new GraphQLError("One or more usernames not found", {
+          extensions: { code: "USER_NOT_FOUND" },
+        });
+      }
+
+      // Add members
+      await prisma.groupMember.createMany({
+        data: users.map((user) => ({
+          groupId,
+          userId: user.id,
+        })),
+        skipDuplicates: true,
+      });
+
+      const updatedGroup = await prisma.betGroup.findUnique({
+        where: { id: groupId },
+        include: {
+          owner: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              displayName: true,
+              profilePicture: true,
+            },
+          },
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+          bets: true,
+        },
+      });
+
+      return updatedGroup;
+    },
+
+    removeGroupMember: async (_: any, { groupId, userId }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const group = await prisma.betGroup.findUnique({
+        where: { id: groupId },
+      });
+
+      if (!group) {
+        throw new GraphQLError("Bet group not found", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+
+      if (group.ownerId !== context.user.userId) {
+        throw new GraphQLError("Only group owner can remove members", {
+          extensions: { code: "UNAUTHORIZED" },
+        });
+      }
+
+      await prisma.groupMember.deleteMany({
+        where: {
+          groupId,
+          userId,
+        },
+      });
+
+      return {
+        success: true,
+        message: "Member removed from group",
+      };
+    },
+
+    createBet: async (_: any, { input }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const { title, description, betActivity, proofType, frequency, betLength, pointsStaked, startDate, participantUsernames, groupId } = input;
+
+      // Calculate end date
+      const start = new Date(startDate);
+      const end = new Date(start.getTime() + betLength * 24 * 60 * 60 * 1000);
+
+      // Find all participants by username
+      const participants = await prisma.user.findMany({
+        where: {
+          username: {
+            in: participantUsernames.map((u: string) => u.toLowerCase()),
+          },
+        },
+      });
+
+      if (participants.length !== participantUsernames.length) {
+        throw new GraphQLError("One or more participant usernames not found", {
+          extensions: { code: "USER_NOT_FOUND" },
+        });
+      }
+
+      // Create bet with participants
+      const bet = await prisma.bet.create({
+        data: {
+          title,
+          description,
+          betActivity,
+          proofType,
+          frequency,
+          betLength,
+          pointsStaked,
+          startDate: start,
+          endDate: end,
+          status: "pending",
+          creatorId: context.user.userId,
+          groupId,
+          isGroupBet: !!groupId,
+          participants: {
+            create: participants.map((participant) => ({
+              userId: participant.id,
+              status: participant.id === context.user.userId ? "accepted" : "pending",
+              acceptedAt: participant.id === context.user.userId ? new Date() : null,
+            })),
+          },
+        },
+        include: {
+          creator: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              displayName: true,
+              profilePicture: true,
+            },
+          },
+          group: true,
+          participants: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+          proofs: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  username: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return bet;
+    },
+
+    acceptBet: async (_: any, { betId }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const participant = await prisma.betParticipant.findFirst({
+        where: {
+          betId,
+          userId: context.user.userId,
+        },
+      });
+
+      if (!participant) {
+        throw new GraphQLError("You are not a participant in this bet", {
+          extensions: { code: "UNAUTHORIZED" },
+        });
+      }
+
+      if (participant.status !== "pending") {
+        throw new GraphQLError("Bet already processed", {
+          extensions: { code: "BET_PROCESSED" },
+        });
+      }
+
+      // Update participant status
+      await prisma.betParticipant.update({
+        where: { id: participant.id },
+        data: {
+          status: "accepted",
+          acceptedAt: new Date(),
+        },
+      });
+
+      // Check if all participants have accepted
+      const allParticipants = await prisma.betParticipant.findMany({
+        where: { betId },
+      });
+
+      const allAccepted = allParticipants.every((p) => p.status === "accepted");
+
+      // If all accepted, update bet status to active
+      if (allAccepted) {
+        await prisma.bet.update({
+          where: { id: betId },
+          data: { status: "active" },
+        });
+      }
+
+      return {
+        success: true,
+        message: allAccepted ? "Bet is now active!" : "Bet accepted",
+      };
+    },
+
+    declineBet: async (_: any, { betId }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const participant = await prisma.betParticipant.findFirst({
+        where: {
+          betId,
+          userId: context.user.userId,
+        },
+      });
+
+      if (!participant) {
+        throw new GraphQLError("You are not a participant in this bet", {
+          extensions: { code: "UNAUTHORIZED" },
+        });
+      }
+
+      if (participant.status !== "pending") {
+        throw new GraphQLError("Bet already processed", {
+          extensions: { code: "BET_PROCESSED" },
+        });
+      }
+
+      // Update participant status to declined
+      await prisma.betParticipant.update({
+        where: { id: participant.id },
+        data: { status: "declined" },
+      });
+
+      // Update bet status to cancelled since someone declined
+      await prisma.bet.update({
+        where: { id: betId },
+        data: { status: "cancelled" },
+      });
+
+      return {
+        success: true,
+        message: "Bet declined",
+      };
+    },
+
+    cancelBet: async (_: any, { betId }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const bet = await prisma.bet.findUnique({
+        where: { id: betId },
+      });
+
+      if (!bet) {
+        throw new GraphQLError("Bet not found", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+
+      if (bet.creatorId !== context.user.userId) {
+        throw new GraphQLError("Only bet creator can cancel the bet", {
+          extensions: { code: "UNAUTHORIZED" },
+        });
+      }
+
+      if (bet.status === "active" || bet.status === "completed") {
+        throw new GraphQLError("Cannot cancel an active or completed bet", {
+          extensions: { code: "INVALID_STATUS" },
+        });
+      }
+
+      await prisma.bet.update({
+        where: { id: betId },
+        data: { status: "cancelled" },
+      });
+
+      return {
+        success: true,
+        message: "Bet cancelled",
+      };
+    },
+
+    submitProof: async (_: any, { input }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const { betId, proofType, imageUrl, latitude, longitude, address, aiSuggestionSuspicious, aiSuggestionReason, aiSuggestionConfidence } = input;
+
+      // Check if user is participant in bet
+      const participant = await prisma.betParticipant.findFirst({
+        where: {
+          betId,
+          userId: context.user.userId,
+        },
+      });
+
+      if (!participant) {
+        throw new GraphQLError("You are not a participant in this bet", {
+          extensions: { code: "UNAUTHORIZED" },
+        });
+      }
+
+      // Create proof
+      const proof = await prisma.betProof.create({
+        data: {
+          betId,
+          userId: context.user.userId,
+          proofType,
+          imageUrl,
+          latitude,
+          longitude,
+          address,
+          aiSuggestionSuspicious,
+          aiSuggestionReason,
+          aiSuggestionConfidence,
+          verified: false,
+        },
+        include: {
+          bet: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              displayName: true,
+              profilePicture: true,
+            },
+          },
+        },
+      });
+
+      return proof;
+    },
+
+    verifyProof: async (_: any, { proofId, verified }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const proof = await prisma.betProof.findUnique({
+        where: { id: proofId },
+        include: {
+          bet: true,
+        },
+      });
+
+      if (!proof) {
+        throw new GraphQLError("Proof not found", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+
+      // Check if user is the bet creator or a participant
+      const isCreator = proof.bet.creatorId === context.user.userId;
+      const isParticipant = await prisma.betParticipant.findFirst({
+        where: {
+          betId: proof.betId,
+          userId: context.user.userId,
+        },
+      });
+
+      if (!isCreator && !isParticipant) {
+        throw new GraphQLError("You are not authorized to verify this proof", {
+          extensions: { code: "UNAUTHORIZED" },
+        });
+      }
+
+      const updatedProof = await prisma.betProof.update({
+        where: { id: proofId },
+        data: {
+          verified,
+          verifiedBy: context.user.userId,
+        },
+        include: {
+          bet: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              displayName: true,
+              profilePicture: true,
+            },
+          },
+        },
+      });
+
+      return updatedProof;
     },
   },
 };

@@ -45,7 +45,7 @@ const mockBets: Bet[] = [
   },
 ];
 
-export default function BetsScreen() {
+export default function BetsScreen({ navigation }: any) {
   const [bets, setBets] = useState<Bet[]>(mockBets);
   const [modalVisible, setModalVisible] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
@@ -161,11 +161,30 @@ export default function BetsScreen() {
     });
   };
 
+  const handleProofSubmitted = (proof: any) => {
+    // Update the bet with the new proof
+    setBets(prevBets =>
+      prevBets.map(bet =>
+        bet.id === proof.betId
+          ? { ...bet, proofs: [...bet.proofs, proof] }
+          : bet
+      )
+    );
+  };
+
   const renderBetItem = ({ item }: { item: Bet }) => {
     const daysLeft = Math.ceil((item.endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
     return (
-      <TouchableOpacity style={styles.betCard}>
+      <TouchableOpacity
+        style={styles.betCard}
+        onPress={() =>
+          navigation.navigate("SubmitProof", {
+            bet: item,
+            onProofSubmitted: handleProofSubmitted,
+          })
+        }
+      >
         <View style={styles.betHeader}>
           <View style={styles.betIconContainer}>
             <Ionicons name="hand-left" size={24} color="#007AFF" />
@@ -188,6 +207,15 @@ export default function BetsScreen() {
           </View>
           <Text style={styles.daysLeft}>{daysLeft} days left</Text>
         </View>
+
+        {item.proofs.length > 0 && (
+          <View style={styles.proofsIndicator}>
+            <Ionicons name="checkmark-circle" size={16} color="#34C759" />
+            <Text style={styles.proofsIndicatorText}>
+              {item.proofs.length} proof{item.proofs.length > 1 ? "s" : ""} submitted
+            </Text>
+          </View>
+        )}
       </TouchableOpacity>
     );
   };
@@ -502,6 +530,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#8E8E93",
     fontWeight: "500",
+  },
+  proofsIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F2F2F7",
+    gap: 6,
+  },
+  proofsIndicatorText: {
+    fontSize: 12,
+    color: "#34C759",
+    fontWeight: "600",
   },
   emptyContainer: {
     flex: 1,

@@ -1,55 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LeaderboardEntry, User } from "@/types";
+import { useQuery } from "@apollo/client";
+import { GET_MY_FRIENDS, GET_ME } from "@/graphql/queries";
 
-// Mock data - replace with real data from your backend
-const mockUsers: User[] = [
-  {
-    id: "user1",
-    name: "John Doe",
-    successRate: 0.85,
-    totalBets: 20,
-    successfulBets: 17,
-    points: 850,
-    rank: "advanced",
-    friendGroups: [],
-    pranksActive: [],
-  },
-  {
-    id: "user2",
-    name: "Jane Smith",
-    successRate: 0.92,
-    totalBets: 25,
-    successfulBets: 23,
-    points: 1200,
-    rank: "legendary",
-    friendGroups: [],
-    pranksActive: [],
-  },
-  {
-    id: "user3",
-    name: "Bob Johnson",
-    successRate: 0.75,
-    totalBets: 12,
-    successfulBets: 9,
-    points: 450,
-    rank: "intermediate",
-    friendGroups: [],
-    pranksActive: [],
-  },
-  {
-    id: "user4",
-    name: "Alice Williams",
-    successRate: 0.6,
-    totalBets: 10,
-    successfulBets: 6,
-    points: 300,
-    rank: "beginner",
-    friendGroups: [],
-    pranksActive: [],
-  },
-];
+// We'll fetch friends from the backend and compute leaderboard from their stats
 
 const calculateScore = (user: User): number => {
   // Weighted average: 60% success rate, 40% total successful bets
@@ -81,7 +37,45 @@ const getRankIcon = (rank: number): string => {
 export default function LeaderboardScreen() {
   const [selectedGroup, setSelectedGroup] = useState("All Friends");
 
-  const leaderboard: LeaderboardEntry[] = mockUsers
+  const { data: meData } = useQuery(GET_ME);
+  const { data, loading, error } = useQuery(GET_MY_FRIENDS);
+
+  // Build user list: include current user (if available) and friends
+  const users: User[] = [];
+  if (meData?.me) {
+    users.push({
+      id: meData.me.id,
+      name: meData.me.displayName,
+      profilePicture: meData.me.profilePicture,
+      successRate: 0,
+      totalBets: 0,
+      successfulBets: 0,
+      points: 0,
+      rank: "beginner",
+      friendGroups: [],
+      pranksActive: [],
+    } as User);
+  }
+
+  if (data?.myFriends && Array.isArray(data.myFriends)) {
+    data.myFriends.forEach((f: any) => {
+      users.push({
+        id: f.id,
+        name: f.displayName,
+        profilePicture: f.profilePicture,
+        // The backend currently doesn't return stats in this query; default to zeros.
+        successRate: (f.successRate as number) || 0,
+        totalBets: (f.totalBets as number) || 0,
+        successfulBets: (f.successfulBets as number) || 0,
+        points: (f.points as number) || 0,
+        rank: (f.rank as string) || "beginner",
+        friendGroups: f.friendGroups || [],
+        pranksActive: f.pranksActive || [],
+      } as User);
+    });
+  }
+
+  const leaderboard: LeaderboardEntry[] = users
     .map((user) => ({
       user,
       score: calculateScore(user),
