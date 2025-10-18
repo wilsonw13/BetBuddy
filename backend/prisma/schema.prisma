@@ -1,11 +1,9 @@
-/*
-INSTRUCTIONS FOR AI AGENTS:
-Whenever you update this file, also update `docs/tables.md` to:
-1. Sort all tables alphabetically by name.
-2. For each table, briefly explain its purpose.
-3. For each field, briefly explain its name, type, and purpose.
-4. Ensure formatting matches the current style (table name as heading, purpose, then fields list).
-*/
+// INSTRUCTIONS FOR AI AGENTS:
+// Whenever you update this file, also update `docs/tables.md` to:
+// 1. Sort all tables alphabetically by name.
+// 2. For each table, briefly explain its purpose.
+// 3. For each field, briefly explain its name, type, and purpose.
+// 4. Ensure formatting matches the current style (table name as heading, purpose, then fields list).
 
 generator client {
   provider = "prisma-client-js"
@@ -38,7 +36,7 @@ model User {
   participatingBets    BetParticipant[]
   betProofs            BetProof[]
   ownedGroups          BetGroup[] @relation("GroupOwner")
-  groupMemberships     GroupMember[]
+  groupMemberships     BetGroupMember[]
 
   @@index([email])
   @@index([googleId])
@@ -108,14 +106,14 @@ model BetGroup {
 
   // Relations
   owner       User     @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members     GroupMember[]
+  members     BetGroupMember[]
   bets        Bet[]
 
   @@index([ownerId])
   @@map("bet_groups")
 }
 
-model GroupMember {
+model BetGroupMember {
   id        String   @id @default(uuid())
   groupId   String   @map("group_id")
   userId    String   @map("user_id")
@@ -128,7 +126,7 @@ model GroupMember {
   @@unique([groupId, userId])
   @@index([groupId])
   @@index([userId])
-  @@map("group_members")
+  @@map("bet_group_members")
 }
 
 model Bet {

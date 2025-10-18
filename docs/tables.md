@@ -95,13 +95,13 @@ Fields:
 - user2Id (String): Second user’s ID
 - createdAt (DateTime): Friendship creation timestamp
 
-## `group_members`
+## `bet_group_members`
 
-Purpose: Tracks group membership.
+Purpose: Tracks bet group membership.
 Fields:
 
 - id (String): Unique membership ID (UUID)
-- groupId (String): Group ID
+- groupId (String): Bet group ID
 - userId (String): User ID
 - joinedAt (DateTime): Membership start timestamp
 
