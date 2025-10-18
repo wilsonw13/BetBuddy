@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import * as FileSystem from 'expo-file-system';
+import {readAsStringAsync} from 'expo-file-system/legacy';
 
 // Initialize the Gemini AI
 // IMPORTANT: Replace with your actual API key or use environment variables
@@ -175,10 +175,9 @@ export async function imageUriToBase64(uri: string): Promise<string> {
       reader.readAsDataURL(blob);
     });
   } else {
-    // Local file (device storage)
-    return await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+    // Local file using legacy import
+    const base64 = await readAsStringAsync(uri, { encoding: 'base64' });
+    return base64;
   }
 }
 
