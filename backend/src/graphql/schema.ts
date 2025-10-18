@@ -6,7 +6,6 @@ export const typeDefs = gql`
   type User {
     id: ID!
     email: String!
-    username: String!
     displayName: String!
     profilePicture: String
     emailVerified: Boolean!
@@ -43,7 +42,6 @@ export const typeDefs = gql`
   type Friend {
     id: ID!
     email: String!
-    username: String!
     displayName: String!
     profilePicture: String
     createdAt: DateTime!
@@ -109,7 +107,6 @@ export const typeDefs = gql`
 
   input RegisterInput {
     email: String!
-    username: String!
     password: String!
     displayName: String!
   }
@@ -130,7 +127,7 @@ export const typeDefs = gql`
   input CreateBetGroupInput {
     name: String!
     description: String
-    memberUsernames: [String!]!
+    memberDisplayNames: [String!]!
   }
 
   input CreateBetInput {
@@ -142,7 +139,7 @@ export const typeDefs = gql`
     betLength: Int!
     pointsStaked: Int!
     startDate: DateTime!
-    participantUsernames: [String!]!
+    participantDisplayNames: [String!]!
     groupId: ID
   }
 
@@ -183,13 +180,13 @@ export const typeDefs = gql`
     logout(refreshToken: String!): SuccessResponse!
     logoutAll: SuccessResponse!
 
-    sendFriendRequest(toUsername: String!): FriendRequest!
+    sendFriendRequest(toDisplayName: String!): FriendRequest!
     acceptFriendRequest(requestId: ID!): SuccessResponse!
     declineFriendRequest(requestId: ID!): SuccessResponse!
     removeFriend(friendId: ID!): SuccessResponse!
 
     createBetGroup(input: CreateBetGroupInput!): BetGroup!
-    addGroupMembers(groupId: ID!, usernames: [String!]!): BetGroup!
+    addGroupMembers(groupId: ID!, displayNames: [String!]!): BetGroup!
     removeGroupMember(groupId: ID!, userId: ID!): SuccessResponse!
 
     createBet(input: CreateBetInput!): Bet!

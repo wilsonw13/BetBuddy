@@ -11,10 +11,10 @@ const BCRYPT_ROUNDS = 12;
 // Validation schemas
 const registerSchema = Joi.object({
   email: Joi.string().email().required(),
-  username: Joi.string().alphanum().min(3).max(20).required().messages({
-    "string.alphanum": "Username must only contain letters and numbers",
-    "string.min": "Username must be at least 3 characters long",
-    "string.max": "Username must be at most 20 characters long",
+  displayName: Joi.string().alphanum().min(3).max(20).required().messages({
+    "string.alphanum": "Display name must only contain letters and numbers",
+    "string.min": "Display name must be at least 3 characters long",
+    "string.max": "Display name must be at most 20 characters long",
   }),
   password: Joi.string()
     .min(8)
@@ -24,7 +24,6 @@ const registerSchema = Joi.object({
       "string.pattern.base": "Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number",
       "string.min": "Password must be at least 8 characters long",
     }),
-  displayName: Joi.string().min(2).max(50).required(),
 });
 
 const loginSchema = Joi.object({
@@ -57,7 +56,6 @@ export const resolvers = {
         select: {
           id: true,
           email: true,
-          username: true,
           displayName: true,
           profilePicture: true,
           emailVerified: true,
@@ -93,7 +91,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
               createdAt: true,
@@ -103,7 +100,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
               createdAt: true,
@@ -135,7 +131,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
               emailVerified: true,
@@ -147,7 +142,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
               emailVerified: true,
@@ -181,7 +175,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
               emailVerified: true,
@@ -193,7 +186,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
               emailVerified: true,
@@ -235,7 +227,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
             },
@@ -247,7 +238,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -260,7 +250,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -298,7 +287,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
             },
@@ -310,7 +298,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -323,7 +310,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -365,7 +351,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
             },
@@ -377,7 +362,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -390,7 +374,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -432,7 +415,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
             },
@@ -444,7 +426,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -457,7 +438,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -487,7 +467,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
             },
@@ -499,7 +478,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -512,7 +490,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -556,7 +533,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
             },
@@ -567,7 +543,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -598,7 +573,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
             },
@@ -609,7 +583,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -634,7 +607,10 @@ export const resolvers = {
     register: async (_: any, { input }: any) => {
       // Debug: log incoming register input (sanitized)
       // eslint-disable-next-line no-console
-      console.debug("Register resolver input:", { email: input?.email, username: input?.username, displayName: input?.displayName });
+      console.debug("Register resolver input:", {
+        email: input?.email,
+        displayName: input?.displayName,
+      });
       // Validate input
       const { error, value } = registerSchema.validate(input);
       if (error) {
@@ -643,7 +619,7 @@ export const resolvers = {
         });
       }
 
-      const { email, username, password, displayName } = value;
+      const { email, password, displayName } = value;
 
       // Check if email exists
       const existingEmail = await prisma.user.findUnique({
@@ -656,14 +632,14 @@ export const resolvers = {
         });
       }
 
-      // Check if username exists
-      const existingUsername = await prisma.user.findUnique({
-        where: { username: username.toLowerCase() },
+      // Check if displayName exists
+      const existingDisplayName = await prisma.user.findUnique({
+        where: { displayName: displayName },
       });
 
-      if (existingUsername) {
-        throw new GraphQLError("Username already taken", {
-          extensions: { code: "USERNAME_EXISTS" },
+      if (existingDisplayName) {
+        throw new GraphQLError("Display name already taken", {
+          extensions: { code: "DISPLAYNAME_EXISTS" },
         });
       }
 
@@ -674,7 +650,6 @@ export const resolvers = {
       const user = await prisma.user.create({
         data: {
           email: email.toLowerCase(),
-          username: username.toLowerCase(),
           passwordHash,
           displayName,
           emailVerified: false,
@@ -682,7 +657,6 @@ export const resolvers = {
         select: {
           id: true,
           email: true,
-          username: true,
           displayName: true,
           profilePicture: true,
           emailVerified: true,
@@ -863,16 +837,16 @@ export const resolvers = {
       }
     },
 
-    sendFriendRequest: async (_: any, { toUsername }: any, context: Context) => {
+    sendFriendRequest: async (_: any, { toDisplayName }: any, context: Context) => {
       if (!context.user) {
         throw new GraphQLError("Not authenticated", {
           extensions: { code: "UNAUTHENTICATED" },
         });
       }
 
-      // Find the user by username
+      // Find the user by displayName
       const toUser = await prisma.user.findUnique({
-        where: { username: toUsername.toLowerCase() },
+        where: { displayName: toDisplayName },
       });
 
       if (!toUser) {
@@ -931,7 +905,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
               emailVerified: true,
@@ -943,7 +916,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
               emailVerified: true,
@@ -1085,19 +1057,19 @@ export const resolvers = {
         });
       }
 
-      const { name, description, memberUsernames } = input;
+      const { name, description, memberDisplayNames } = input;
 
-      // Find all users by username
+      // Find all users by displayName
       const users = await prisma.user.findMany({
         where: {
-          username: {
-            in: memberUsernames.map((u: string) => u.toLowerCase()),
+          displayName: {
+            in: memberDisplayNames,
           },
         },
       });
 
-      if (users.length !== memberUsernames.length) {
-        throw new GraphQLError("One or more usernames not found", {
+      if (users.length !== memberDisplayNames.length) {
+        throw new GraphQLError("One or more display names not found", {
           extensions: { code: "USER_NOT_FOUND" },
         });
       }
@@ -1119,7 +1091,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
             },
@@ -1130,7 +1101,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -1144,7 +1114,7 @@ export const resolvers = {
       return group;
     },
 
-    addGroupMembers: async (_: any, { groupId, usernames }: any, context: Context) => {
+    addGroupMembers: async (_: any, { groupId, displayNames }: any, context: Context) => {
       if (!context.user) {
         throw new GraphQLError("Not authenticated", {
           extensions: { code: "UNAUTHENTICATED" },
@@ -1167,17 +1137,17 @@ export const resolvers = {
         });
       }
 
-      // Find all users by username
+      // Find all users by displayName
       const users = await prisma.user.findMany({
         where: {
-          username: {
-            in: usernames.map((u: string) => u.toLowerCase()),
+          displayName: {
+            in: displayNames,
           },
         },
       });
 
-      if (users.length !== usernames.length) {
-        throw new GraphQLError("One or more usernames not found", {
+      if (users.length !== displayNames.length) {
+        throw new GraphQLError("One or more display names not found", {
           extensions: { code: "USER_NOT_FOUND" },
         });
       }
@@ -1198,7 +1168,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
             },
@@ -1209,7 +1178,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -1266,23 +1234,34 @@ export const resolvers = {
         });
       }
 
-      const { title, description, betActivity, proofType, frequency, betLength, pointsStaked, startDate, participantUsernames, groupId } = input;
+      const {
+        title,
+        description,
+        betActivity,
+        proofType,
+        frequency,
+        betLength,
+        pointsStaked,
+        startDate,
+        participantDisplayNames,
+        groupId,
+      } = input;
 
       // Calculate end date
       const start = new Date(startDate);
       const end = new Date(start.getTime() + betLength * 24 * 60 * 60 * 1000);
 
-      // Find all participants by username
+      // Find all participants by displayName
       const participants = await prisma.user.findMany({
         where: {
-          username: {
-            in: participantUsernames.map((u: string) => u.toLowerCase()),
+          displayName: {
+            in: participantDisplayNames,
           },
         },
       });
 
-      if (participants.length !== participantUsernames.length) {
-        throw new GraphQLError("One or more participant usernames not found", {
+      if (participants.length !== participantDisplayNames.length) {
+        throw new GraphQLError("One or more participant display names not found", {
           extensions: { code: "USER_NOT_FOUND" },
         });
       }
@@ -1306,8 +1285,8 @@ export const resolvers = {
           participants: {
             create: participants.map((participant) => ({
               userId: participant.id,
-              status: participant.id === context.user.userId ? "accepted" : "pending",
-              acceptedAt: participant.id === context.user.userId ? new Date() : null,
+              status: participant.id === context.user!.userId ? "accepted" : "pending",
+              acceptedAt: participant.id === context.user!.userId ? new Date() : null,
             })),
           },
         },
@@ -1316,7 +1295,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
             },
@@ -1328,7 +1306,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -1341,7 +1318,6 @@ export const resolvers = {
                 select: {
                   id: true,
                   email: true,
-                  username: true,
                   displayName: true,
                   profilePicture: true,
                 },
@@ -1501,7 +1477,17 @@ export const resolvers = {
         });
       }
 
-      const { betId, proofType, imageUrl, latitude, longitude, address, aiSuggestionSuspicious, aiSuggestionReason, aiSuggestionConfidence } = input;
+      const {
+        betId,
+        proofType,
+        imageUrl,
+        latitude,
+        longitude,
+        address,
+        aiSuggestionSuspicious,
+        aiSuggestionReason,
+        aiSuggestionConfidence,
+      } = input;
 
       // Check if user is participant in bet
       const participant = await prisma.betParticipant.findFirst({
@@ -1538,7 +1524,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
             },
@@ -1596,7 +1581,6 @@ export const resolvers = {
             select: {
               id: true,
               email: true,
-              username: true,
               displayName: true,
               profilePicture: true,
             },
