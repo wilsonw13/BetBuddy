@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { NODE_ENV } from "@/config/env";
 
 // Prisma Client singleton
 declare global {
@@ -8,12 +9,10 @@ declare global {
 export const prisma =
   global.prisma ||
   new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+    log: NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
   });
 
-if (process.env.NODE_ENV !== "production") {
-  global.prisma = prisma;
-}
+if (NODE_ENV !== "production") global.prisma = prisma;
 
 // Test connection on startup
 prisma

@@ -1,6 +1,11 @@
 <!--
 INSTRUCTIONS FOR AI AGENTS:
-Whenever `backend/prisma/schema.prisma` changes, update this file to:
+Whenever you update this file, also update:
+	- backend/prisma/schema.prisma
+	- backend/src/services/dbStartup.ts
+to ensure all documentation, schema, and seed data are consistent.
+
+Whenever you update this file changes, update this file to:
 1. Sort all tables alphabetically by name.
 2. For each table, briefly explain its purpose.
 3. For each field, briefly explain its name, type, and purpose.

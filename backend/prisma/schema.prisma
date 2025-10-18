@@ -1,9 +1,8 @@
 // INSTRUCTIONS FOR AI AGENTS:
-// Whenever you update this file, also update `docs/tables.md` to:
-// 1. Sort all tables alphabetically by name.
-// 2. For each table, briefly explain its purpose.
-// 3. For each field, briefly explain its name, type, and purpose.
-// 4. Ensure formatting matches the current style (table name as heading, purpose, then fields list).
+// Whenever you update this file, also update:
+//   - docs/tables.md
+//   - backend/src/services/dbStartup.ts
+// to ensure all schema, documentation, and seed data are consistent.
 
 generator client {
   provider = "prisma-client-js"

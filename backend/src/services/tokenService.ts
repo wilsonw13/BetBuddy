@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { prisma } from "../config/prisma";
 import { TokenPayload } from "../types";
+import { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, JWT_ACCESS_EXPIRES_IN, JWT_REFRESH_EXPIRES_IN } from "@/config/env";
 
 export class TokenService {
   private accessSecret: string;
@@ -10,10 +11,10 @@ export class TokenService {
   private refreshExpiresIn: string;
 
   constructor() {
-    this.accessSecret = process.env.JWT_ACCESS_SECRET || "access_secret";
-    this.refreshSecret = process.env.JWT_REFRESH_SECRET || "refresh_secret";
-    this.accessExpiresIn = process.env.JWT_ACCESS_EXPIRES_IN || "15m";
-    this.refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN || "7d";
+    this.accessSecret = JWT_ACCESS_SECRET || "access_secret";
+    this.refreshSecret = JWT_REFRESH_SECRET || "refresh_secret";
+    this.accessExpiresIn = JWT_ACCESS_EXPIRES_IN || "15m";
+    this.refreshExpiresIn = JWT_REFRESH_EXPIRES_IN || "7d";
   }
 
   // Generate access token (short-lived)

@@ -1,12 +1,13 @@
 import { OAuth2Client } from "google-auth-library";
 import { prisma } from "../config/prisma";
 import { GoogleProfile, User } from "../types";
+import { GOOGLE_CLIENT_ID } from "@/config/env";
 
 export class GoogleOAuthService {
   private client: OAuth2Client;
 
   constructor() {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientId = GOOGLE_CLIENT_ID;
     if (!clientId) {
       throw new Error("GOOGLE_CLIENT_ID environment variable is not set");
     }
@@ -18,7 +19,7 @@ export class GoogleOAuthService {
     try {
       const ticket = await this.client.verifyIdToken({
         idToken,
-        audience: process.env.GOOGLE_CLIENT_ID,
+        audience: GOOGLE_CLIENT_ID,
       });
 
       const payload = ticket.getPayload();

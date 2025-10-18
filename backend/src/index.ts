@@ -4,7 +4,7 @@ import { typeDefs } from "@/graphql/schema";
 import { resolvers } from "@/graphql/resolvers";
 import { tokenService } from "@/services/tokenService";
 import { disconnectPrisma } from "@/config/prisma";
-import { HOST, PORT } from "@/config/env";
+import { NODE_ENV, HOST, PORT } from "@/config/env";
 
 interface Context {
   user?: {
@@ -28,7 +28,7 @@ const server = new ApolloServer({
       },
     };
   },
-  introspection: process.env.NODE_ENV !== "production", // Enable GraphQL Playground in dev
+  introspection: NODE_ENV !== "production", // Enable GraphQL Playground in dev
 });
 
 // Start server with context
@@ -61,7 +61,7 @@ startStandaloneServer(server, {
   },
 }).then(({ url }) => {
   console.log(`GraphQL Server ready at ${url}`);
-  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`Environment: ${NODE_ENV}`);
   console.log(`GraphQL Playground: ${url}`);
 });
 
