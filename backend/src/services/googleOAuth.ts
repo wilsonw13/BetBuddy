@@ -1,6 +1,6 @@
 import { OAuth2Client } from "google-auth-library";
-import { prisma } from "../config/prisma";
-import { GoogleProfile, User } from "../types";
+import { prisma } from "@/config/prisma";
+import { GoogleProfile, User } from "@/types";
 import { GOOGLE_CLIENT_ID } from "@/config/env";
 
 export class GoogleOAuthService {

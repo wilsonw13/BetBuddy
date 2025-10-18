@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { prisma } from "../config/prisma";
-import { TokenPayload } from "../types";
+import { prisma } from "@/config/prisma";
+import { TokenPayload } from "@/types";
 import { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, JWT_ACCESS_EXPIRES_IN, JWT_REFRESH_EXPIRES_IN } from "@/config/env";
 
 export class TokenService {

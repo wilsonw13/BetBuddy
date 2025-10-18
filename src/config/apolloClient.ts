@@ -2,7 +2,7 @@ import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, fromPromise } from "
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
 import * as SecureStore from "expo-secure-store";
-import { REFRESH_TOKEN } from "../graphql/mutations";
+import { REFRESH_TOKEN } from "@/graphql/mutations";
 
 // For iOS Simulator, use localhost (default) since it shares the same network as the host
 // For Android Emulator, use 10.0.2.2 (.env.local)

@@ -2,9 +2,9 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import { useMutation } from "@apollo/client";
 import * as SecureStore from "expo-secure-store";
 // import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import { setAccessToken } from "../config/apolloClient";
-import { REGISTER, LOGIN, GOOGLE_AUTH, LOGOUT, LOGOUT_ALL } from "../graphql/mutations";
-import { GET_ME } from "../graphql/queries";
+import { setAccessToken } from "@/config/apolloClient";
+import { REGISTER, LOGIN, GOOGLE_AUTH, LOGOUT, LOGOUT_ALL } from "@/graphql/mutations";
+import { GET_ME } from "@/graphql/queries";
 
 interface User {
   id: string;

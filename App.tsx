@@ -6,18 +6,18 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 
-import { apolloClient } from "./src/config/apolloClient";
-import { AuthProvider, useAuth } from "./src/contexts/AuthContext";
-import { pingBackendHealth } from "./src/config/apolloClient";
+import { apolloClient } from "@/config/apolloClient";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { pingBackendHealth } from "@/config/apolloClient";
 
-import LoginScreen from "./src/screens/LoginScreen";
-import RegisterScreen from "./src/screens/RegisterScreen";
-import BetsScreen from "./src/screens/BetsScreen";
-import LeaderboardScreen from "./src/screens/LeaderboardScreen";
-import ProfileScreen from "./src/screens/ProfileScreen";
-import FriendGroupsScreen from "./src/screens/FriendGroupsScreen";
-import BetGroupsScreen from "./src/screens/BetGroupsScreen";
-import SubmitProofScreen from "./src/screens/SubmitProofScreen";
+import LoginScreen from "@/screens/LoginScreen";
+import RegisterScreen from "@/screens/RegisterScreen";
+import BetsScreen from "@/screens/BetsScreen";
+import LeaderboardScreen from "@/screens/LeaderboardScreen";
+import ProfileScreen from "@/screens/ProfileScreen";
+import FriendGroupsScreen from "@/screens/FriendGroupsScreen";
+import BetGroupsScreen from "@/screens/BetGroupsScreen";
+import SubmitProofScreen from "@/screens/SubmitProofScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();

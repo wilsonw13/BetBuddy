@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Alert, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { verifyBetPhoto } from "../services/geminiService";
-import { Proof } from "../types";
+import { verifyBetPhoto } from "@/services/geminiService";
+import { Proof } from "@/types";
 
 interface PhotoVerificationScreenProps {
   betId: string;
