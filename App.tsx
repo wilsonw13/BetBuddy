@@ -120,11 +120,11 @@ export default function App() {
   useEffect(() => {
     pingBackendHealth().then((result) => {
       if (result.status === "ok") {
-        console.log("[GraphQL] Connected: OK");
+        console.log("Backend connected successfully");
       } else if (result.status === "unexpected") {
-        console.log("[GraphQL] Unexpected response:", result.result);
+        console.log("Backend unexpected response:", result.result);
       } else {
-        console.log("[GraphQL] Connection failed:", result.error);
+        console.log("Backend connection failed:", result.error);
       }
     });
   }, []);

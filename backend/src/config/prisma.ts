@@ -18,15 +18,15 @@ if (NODE_ENV !== "production") global.prisma = prisma;
 prisma
   .$connect()
   .then(() => {
-    console.log("Database connected successfully (Prisma)");
+    console.log("[Prisma] Database connected successfully");
   })
   .catch((error) => {
-    console.error("Database connection failed:", error);
+    console.error("[Prisma] Database connection failed:", error);
     process.exit(1);
   });
 
 // Graceful shutdown
 export async function disconnectPrisma() {
   await prisma.$disconnect();
-  console.log("Database connection closed (Prisma)");
+  console.log("[Prisma] Database connection closed");
 }

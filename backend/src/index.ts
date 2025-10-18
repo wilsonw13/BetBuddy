@@ -6,6 +6,7 @@ import { tokenService } from "@/services/tokenService";
 import { disconnectPrisma } from "@/config/prisma";
 import { NODE_ENV, HOST, PORT } from "@/config/env";
 import { Context } from "@/types";
+import { seedDatabase } from "@/config/dbStartup";
 
 const server = new ApolloServer({
   typeDefs,
@@ -25,39 +26,44 @@ const server = new ApolloServer({
   introspection: NODE_ENV !== "production", // Enable GraphQL Playground in dev
 });
 
-// Start server with context
-startStandaloneServer(server, {
-  listen: { host: HOST, port: PORT },
-  context: async ({ req }): Promise<Context> => {
-    // Extract token from Authorization header
-    const authHeader = req.headers.authorization || "";
+const main = async () => {
+  // seed mock data
+  await seedDatabase();
 
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.substring(7);
+  const { url } = await startStandaloneServer(server, {
+    listen: { host: HOST, port: PORT },
+    context: async ({ req }): Promise<Context> => {
+      // Extract token from Authorization header
+      const authHeader = req.headers.authorization || "";
 
-      try {
-        // Verify access token
-        const payload = tokenService.verifyAccessToken(token);
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.substring(7);
 
-        return {
-          user: {
-            userId: payload.userId,
-            email: payload.email,
-          },
-        };
-      } catch (error) {
-        // Invalid token, continue without user context
-        console.log("Invalid token:", error);
+        try {
+          // Verify access token
+          const payload = tokenService.verifyAccessToken(token);
+
+          return {
+            user: {
+              userId: payload.userId,
+              email: payload.email,
+            },
+          };
+        } catch (error) {
+          // Invalid token, continue without user context
+          console.log("Invalid token:", error);
+        }
       }
-    }
 
-    return {};
-  },
-}).then(({ url }) => {
+      return {};
+    },
+  });
   console.log(`GraphQL Server ready at ${url}`);
   console.log(`Environment: ${NODE_ENV}`);
   console.log(`GraphQL Playground: ${url}`);
-});
+};
+
+main();
 
 // Graceful shutdown
 process.on("SIGTERM", async () => {
