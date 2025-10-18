@@ -1,9 +1,14 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import * as FileSystem from 'expo-file-system';
 
 // Initialize the Gemini AI
 // IMPORTANT: Replace with your actual API key or use environment variables
-const API_KEY = "AIzaSyBW7eZfYb0_p9uIj5jBMTF5N30T0xZE6ow";
-const genAI = new GoogleGenerativeAI(API_KEY);
+const API_KEY_for_text = "AIzaSyBW7eZfYb0_p9uIj5jBMTF5N30T0xZE6ow";
+const genAI_for_text = new GoogleGenerativeAI(API_KEY_for_text);
+
+const API_KEY_for_image = "AIzaSyAuvUVOtUR_anMcVEVQEdcUy8mw3_C2kLM";
+const genAI_for_image = new GoogleGenerativeAI(API_KEY_for_image);
+
 
 export interface PhotoVerificationResult {
   isSuspicious: boolean;
@@ -19,13 +24,13 @@ export interface PhotoVerificationResult {
  * @returns Verification result with suspicious flag and reasoning
  */
 export async function verifyBetPhoto(imageUri: string, betContext: string): Promise<PhotoVerificationResult> {
-  try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    try {
+        const model = genAI_for_image.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    // Convert image to base64 (in a real app, you'd fetch and convert the image)
-    const imageBase64 = await imageUriToBase64(imageUri);
+        // Convert image to base64 (in a real app, you'd fetch and convert the image)
+        const imageBase64 = await imageUriToBase64(imageUri);
 
-    const prompt = `You are a bet verification assistant. Analyze this image to determine if it's legitimate proof for a bet about: "${betContext}".
+        const prompt = `You are a bet verification assistant. Analyze this image to determine if it's legitimate proof for a bet about: "${betContext}".
 
 Look for signs that this photo might be:
 1. A screenshot from the internet
@@ -42,45 +47,56 @@ Respond in JSON format with:
   "suggestions": ["suggestion1", "suggestion2"]
 }
 
+Because you are verifying a single instance, you are not to care about frequency in the betting.
+These photos are also generally not meant to be selfies, so you should not hold the fact that the bettor is not in the picture against them.
+Essentially, you are only supposed to care that the apparent location of the picture is an appropriate place to complete the bet.
+
 Be strict but fair. If the photo looks legitimate, mark it as not suspicious.`;
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: imageBase64,
-        },
-      },
-    ]);
+        const result = await model.generateContent({
+            contents: [
+                {
+                    role: "user",
+                    parts: [
+                        {
+                            inlineData: {
+                                mimeType: "image/jpeg",
+                                data: imageBase64,
+                            },
+                        },
+                        { text: prompt },
+                    ],
+                },
+            ],
+        });
 
-    const response = await result.response;
-    const text = response.text();
+        const text = result.response.text();
 
-    // Parse the JSON response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const verification: PhotoVerificationResult = JSON.parse(jsonMatch[0]);
-      return verification;
+        // Parse the JSON response
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            const verification: PhotoVerificationResult = JSON.parse(jsonMatch[0]);
+            return verification;
+        }
+
+        // Fallback if parsing fails
+        return {
+            isSuspicious: false,
+            confidence: 0.5,
+            reason: "Unable to fully analyze the image",
+            suggestions: ["Manual verification recommended"],
+        };
+    } catch (error) {
+        console.error("Error verifying photo with Gemini:", error);
+        return {
+            isSuspicious: false,
+            confidence: 0,
+            reason: "Verification service unavailable",
+            suggestions: ["Please verify manually"],
+        };
     }
-
-    // Fallback if parsing fails
-    return {
-      isSuspicious: false,
-      confidence: 0.5,
-      reason: "Unable to fully analyze the image",
-      suggestions: ["Manual verification recommended"],
-    };
-  } catch (error) {
-    console.error("Error verifying photo with Gemini:", error);
-    return {
-      isSuspicious: false,
-      confidence: 0,
-      reason: "Verification service unavailable",
-      suggestions: ["Please verify manually"],
-    };
-  }
 }
+
 
 /**
  * Suggest bet ideas based on user interests and activity history
@@ -90,7 +106,7 @@ Be strict but fair. If the photo looks legitimate, mark it as not suspicious.`;
  */
 export async function suggestBets(userInterests: string[], pastBets: string[]): Promise<string[]> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI_for_text.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `You are a bet suggestion assistant. Based on these user interests: ${userInterests.join(
       ", ",
@@ -136,33 +152,33 @@ Return ONLY a JSON array of strings, like:
   }
 }
 
+
 /**
- * Convert image URI to base64 string
- * @param uri - Image URI
+ * Convert image URI to Base64 string (React Native)
+ * @param uri - Image URI (remote URL or local file URI)
  * @returns Base64 encoded string
  */
-async function imageUriToBase64(uri: string): Promise<string> {
-  try {
-    // In React Native with Expo, you can use FileSystem
-    // For now, this is a placeholder
-    // You'll need to implement actual image fetching and conversion
-
-    // Example using fetch:
+export async function imageUriToBase64(uri: string): Promise<string> {
+  if (uri.startsWith('http')) {
+    // Fetch remote image
     const response = await fetch(uri);
     const blob = await response.blob();
 
-    return new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64 = (reader.result as string).split(",")[1];
+        // reader.result is "data:<mime>;base64,XXXX"
+        const base64 = (reader.result as string).split(',')[1];
         resolve(base64);
       };
       reader.onerror = reject;
       reader.readAsDataURL(blob);
     });
-  } catch (error) {
-    console.error("Error converting image to base64:", error);
-    throw error;
+  } else {
+    // Local file (device storage)
+    return await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
   }
 }
 
