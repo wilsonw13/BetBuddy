@@ -33,6 +33,7 @@ export const RATE_LIMIT_WINDOW_MS = Number(getEnv("RATE_LIMIT_WINDOW_MS", "90000
 export const RATE_LIMIT_MAX_REQUESTS = Number(getEnv("RATE_LIMIT_MAX_REQUESTS", "100"));
 
 export const BCRYPT_ROUNDS = Number(getEnv("BCRYPT_ROUNDS", "12"));
+export const DEFAULT_USER_PASSWORD = getEnv("DEFAULT_USER_PASSWORD", "Chang6767");
 
 // Post-process BASE_URL into its components
 const baseUrl = new URL(BASE_URL);

@@ -8,12 +8,7 @@ to ensure all seed data, schema, and documentation are consistent.
 
 import { prisma } from "@/config/prisma";
 import bcrypt from "bcrypt";
-import { BCRYPT_ROUNDS } from "@/config/env";
-
-/**
- * The login password for all initially created users.
- */
-const DEFAULT_USER_PASSWORD = "Chang6767";
+import { BCRYPT_ROUNDS, DEFAULT_USER_PASSWORD } from "@/config/env";
 
 /**
  * The default image URL used for bet proofs and backgrounds.
