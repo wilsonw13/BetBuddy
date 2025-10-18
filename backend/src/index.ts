@@ -28,7 +28,7 @@ const server = new ApolloServer({
 
 const main = async () => {
   // seed mock data
-  await seedDatabase();
+  await seedDatabase(false);
 
   const { url } = await startStandaloneServer(server, {
     listen: { host: HOST, port: PORT },
