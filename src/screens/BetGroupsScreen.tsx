@@ -33,6 +33,7 @@ interface BetGroup {
       email: string;
       profilePicture?: string;
     };
+    joinedAt: string;
   }>;
   bets: Array<any>;
   createdAt: string;
@@ -70,7 +71,15 @@ export default function BetGroupsScreen({ navigation }: any) {
   });
 
   // Mutations
-  const [createBetGroup, { loading: creatingGroup }] = useMutation(CREATE_BET_GROUP);
+  const [createBetGroup, { loading: creatingGroup }] = useMutation(CREATE_BET_GROUP, {
+    // Update the cache after successful mutation
+    update(cache, { data }) {
+      if (data?.createBetGroup) {
+        // Refetch to ensure we have the latest data with correct structure
+        refetchGroups();
+      }
+    },
+  });
   const [addGroupMembers, { loading: addingMembers }] = useMutation(ADD_GROUP_MEMBERS);
   const [removeGroupMember, { loading: removingMember }] = useMutation(REMOVE_GROUP_MEMBER);
 
@@ -87,25 +96,23 @@ export default function BetGroupsScreen({ navigation }: any) {
       Alert.alert("Error", "Please enter a group name");
       return;
     }
-
+  
     try {
       const input: any = {
         name: newGroupName,
         description: newGroupDescription || null,
       };
-
-      // Only include memberUsernames if there are selected members
-      // memberUsernames should be displayNames
+  
       if (selectedMembers.length > 0) {
-        input.memberUsernames = selectedMembers;
+        input.memberDisplayNames = selectedMembers;  // <-- Changed from memberUsernames
       }
-
+  
       console.log("Creating group with input:", input);
-
+  
       const result = await createBetGroup({
         variables: { input },
       });
-
+  
       Alert.alert("Success", `Group "${newGroupName}" created successfully!`);
       setNewGroupName("");
       setNewGroupDescription("");

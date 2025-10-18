@@ -47,12 +47,18 @@ export const typeDefs = gql`
     createdAt: DateTime!
   }
 
+  type BetGroupMember {
+    id: ID!
+    user: User!
+    joinedAt: DateTime!
+  }
+
   type BetGroup {
     id: ID!
     name: String!
     description: String
     owner: User!
-    members: [User!]!
+    members: [BetGroupMember!]!  
     bets: [Bet!]!
     createdAt: DateTime!
     updatedAt: DateTime!
