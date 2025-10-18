@@ -4,6 +4,8 @@ A React Native betting app where friends can challenge each other with accountab
 
 ## Setting Up Development (Windows)
 
+https://jsonobject.hashnode.dev/setting-up-android-development-environment-on-wsl-2
+
 1. Install [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install)
    1. Choose any distro
 2. Install [Docker Desktop](https://docs.docker.com/desktop/features/wsl/)
@@ -36,8 +38,6 @@ cd ~/Android/sdk/cmdline-tools/latest/bin
 
 5. Set Environment Variables in `.bashrc`
 
-Note: Replace `<USER>` with your linux username
-
 ```
 # Android SDK for Build Tools (Gradle)
 export ANDROID_HOME="$HOME/Android/sdk"
@@ -62,7 +62,32 @@ adb kill-server
 adb -a nodaemon server start
 ```
 
-## Running on Development (MacOS)
+## Running on Development (General)
+
+1. Install pnpm packages
+
+```bash
+pnpm install
+```
+
+2. Start the postgres docker container
+
+```bash
+docker compose up -d
+```
+
+3. Start the backend
+
+```bash
+cd backend
+pnpm dev
+```
+
+4. Start the frontend
+
+```bash
+pnpm start
+```
 
 ## Features
 
