@@ -2,7 +2,7 @@
 INSTRUCTIONS FOR AI AGENTS:
 Whenever you update this file, also update:
 	- backend/prisma/schema.prisma
-	- backend/src/services/dbStartup.ts
+	- backend/src/config/dbStartup.ts
 to ensure all documentation, schema, and seed data are consistent.
 
 Whenever you update this file changes, update this file to:

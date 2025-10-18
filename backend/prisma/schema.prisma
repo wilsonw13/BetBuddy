@@ -1,7 +1,7 @@
 // INSTRUCTIONS FOR AI AGENTS:
 // Whenever you update this file, also update:
 //   - docs/tables.md
-//   - backend/src/services/dbStartup.ts
+//   - backend/src/config/dbStartup.ts
 // to ensure all schema, documentation, and seed data are consistent.
 
 generator client {
