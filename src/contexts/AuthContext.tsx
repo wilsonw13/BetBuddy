@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useMutation } from "@apollo/client";
 import * as SecureStore from "expo-secure-store";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
+// import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { setAccessToken } from "../config/apolloClient";
 import { REGISTER, LOGIN, GOOGLE_AUTH, LOGOUT, LOGOUT_ALL } from "../graphql/mutations";
 import { GET_ME } from "../graphql/queries";
@@ -32,11 +32,11 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Configure Google Sign-In
-GoogleSignin.configure({
-  webClientId: "YOUR_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com", // From Google Cloud Console
-  offlineAccess: true,
-  forceCodeForRefreshToken: true,
-});
+// GoogleSignin.configure({
+//   webClientId: "YOUR_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com", // From Google Cloud Console
+//   offlineAccess: true,
+//   forceCodeForRefreshToken: true,
+// });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -143,6 +143,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loginWithGoogle = async () => {
+    // Google Sign-In temporarily disabled - requires custom dev client
+    throw new Error("Google Sign-In is temporarily disabled. Please use email/password authentication.");
+
+    /* COMMENTED OUT - Enable when building custom dev client
     try {
       setIsLoading(true);
       setError(null);
@@ -199,6 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
+    */
   };
 
   const logout = async () => {
@@ -225,10 +230,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await SecureStore.deleteItemAsync("refreshToken");
 
       // Sign out from Google if signed in
-      const isGoogleSignedIn = await GoogleSignin.isSignedIn();
-      if (isGoogleSignedIn) {
-        await GoogleSignin.signOut();
-      }
+      // const isGoogleSignedIn = await GoogleSignin.isSignedIn();
+      // if (isGoogleSignedIn) {
+      //   await GoogleSignin.signOut();
+      // }
 
       setUser(null);
     } catch (error: any) {

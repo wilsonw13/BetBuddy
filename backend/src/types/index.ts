@@ -1,33 +1,33 @@
 import { Request } from "express";
 
-// User Types
+// User Types (matching Prisma schema)
 export interface User {
   id: string;
   email: string;
-  password_hash?: string;
-  google_id?: string;
-  display_name: string;
-  profile_picture?: string;
-  email_verified: boolean;
-  created_at: Date;
-  updated_at: Date;
-  last_login?: Date;
+  passwordHash?: string | null;
+  googleId?: string | null;
+  displayName: string;
+  profilePicture?: string | null;
+  emailVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  lastLogin?: Date | null;
 }
 
 export interface RefreshToken {
   id: string;
-  user_id: string;
-  token_hash: string;
-  expires_at: Date;
+  userId: string;
+  tokenHash: string;
+  expiresAt: Date;
   revoked: boolean;
-  created_at: Date;
+  createdAt: Date;
 }
 
 // Auth Request Types
 export interface RegisterRequest {
   email: string;
   password: string;
-  display_name: string;
+  displayName: string;
 }
 
 export interface LoginRequest {
@@ -45,7 +45,7 @@ export interface RefreshTokenRequest {
 
 // Auth Response Types
 export interface AuthResponse {
-  user: Omit<User, "password_hash">;
+  user: Omit<User, "passwordHash">;
   accessToken: string;
   refreshToken: string;
 }

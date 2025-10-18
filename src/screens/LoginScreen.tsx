@@ -91,6 +91,8 @@ export default function LoginScreen({ navigation }: any) {
             {isLoading ? <ActivityIndicator color="white" /> : <Text style={styles.loginButtonText}>Sign In</Text>}
           </TouchableOpacity>
 
+          {/* Google Sign-In temporarily disabled - requires custom dev client */}
+          {/*
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>OR</Text>
@@ -101,6 +103,7 @@ export default function LoginScreen({ navigation }: any) {
             <Ionicons name="logo-google" size={20} color="#DB4437" />
             <Text style={styles.googleButtonText}>Continue with Google</Text>
           </TouchableOpacity>
+          */}
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>

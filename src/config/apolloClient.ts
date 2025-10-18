@@ -5,7 +5,8 @@ import * as SecureStore from "expo-secure-store";
 import { REFRESH_TOKEN } from "../graphql/mutations";
 
 // Replace with your local IP address or deployed backend URL
-const GRAPHQL_ENDPOINT = "http://192.168.1.100:3000/graphql";
+// For iOS Simulator, use localhost since it shares the same network as the host
+const GRAPHQL_ENDPOINT = "http://localhost:6767/graphql";
 
 let accessToken: string | null = null;
 
