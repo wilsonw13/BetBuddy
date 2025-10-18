@@ -122,3 +122,15 @@ Currently uses mock data. Implement:
 4. Configure app icons and splash screens
 5. Set up iOS/Android builds
 6. Submit to App Store/Play Store
+
+### TO-DO Priority (high-low)
+1. Make All parties able to verify or op-out before starting the bet, as well as all parties can see the bet
+2. Make sure the bet frequency actually does something, ie make you upload a photo every day
+3. Make Sure third-party api's work to verify bet proofs
+4. LeaderBoard does not show any friends, it should toggle between friends/groups 
+5. Basic Profile Customization should be possible, like icon switching
+6. Redeeming the points should work
+7. Profile Groups Tab is needed
+8. Group Management Options dont exist
+9. Allow bets between Groups
+10. - Bet history and analytics

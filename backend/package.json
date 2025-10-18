@@ -27,7 +27,8 @@
     "graphql-scalars": "^1.22.4",
     "graphql-tag": "^2.12.6",
     "joi": "^17.11.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "psql": "^0.0.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
