@@ -82,10 +82,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       setError(null);
 
+      const trimmedEmail = email.trim();
+
+      // Basic client-side email validation to avoid sending malformed values
+      if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+        const message = "Please enter a valid email address";
+        setError(message);
+        throw new Error(message);
+      }
+
+      // Debug: log what we're about to send (don't log passwords)
+      // eslint-disable-next-line no-console
+      console.debug("Register variables:", { email: trimmedEmail, displayName });
+
       const { data } = await registerMutation({
         variables: {
           input: {
-            email,
+            email: trimmedEmail,
             password,
             displayName,
           },
@@ -115,10 +128,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       setError(null);
 
+      const trimmedEmail = email.trim();
+
+      if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+        const message = "Please enter a valid email address";
+        setError(message);
+        throw new Error(message);
+      }
+
+      // Debug: log login attempt email only
+      // eslint-disable-next-line no-console
+      console.debug("Login variables:", { email: trimmedEmail });
+
       const { data } = await loginMutation({
         variables: {
           input: {
-            email,
+            email: trimmedEmail,
             password,
           },
         },

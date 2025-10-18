@@ -78,7 +78,7 @@ const getRankInfo = (rank: UserRank) => {
   }
 };
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }: any) {
   const [user, setUser] = useState<User>(mockUser);
   const [shopModalVisible, setShopModalVisible] = useState(false);
 
@@ -187,11 +187,15 @@ export default function ProfileScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Friend Groups</Text>
         {user.friendGroups.map((group, index) => (
-          <View key={index} style={styles.groupCard}>
+          <TouchableOpacity
+            key={index}
+            style={styles.groupCard}
+            onPress={() => navigation.navigate("FriendGroups", { groupName: group })}
+          >
             <Ionicons name="people" size={24} color="#007AFF" />
             <Text style={styles.groupName}>{group}</Text>
             <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
 

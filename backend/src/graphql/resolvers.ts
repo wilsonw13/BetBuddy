@@ -73,6 +73,9 @@ export const resolvers = {
 
   Mutation: {
     register: async (_: any, { input }: any) => {
+      // Debug: log incoming register input (sanitized)
+      // eslint-disable-next-line no-console
+      console.debug("Register resolver input:", { email: input?.email, displayName: input?.displayName });
       // Validate input
       const { error, value } = registerSchema.validate(input);
       if (error) {
@@ -128,6 +131,9 @@ export const resolvers = {
     },
 
     login: async (_: any, { input }: any) => {
+      // Debug: log incoming login input (sanitized)
+      // eslint-disable-next-line no-console
+      console.debug("Login resolver input:", { email: input?.email });
       // Validate input
       const { error, value } = loginSchema.validate(input);
       if (error) {

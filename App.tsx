@@ -14,6 +14,7 @@ import RegisterScreen from "./src/screens/RegisterScreen";
 import BetsScreen from "./src/screens/BetsScreen";
 import LeaderboardScreen from "./src/screens/LeaderboardScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
+import FriendGroupsScreen from "./src/screens/FriendGroupsScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -23,6 +24,15 @@ function AuthStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function ProfileStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="ProfileHome" component={ProfileScreen} />
+      <Stack.Screen name="FriendGroups" component={FriendGroupsScreen} />
     </Stack.Navigator>
   );
 }
@@ -70,9 +80,10 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfileStack}
         options={{
           tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
+          headerShown: false,
         }}
       />
     </Tab.Navigator>
