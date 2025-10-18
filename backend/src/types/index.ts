@@ -80,3 +80,10 @@ export interface ApiResponse<T = any> {
   error?: string;
   message?: string;
 }
+
+export interface Context {
+  user?: {
+    userId: string;
+    email: string;
+  };
+}

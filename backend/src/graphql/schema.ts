@@ -58,7 +58,7 @@ export const typeDefs = gql`
     name: String!
     description: String
     owner: User!
-    members: [BetGroupMember!]!  
+    members: [BetGroupMember!]!
     bets: [Bet!]!
     createdAt: DateTime!
     updatedAt: DateTime!

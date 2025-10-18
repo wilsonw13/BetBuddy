@@ -5,13 +5,7 @@ import { resolvers } from "@/graphql/resolvers";
 import { tokenService } from "@/services/tokenService";
 import { disconnectPrisma } from "@/config/prisma";
 import { NODE_ENV, HOST, PORT } from "@/config/env";
-
-interface Context {
-  user?: {
-    userId: string;
-    email: string;
-  };
-}
+import { Context } from "@/types";
 
 const server = new ApolloServer({
   typeDefs,
