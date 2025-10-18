@@ -61,3 +61,6 @@ web-build/
 
 # TypeScript
 *.tsbuildinfo
+
+# Prisma Migrations
+prisma/migrations
