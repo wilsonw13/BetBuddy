@@ -20,7 +20,7 @@ export interface PhotoVerificationResult {
  */
 export async function verifyBetPhoto(imageUri: string, betContext: string): Promise<PhotoVerificationResult> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     // Convert image to base64 (in a real app, you'd fetch and convert the image)
     const imageBase64 = await imageUriToBase64(imageUri);
@@ -90,7 +90,7 @@ Be strict but fair. If the photo looks legitimate, mark it as not suspicious.`;
  */
 export async function suggestBets(userInterests: string[], pastBets: string[]): Promise<string[]> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `You are a bet suggestion assistant. Based on these user interests: ${userInterests.join(
       ", ",
