@@ -69,6 +69,134 @@ export const resolvers = {
 
       return user;
     },
+
+    myFriends: async (_: any, __: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      // Get friendships where user is either user1 or user2
+      const friendships = await prisma.friendship.findMany({
+        where: {
+          OR: [{ user1Id: context.user.userId }, { user2Id: context.user.userId }],
+        },
+        include: {
+          user1: {
+            select: {
+              id: true,
+              email: true,
+              displayName: true,
+              profilePicture: true,
+              createdAt: true,
+            },
+          },
+          user2: {
+            select: {
+              id: true,
+              email: true,
+              displayName: true,
+              profilePicture: true,
+              createdAt: true,
+            },
+          },
+        },
+      });
+
+      // Return the friend (not the current user)
+      return friendships.map((friendship) =>
+        friendship.user1Id === context.user?.userId ? friendship.user2 : friendship.user1,
+      );
+    },
+
+    myFriendRequests: async (_: any, __: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const requests = await prisma.friendRequest.findMany({
+        where: {
+          toUserId: context.user.userId,
+          status: "pending",
+        },
+        include: {
+          fromUser: {
+            select: {
+              id: true,
+              email: true,
+              displayName: true,
+              profilePicture: true,
+              emailVerified: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+          toUser: {
+            select: {
+              id: true,
+              email: true,
+              displayName: true,
+              profilePicture: true,
+              emailVerified: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return requests;
+    },
+
+    sentFriendRequests: async (_: any, __: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const requests = await prisma.friendRequest.findMany({
+        where: {
+          fromUserId: context.user.userId,
+          status: "pending",
+        },
+        include: {
+          fromUser: {
+            select: {
+              id: true,
+              email: true,
+              displayName: true,
+              profilePicture: true,
+              emailVerified: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+          toUser: {
+            select: {
+              id: true,
+              email: true,
+              displayName: true,
+              profilePicture: true,
+              emailVerified: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return requests;
+    },
   },
 
   Mutation: {
@@ -289,6 +417,219 @@ export const resolvers = {
           extensions: { code: "LOGOUT_FAILED" },
         });
       }
+    },
+
+    sendFriendRequest: async (_: any, { toUserEmail }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      // Find the user by email
+      const toUser = await prisma.user.findUnique({
+        where: { email: toUserEmail.toLowerCase() },
+      });
+
+      if (!toUser) {
+        throw new GraphQLError("User not found", {
+          extensions: { code: "USER_NOT_FOUND" },
+        });
+      }
+
+      if (toUser.id === context.user.userId) {
+        throw new GraphQLError("Cannot send friend request to yourself", {
+          extensions: { code: "INVALID_REQUEST" },
+        });
+      }
+
+      // Check if already friends
+      const existingFriendship = await prisma.friendship.findFirst({
+        where: {
+          OR: [
+            { user1Id: context.user.userId, user2Id: toUser.id },
+            { user1Id: toUser.id, user2Id: context.user.userId },
+          ],
+        },
+      });
+
+      if (existingFriendship) {
+        throw new GraphQLError("Already friends with this user", {
+          extensions: { code: "ALREADY_FRIENDS" },
+        });
+      }
+
+      // Check if friend request already exists
+      const existingRequest = await prisma.friendRequest.findFirst({
+        where: {
+          OR: [
+            { fromUserId: context.user.userId, toUserId: toUser.id },
+            { fromUserId: toUser.id, toUserId: context.user.userId },
+          ],
+          status: "pending",
+        },
+      });
+
+      if (existingRequest) {
+        throw new GraphQLError("Friend request already sent", {
+          extensions: { code: "REQUEST_EXISTS" },
+        });
+      }
+
+      // Create friend request
+      const friendRequest = await prisma.friendRequest.create({
+        data: {
+          fromUserId: context.user.userId,
+          toUserId: toUser.id,
+        },
+        include: {
+          fromUser: {
+            select: {
+              id: true,
+              email: true,
+              displayName: true,
+              profilePicture: true,
+              emailVerified: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+          toUser: {
+            select: {
+              id: true,
+              email: true,
+              displayName: true,
+              profilePicture: true,
+              emailVerified: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+        },
+      });
+
+      return friendRequest;
+    },
+
+    acceptFriendRequest: async (_: any, { requestId }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const friendRequest = await prisma.friendRequest.findUnique({
+        where: { id: requestId },
+      });
+
+      if (!friendRequest) {
+        throw new GraphQLError("Friend request not found", {
+          extensions: { code: "REQUEST_NOT_FOUND" },
+        });
+      }
+
+      if (friendRequest.toUserId !== context.user.userId) {
+        throw new GraphQLError("Not authorized to accept this request", {
+          extensions: { code: "UNAUTHORIZED" },
+        });
+      }
+
+      if (friendRequest.status !== "pending") {
+        throw new GraphQLError("Friend request already processed", {
+          extensions: { code: "REQUEST_PROCESSED" },
+        });
+      }
+
+      // Create friendship and update request status in a transaction
+      await prisma.$transaction([
+        prisma.friendRequest.update({
+          where: { id: requestId },
+          data: { status: "accepted" },
+        }),
+        prisma.friendship.create({
+          data: {
+            user1Id: friendRequest.fromUserId,
+            user2Id: friendRequest.toUserId,
+          },
+        }),
+      ]);
+
+      return {
+        success: true,
+        message: "Friend request accepted",
+      };
+    },
+
+    declineFriendRequest: async (_: any, { requestId }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const friendRequest = await prisma.friendRequest.findUnique({
+        where: { id: requestId },
+      });
+
+      if (!friendRequest) {
+        throw new GraphQLError("Friend request not found", {
+          extensions: { code: "REQUEST_NOT_FOUND" },
+        });
+      }
+
+      if (friendRequest.toUserId !== context.user.userId) {
+        throw new GraphQLError("Not authorized to decline this request", {
+          extensions: { code: "UNAUTHORIZED" },
+        });
+      }
+
+      if (friendRequest.status !== "pending") {
+        throw new GraphQLError("Friend request already processed", {
+          extensions: { code: "REQUEST_PROCESSED" },
+        });
+      }
+
+      await prisma.friendRequest.update({
+        where: { id: requestId },
+        data: { status: "declined" },
+      });
+
+      return {
+        success: true,
+        message: "Friend request declined",
+      };
+    },
+
+    removeFriend: async (_: any, { friendId }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const friendship = await prisma.friendship.findFirst({
+        where: {
+          OR: [
+            { user1Id: context.user.userId, user2Id: friendId },
+            { user1Id: friendId, user2Id: context.user.userId },
+          ],
+        },
+      });
+
+      if (!friendship) {
+        throw new GraphQLError("Friendship not found", {
+          extensions: { code: "FRIENDSHIP_NOT_FOUND" },
+        });
+      }
+
+      await prisma.friendship.delete({
+        where: { id: friendship.id },
+      });
+
+      return {
+        success: true,
+        message: "Friend removed",
+      };
     },
   },
 };

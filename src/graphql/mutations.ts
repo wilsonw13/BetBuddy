@@ -80,3 +80,53 @@ export const LOGOUT_ALL = gql`
     }
   }
 `;
+
+export const SEND_FRIEND_REQUEST = gql`
+  mutation SendFriendRequest($toUserEmail: String!) {
+    sendFriendRequest(toUserEmail: $toUserEmail) {
+      id
+      status
+      fromUser {
+        id
+        email
+        displayName
+        profilePicture
+      }
+      toUser {
+        id
+        email
+        displayName
+        profilePicture
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const ACCEPT_FRIEND_REQUEST = gql`
+  mutation AcceptFriendRequest($requestId: ID!) {
+    acceptFriendRequest(requestId: $requestId) {
+      success
+      message
+    }
+  }
+`;
+
+export const DECLINE_FRIEND_REQUEST = gql`
+  mutation DeclineFriendRequest($requestId: ID!) {
+    declineFriendRequest(requestId: $requestId) {
+      success
+      message
+    }
+  }
+`;
+
+export const REMOVE_FRIEND = gql`
+  mutation RemoveFriend($friendId: ID!) {
+    removeFriend(friendId: $friendId) {
+      success
+      message
+    }
+  }
+`;

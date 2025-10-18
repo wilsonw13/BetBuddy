@@ -30,6 +30,23 @@ export const typeDefs = gql`
     message: String
   }
 
+  type FriendRequest {
+    id: ID!
+    fromUser: User!
+    toUser: User!
+    status: String!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
+  type Friend {
+    id: ID!
+    email: String!
+    displayName: String!
+    profilePicture: String
+    createdAt: DateTime!
+  }
+
   input RegisterInput {
     email: String!
     password: String!
@@ -52,6 +69,9 @@ export const typeDefs = gql`
   type Query {
     me: User
     health: String!
+    myFriends: [Friend!]!
+    myFriendRequests: [FriendRequest!]!
+    sentFriendRequests: [FriendRequest!]!
   }
 
   type Mutation {
@@ -61,5 +81,10 @@ export const typeDefs = gql`
     refreshToken(input: RefreshTokenInput!): TokenPayload!
     logout(refreshToken: String!): SuccessResponse!
     logoutAll: SuccessResponse!
+
+    sendFriendRequest(toUserEmail: String!): FriendRequest!
+    acceptFriendRequest(requestId: ID!): SuccessResponse!
+    declineFriendRequest(requestId: ID!): SuccessResponse!
+    removeFriend(friendId: ID!): SuccessResponse!
   }
 `;

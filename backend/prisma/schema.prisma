@@ -22,7 +22,11 @@ model User {
   lastLogin       DateTime? @map("last_login")
 
   // Relations
-  refreshTokens   RefreshToken[]
+  refreshTokens        RefreshToken[]
+  sentFriendRequests   FriendRequest[] @relation("SentFriendRequests")
+  receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
+  friendshipsInitiated Friendship[] @relation("FriendshipInitiator")
+  friendshipsReceived  Friendship[] @relation("FriendshipReceiver")
 
   @@index([email])
   @@index([googleId])
@@ -44,4 +48,39 @@ model RefreshToken {
   @@index([tokenHash])
   @@index([expiresAt])
   @@map("refresh_tokens")
+}
+
+model FriendRequest {
+  id         String   @id @default(uuid())
+  fromUserId String   @map("from_user_id")
+  toUserId   String   @map("to_user_id")
+  status     String   @default("pending") // pending, accepted, declined
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  fromUser   User     @relation("SentFriendRequests", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser     User     @relation("ReceivedFriendRequests", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@unique([fromUserId, toUserId])
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([status])
+  @@map("friend_requests")
+}
+
+model Friendship {
+  id        String   @id @default(uuid())
+  user1Id   String   @map("user1_id")
+  user2Id   String   @map("user2_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user1     User     @relation("FriendshipInitiator", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2     User     @relation("FriendshipReceiver", fields: [user2Id], references: [id], onDelete: Cascade)
+
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@map("friendships")
 }

@@ -20,3 +20,49 @@ export const HEALTH_CHECK = gql`
     health
   }
 `;
+
+export const GET_MY_FRIENDS = gql`
+  query GetMyFriends {
+    myFriends {
+      id
+      email
+      displayName
+      profilePicture
+      createdAt
+    }
+  }
+`;
+
+export const GET_MY_FRIEND_REQUESTS = gql`
+  query GetMyFriendRequests {
+    myFriendRequests {
+      id
+      status
+      fromUser {
+        id
+        email
+        displayName
+        profilePicture
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GET_SENT_FRIEND_REQUESTS = gql`
+  query GetSentFriendRequests {
+    sentFriendRequests {
+      id
+      status
+      toUser {
+        id
+        email
+        displayName
+        profilePicture
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;

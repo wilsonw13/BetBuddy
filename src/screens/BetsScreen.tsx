@@ -10,10 +10,21 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Bet, BetFrequency, ProofType } from "@/types";
 import { suggestBets } from "@/services/geminiService";
+import { useQuery } from "@apollo/client";
+import { GET_MY_FRIENDS } from "@/graphql/queries";
+
+interface Friend {
+  id: string;
+  email: string;
+  displayName: string;
+  profilePicture?: string;
+  createdAt: string;
+}
 
 // Mock data - replace with real data from your backend
 const mockBets: Bet[] = [
@@ -39,6 +50,9 @@ export default function BetsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [friendSearchQuery, setFriendSearchQuery] = useState("");
+  const [showFriendsList, setShowFriendsList] = useState(false);
+  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [newBet, setNewBet] = useState({
     activity: "",
     opponent: "",
@@ -48,8 +62,20 @@ export default function BetsScreen() {
     pointsStaked: 50,
   });
 
+  // Fetch friends list
+  const { data: friendsData, loading: friendsLoading } = useQuery(GET_MY_FRIENDS);
+  const friends: Friend[] = friendsData?.myFriends || [];
+
+  // Filter friends based on search query
+  const filteredFriends = friends.filter(
+    (friend) =>
+      friend.displayName.toLowerCase().includes(friendSearchQuery.toLowerCase()) ||
+      friend.email.toLowerCase().includes(friendSearchQuery.toLowerCase())
+  );
+
   const handleGetSuggestions = async () => {
     setLoadingSuggestions(true);
+    setSuggestions([]); // Clear previous suggestions before fetching new ones
     try {
       const userInterests = ["fitness", "productivity", "health"];
       const pastBets = bets.map((bet) => bet.betActivity);
@@ -62,8 +88,46 @@ export default function BetsScreen() {
     }
   };
 
+  const parseSuggestionToFrequency = (suggestion: string): BetFrequency => {
+    const lowerSuggestion = suggestion.toLowerCase();
+    if (lowerSuggestion.includes("daily") || lowerSuggestion.includes("every day")) return "daily";
+    if (lowerSuggestion.includes("4x") || lowerSuggestion.includes("4 times")) return "4x/week";
+    if (lowerSuggestion.includes("3x") || lowerSuggestion.includes("3 times")) return "3x/week";
+    if (lowerSuggestion.includes("2x") || lowerSuggestion.includes("twice")) return "2x/week";
+    if (lowerSuggestion.includes("once a week") || lowerSuggestion.includes("1x")) return "1x/week";
+    if (lowerSuggestion.includes("2x/month") || lowerSuggestion.includes("twice a month")) return "2x/month";
+    if (lowerSuggestion.includes("1x/month") || lowerSuggestion.includes("once a month")) return "1x/month";
+    return "1x/week"; // default
+  };
+
+  const parseSuggestionToProofType = (suggestion: string): ProofType => {
+    const lowerSuggestion = suggestion.toLowerCase();
+    if (lowerSuggestion.includes("gym") || lowerSuggestion.includes("location") || lowerSuggestion.includes("run")) {
+      return "location";
+    }
+    return "live_photo"; // default
+  };
+
+  const handleSuggestionSelect = (suggestion: string) => {
+    // If the same suggestion is clicked again, deselect it (clear activity)
+    if (newBet.activity === suggestion) {
+      setNewBet({ ...newBet, activity: "" });
+    } else {
+      const frequency = parseSuggestionToFrequency(suggestion);
+      const proofType = parseSuggestionToProofType(suggestion);
+      setNewBet({ ...newBet, activity: suggestion, frequency, proofType });
+    }
+  };
+
+  const handleSelectFriend = (friend: Friend) => {
+    setSelectedFriend(friend);
+    setNewBet({ ...newBet, opponent: friend.id });
+    setShowFriendsList(false);
+    setFriendSearchQuery("");
+  };
+
   const handleAddBet = () => {
-    if (!newBet.activity || !newBet.opponent) {
+    if (!newBet.activity || !selectedFriend) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
@@ -71,7 +135,7 @@ export default function BetsScreen() {
     const bet: Bet = {
       id: Date.now().toString(),
       userId1: "currentUser",
-      userId2: newBet.opponent,
+      userId2: selectedFriend.id,
       betActivity: newBet.activity,
       proofType: newBet.proofType,
       frequency: newBet.frequency,
@@ -86,6 +150,7 @@ export default function BetsScreen() {
 
     setBets([bet, ...bets]);
     setModalVisible(false);
+    setSelectedFriend(null);
     setNewBet({
       activity: "",
       opponent: "",
@@ -186,10 +251,20 @@ export default function BetsScreen() {
                   {suggestions.map((suggestion, index) => (
                     <TouchableOpacity
                       key={index}
-                      style={styles.suggestionChip}
-                      onPress={() => setNewBet({ ...newBet, activity: suggestion })}
+                      style={[
+                        styles.suggestionChip,
+                        newBet.activity === suggestion && styles.suggestionChipSelected,
+                      ]}
+                      onPress={() => handleSuggestionSelect(suggestion)}
                     >
-                      <Text style={styles.suggestionText}>{suggestion}</Text>
+                      <Text
+                        style={[
+                          styles.suggestionText,
+                          newBet.activity === suggestion && styles.suggestionTextSelected,
+                        ]}
+                      >
+                        {suggestion}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -202,13 +277,89 @@ export default function BetsScreen() {
                 onChangeText={(text) => setNewBet({ ...newBet, activity: text })}
               />
 
-              <Text style={styles.label}>Opponent (User ID)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter user ID"
-                value={newBet.opponent}
-                onChangeText={(text) => setNewBet({ ...newBet, opponent: text })}
-              />
+              <Text style={styles.label}>Opponent</Text>
+              {selectedFriend ? (
+                <TouchableOpacity
+                  style={styles.selectedFriendContainer}
+                  onPress={() => {
+                    setSelectedFriend(null);
+                    setNewBet({ ...newBet, opponent: "" });
+                  }}
+                >
+                  <View style={styles.selectedFriendInfo}>
+                    <View style={styles.friendAvatarSmall}>
+                      {selectedFriend.profilePicture ? (
+                        <Image source={{ uri: selectedFriend.profilePicture }} style={styles.friendAvatarImage} />
+                      ) : (
+                        <Ionicons name="person" size={20} color="#8E8E93" />
+                      )}
+                    </View>
+                    <View style={styles.selectedFriendDetails}>
+                      <Text style={styles.selectedFriendName}>{selectedFriend.displayName}</Text>
+                      <Text style={styles.selectedFriendEmail}>{selectedFriend.email}</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="close-circle" size={24} color="#8E8E93" />
+                </TouchableOpacity>
+              ) : (
+                <>
+                  <TouchableOpacity
+                    style={styles.friendSearchInput}
+                    onPress={() => setShowFriendsList(!showFriendsList)}
+                  >
+                    <Ionicons name="search" size={20} color="#8E8E93" />
+                    <Text style={styles.friendSearchPlaceholder}>Search friends...</Text>
+                    <Ionicons name={showFriendsList ? "chevron-up" : "chevron-down"} size={20} color="#8E8E93" />
+                  </TouchableOpacity>
+
+                  {showFriendsList && (
+                    <View style={styles.friendsListContainer}>
+                      <TextInput
+                        style={styles.friendSearchInputField}
+                        placeholder="Type to search..."
+                        value={friendSearchQuery}
+                        onChangeText={setFriendSearchQuery}
+                        autoFocus
+                      />
+                      {friendsLoading ? (
+                        <ActivityIndicator size="small" color="#007AFF" style={styles.friendsLoader} />
+                      ) : filteredFriends.length > 0 ? (
+                        <ScrollView style={styles.friendsScroll} nestedScrollEnabled>
+                          {filteredFriends.map((friend) => (
+                            <TouchableOpacity
+                              key={friend.id}
+                              style={styles.friendItem}
+                              onPress={() => handleSelectFriend(friend)}
+                            >
+                              <View style={styles.friendAvatarSmall}>
+                                {friend.profilePicture ? (
+                                  <Image source={{ uri: friend.profilePicture }} style={styles.friendAvatarImage} />
+                                ) : (
+                                  <Ionicons name="person" size={20} color="#8E8E93" />
+                                )}
+                              </View>
+                              <View style={styles.friendItemDetails}>
+                                <Text style={styles.friendItemName}>{friend.displayName}</Text>
+                                <Text style={styles.friendItemEmail}>{friend.email}</Text>
+                              </View>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      ) : (
+                        <View style={styles.noFriendsContainer}>
+                          <Ionicons name="people-outline" size={32} color="#C7C7CC" />
+                          <Text style={styles.noFriendsText}>
+                            {friendSearchQuery ? "No friends found" : "No friends yet"}
+                          </Text>
+                          <Text style={styles.noFriendsSubtext}>
+                            {friendSearchQuery ? "Try a different search" : "Add friends to create bets"}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+                </>
+              )}
 
               <Text style={styles.label}>Frequency</Text>
               <View style={styles.optionsContainer}>
@@ -498,9 +649,129 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#007AFF",
   },
+  suggestionChipSelected: {
+    backgroundColor: "#007AFF",
+  },
   suggestionText: {
     fontSize: 13,
     color: "#007AFF",
     fontWeight: "500",
+  },
+  suggestionTextSelected: {
+    color: "#FFFFFF",
+  },
+  selectedFriendContainer: {
+    backgroundColor: "#E3F2FD",
+    borderRadius: 10,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#007AFF",
+  },
+  selectedFriendInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  selectedFriendDetails: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  selectedFriendName: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#000",
+  },
+  selectedFriendEmail: {
+    fontSize: 13,
+    color: "#8E8E93",
+    marginTop: 2,
+  },
+  friendSearchInput: {
+    backgroundColor: "#F2F2F7",
+    borderRadius: 10,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  friendSearchPlaceholder: {
+    flex: 1,
+    fontSize: 16,
+    color: "#8E8E93",
+  },
+  friendsListContainer: {
+    backgroundColor: "#F2F2F7",
+    borderRadius: 10,
+    marginTop: 8,
+    maxHeight: 250,
+  },
+  friendSearchInputField: {
+    backgroundColor: "white",
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 15,
+    margin: 8,
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
+  },
+  friendsScroll: {
+    maxHeight: 180,
+  },
+  friendsLoader: {
+    padding: 20,
+  },
+  friendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5EA",
+    backgroundColor: "white",
+  },
+  friendAvatarSmall: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F2F2F7",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  friendAvatarImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  friendItemDetails: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  friendItemName: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#000",
+  },
+  friendItemEmail: {
+    fontSize: 13,
+    color: "#8E8E93",
+    marginTop: 2,
+  },
+  noFriendsContainer: {
+    alignItems: "center",
+    padding: 24,
+    backgroundColor: "white",
+  },
+  noFriendsText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#8E8E93",
+    marginTop: 8,
+  },
+  noFriendsSubtext: {
+    fontSize: 13,
+    color: "#C7C7CC",
+    marginTop: 4,
   },
 });

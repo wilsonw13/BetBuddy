@@ -9,104 +9,76 @@ import {
   Modal,
   Alert,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery, useMutation } from "@apollo/client";
+import { GET_MY_FRIENDS, GET_MY_FRIEND_REQUESTS } from "@/graphql/queries";
+import {
+  SEND_FRIEND_REQUEST,
+  ACCEPT_FRIEND_REQUEST,
+  DECLINE_FRIEND_REQUEST,
+  REMOVE_FRIEND,
+} from "@/graphql/mutations";
 
 interface Friend {
   id: string;
-  name: string;
   email: string;
+  displayName: string;
   profilePicture?: string;
-  successRate: number;
-  totalBets: number;
-  rank: string;
+  createdAt: string;
 }
 
-interface FriendGroup {
+interface FriendRequest {
   id: string;
-  name: string;
-  friends: Friend[];
+  status: string;
+  fromUser: {
+    id: string;
+    email: string;
+    displayName: string;
+    profilePicture?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
 }
-
-// Mock data - replace with real data from backend
-const mockFriendGroups: FriendGroup[] = [
-  {
-    id: "1",
-    name: "Friends",
-    friends: [
-      {
-        id: "f1",
-        name: "Alex Johnson",
-        email: "alex@example.com",
-        successRate: 0.75,
-        totalBets: 15,
-        rank: "intermediate",
-      },
-      {
-        id: "f2",
-        name: "Sarah Williams",
-        email: "sarah@example.com",
-        successRate: 0.9,
-        totalBets: 25,
-        rank: "advanced",
-      },
-      {
-        id: "f3",
-        name: "Mike Chen",
-        email: "mike@example.com",
-        successRate: 0.65,
-        totalBets: 10,
-        rank: "beginner",
-      },
-    ],
-  },
-  {
-    id: "2",
-    name: "Gym Buddies",
-    friends: [
-      {
-        id: "f4",
-        name: "David Kim",
-        email: "david@example.com",
-        successRate: 0.8,
-        totalBets: 20,
-        rank: "intermediate",
-      },
-      {
-        id: "f5",
-        name: "Emma Davis",
-        email: "emma@example.com",
-        successRate: 0.95,
-        totalBets: 30,
-        rank: "legendary",
-      },
-    ],
-  },
-];
 
 export default function FriendGroupsScreen({ navigation, route }: any) {
   const groupName = route?.params?.groupName || "All Friends";
-  const [friendGroups, setFriendGroups] = useState<FriendGroup[]>(mockFriendGroups);
   const [addFriendModalVisible, setAddFriendModalVisible] = useState(false);
   const [createGroupModalVisible, setCreateGroupModalVisible] = useState(false);
+  const [friendRequestsModalVisible, setFriendRequestsModalVisible] = useState(false);
   const [newFriendEmail, setNewFriendEmail] = useState("");
   const [newGroupName, setNewGroupName] = useState("");
 
-  // Get all friends or filter by group
-  const displayedGroup = groupName === "All Friends"
-    ? { id: "all", name: "All Friends", friends: friendGroups.flatMap(g => g.friends) }
-    : friendGroups.find(g => g.name === groupName) || friendGroups[0];
+  // Fetch friends and friend requests
+  const { data: friendsData, loading: friendsLoading, refetch: refetchFriends } = useQuery(GET_MY_FRIENDS);
+  const { data: requestsData, loading: requestsLoading, refetch: refetchRequests } = useQuery(GET_MY_FRIEND_REQUESTS);
 
-  const handleAddFriend = () => {
+  // Mutations
+  const [sendFriendRequest, { loading: sendingRequest }] = useMutation(SEND_FRIEND_REQUEST);
+  const [acceptFriendRequest, { loading: acceptingRequest }] = useMutation(ACCEPT_FRIEND_REQUEST);
+  const [declineFriendRequest, { loading: decliningRequest }] = useMutation(DECLINE_FRIEND_REQUEST);
+  const [removeFriend, { loading: removingFriend }] = useMutation(REMOVE_FRIEND);
+
+  const friends: Friend[] = friendsData?.myFriends || [];
+  const friendRequests: FriendRequest[] = requestsData?.myFriendRequests || [];
+
+  const handleAddFriend = async () => {
     if (!newFriendEmail.trim()) {
       Alert.alert("Error", "Please enter an email address");
       return;
     }
 
-    // TODO: Backend API call to send friend request
-    Alert.alert("Friend Request Sent", `Invitation sent to ${newFriendEmail}`);
-    setNewFriendEmail("");
-    setAddFriendModalVisible(false);
+    try {
+      await sendFriendRequest({
+        variables: { toUserEmail: newFriendEmail },
+      });
+      Alert.alert("Friend Request Sent", `Invitation sent to ${newFriendEmail}`);
+      setNewFriendEmail("");
+      setAddFriendModalVisible(false);
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to send friend request");
+    }
   };
 
   const handleCreateGroup = () => {
@@ -115,34 +87,60 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
       return;
     }
 
-    const newGroup: FriendGroup = {
-      id: Date.now().toString(),
-      name: newGroupName,
-      friends: [],
-    };
-
-    setFriendGroups([...friendGroups, newGroup]);
+    // TODO: Groups functionality - will be implemented later
     setNewGroupName("");
     setCreateGroupModalVisible(false);
-    Alert.alert("Success", `Created group "${newGroupName}"`);
+    Alert.alert("Coming Soon", "Friend groups feature is coming soon!");
   };
 
   const handleRemoveFriend = (friend: Friend) => {
     Alert.alert(
       "Remove Friend",
-      `Remove ${friend.name} from ${displayedGroup.name}?`,
+      `Remove ${friend.displayName} from your friends?`,
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Remove",
           style: "destructive",
-          onPress: () => {
-            // TODO: Backend API call to remove friend
-            Alert.alert("Success", `${friend.name} removed from group`);
+          onPress: async () => {
+            try {
+              await removeFriend({
+                variables: { friendId: friend.id },
+              });
+              Alert.alert("Success", `${friend.displayName} removed from friends`);
+              refetchFriends();
+            } catch (error: any) {
+              Alert.alert("Error", error.message || "Failed to remove friend");
+            }
           },
         },
       ]
     );
+  };
+
+  const handleAcceptRequest = async (request: FriendRequest) => {
+    try {
+      await acceptFriendRequest({
+        variables: { requestId: request.id },
+      });
+      Alert.alert("Success", `You are now friends with ${request.fromUser.displayName}!`);
+      refetchRequests();
+      refetchFriends();
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to accept friend request");
+    }
+  };
+
+  const handleDeclineRequest = async (request: FriendRequest) => {
+    try {
+      await declineFriendRequest({
+        variables: { requestId: request.id },
+      });
+      Alert.alert("Declined", `Friend request from ${request.fromUser.displayName} declined`);
+      refetchRequests();
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to decline friend request");
+    }
   };
 
   const renderFriend = ({ item }: { item: Friend }) => (
@@ -150,7 +148,7 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
       style={styles.friendCard}
       onPress={() => {
         // TODO: Navigate to friend's profile
-        Alert.alert("View Profile", `View ${item.name}'s profile`);
+        Alert.alert("View Profile", `View ${item.displayName}'s profile`);
       }}
     >
       <View style={styles.friendAvatar}>
@@ -161,15 +159,8 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
         )}
       </View>
       <View style={styles.friendInfo}>
-        <Text style={styles.friendName}>{item.name}</Text>
+        <Text style={styles.friendName}>{item.displayName}</Text>
         <Text style={styles.friendEmail}>{item.email}</Text>
-        <View style={styles.friendStats}>
-          <Text style={styles.friendStatText}>
-            {(item.successRate * 100).toFixed(0)}% Success
-          </Text>
-          <Text style={styles.friendStatDivider}>•</Text>
-          <Text style={styles.friendStatText}>{item.totalBets} Bets</Text>
-        </View>
       </View>
       <TouchableOpacity
         onPress={() => handleRemoveFriend(item)}
@@ -180,6 +171,49 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
     </TouchableOpacity>
   );
 
+  const renderFriendRequest = ({ item }: { item: FriendRequest }) => (
+    <View style={styles.requestCard}>
+      <View style={styles.friendAvatar}>
+        {item.fromUser.profilePicture ? (
+          <Image source={{ uri: item.fromUser.profilePicture }} style={styles.avatarImage} />
+        ) : (
+          <Ionicons name="person" size={32} color="#8E8E93" />
+        )}
+      </View>
+      <View style={styles.requestInfo}>
+        <Text style={styles.friendName}>{item.fromUser.displayName}</Text>
+        <Text style={styles.friendEmail}>{item.fromUser.email}</Text>
+        <View style={styles.requestActions}>
+          <TouchableOpacity
+            style={styles.acceptButton}
+            onPress={() => handleAcceptRequest(item)}
+            disabled={acceptingRequest || decliningRequest}
+          >
+            <Ionicons name="checkmark" size={18} color="white" />
+            <Text style={styles.acceptButtonText}>Accept</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.declineButton}
+            onPress={() => handleDeclineRequest(item)}
+            disabled={acceptingRequest || decliningRequest}
+          >
+            <Ionicons name="close" size={18} color="#FF3B30" />
+            <Text style={styles.declineButtonText}>Decline</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  );
+
+  if (friendsLoading || requestsLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Loading friends...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -188,13 +222,21 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>{displayedGroup.name}</Text>
+          <Text style={styles.headerTitle}>Friends</Text>
           <Text style={styles.headerSubtitle}>
-            {displayedGroup.friends.length} {displayedGroup.friends.length === 1 ? 'friend' : 'friends'}
+            {friends.length} {friends.length === 1 ? 'friend' : 'friends'}
           </Text>
         </View>
-        <TouchableOpacity onPress={() => setCreateGroupModalVisible(true)} style={styles.headerButton}>
-          <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
+        <TouchableOpacity
+          onPress={() => setFriendRequestsModalVisible(true)}
+          style={styles.headerButton}
+        >
+          <Ionicons name="notifications-outline" size={24} color="#007AFF" />
+          {friendRequests.length > 0 && (
+            <View style={styles.notificationBadge}>
+              <Text style={styles.notificationBadgeText}>{friendRequests.length}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -203,36 +245,23 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => setAddFriendModalVisible(true)}
+          disabled={sendingRequest}
         >
           <Ionicons name="person-add" size={20} color="white" />
           <Text style={styles.actionButtonText}>Add Friend</Text>
         </TouchableOpacity>
-
-        {groupName !== "All Friends" && (
-          <TouchableOpacity
-            style={[styles.actionButton, styles.actionButtonSecondary]}
-            onPress={() => {
-              Alert.alert("Manage Group", "Group management options");
-            }}
-          >
-            <Ionicons name="settings-outline" size={20} color="#007AFF" />
-            <Text style={[styles.actionButtonText, styles.actionButtonTextSecondary]}>
-              Manage Group
-            </Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* Friends List */}
       <FlatList
-        data={displayedGroup.friends}
+        data={friends}
         renderItem={renderFriend}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.friendsList}
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Ionicons name="people-outline" size={64} color="#C7C7CC" />
-            <Text style={styles.emptyStateText}>No friends in this group yet</Text>
+            <Text style={styles.emptyStateText}>No friends yet</Text>
             <Text style={styles.emptyStateSubtext}>
               Tap "Add Friend" to invite someone
             </Text>
@@ -305,6 +334,40 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
           </View>
         </View>
       </Modal>
+
+      {/* Friend Requests Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={friendRequestsModalVisible}
+        onRequestClose={() => setFriendRequestsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Friend Requests</Text>
+              <TouchableOpacity onPress={() => setFriendRequestsModalVisible(false)}>
+                <Ionicons name="close" size={28} color="#000" />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={friendRequests}
+              renderItem={renderFriendRequest}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.requestsList}
+              ListEmptyComponent={
+                <View style={styles.emptyState}>
+                  <Ionicons name="notifications-off-outline" size={64} color="#C7C7CC" />
+                  <Text style={styles.emptyStateText}>No friend requests</Text>
+                  <Text style={styles.emptyStateSubtext}>
+                    You're all caught up!
+                  </Text>
+                </View>
+              }
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -313,6 +376,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F2F2F7",
+  },
+  loadingContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: "#8E8E93",
   },
   header: {
     flexDirection: "row",
@@ -344,6 +416,24 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     padding: 8,
+    position: "relative",
+  },
+  notificationBadge: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: "#FF3B30",
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+  },
+  notificationBadgeText: {
+    color: "white",
+    fontSize: 11,
+    fontWeight: "700",
   },
   actionButtons: {
     flexDirection: "row",
@@ -498,6 +588,55 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: "white",
     fontSize: 16,
+    fontWeight: "600",
+  },
+  requestsList: {
+    padding: 16,
+  },
+  requestCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#F2F2F7",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  requestInfo: {
+    flex: 1,
+  },
+  requestActions: {
+    flexDirection: "row",
+    marginTop: 12,
+    gap: 8,
+  },
+  acceptButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#34C759",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    gap: 4,
+  },
+  acceptButtonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  declineButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#FF3B30",
+    gap: 4,
+  },
+  declineButtonText: {
+    color: "#FF3B30",
+    fontSize: 14,
     fontWeight: "600",
   },
 });

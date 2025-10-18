@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Modal, FlatList, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { User, RedeemableItem, UserRank } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Mock data - replace with real data from your backend
 const mockUser: User = {
@@ -81,8 +82,33 @@ const getRankInfo = (rank: UserRank) => {
 export default function ProfileScreen({ navigation }: any) {
   const [user, setUser] = useState<User>(mockUser);
   const [shopModalVisible, setShopModalVisible] = useState(false);
+  const { logout } = useAuth();
 
   const rankInfo = getRankInfo(user.rank);
+
+  const handleSignOut = () => {
+    Alert.alert(
+      "Sign Out",
+      "Are you sure you want to sign out?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Sign Out",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await logout();
+            } catch (error) {
+              Alert.alert("Error", "Failed to sign out. Please try again.");
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const handleRedeem = (item: RedeemableItem) => {
     if (user.points < item.pointsCost) {
@@ -220,6 +246,11 @@ export default function ProfileScreen({ navigation }: any) {
           </View>
         </View>
       </View>
+
+      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+        <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
+        <Text style={styles.signOutButtonText}>Sign Out</Text>
+      </TouchableOpacity>
 
       <Modal
         animationType="slide"
@@ -497,5 +528,24 @@ const styles = StyleSheet.create({
   },
   shopItemDisabled: {
     color: "#C7C7CC",
+  },
+  signOutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "white",
+    marginHorizontal: 16,
+    marginBottom: 32,
+    marginTop: 8,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#FF3B30",
+    gap: 8,
+  },
+  signOutButtonText: {
+    color: "#FF3B30",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
