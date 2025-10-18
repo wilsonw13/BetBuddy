@@ -82,8 +82,8 @@ export const LOGOUT_ALL = gql`
 `;
 
 export const SEND_FRIEND_REQUEST = gql`
-  mutation SendFriendRequest($toUserEmail: String!) {
-    sendFriendRequest(toUserEmail: $toUserEmail) {
+  mutation SendFriendRequest($toDisplayName: String!) {
+    sendFriendRequest(toDisplayName: $toDisplayName) {
       id
       status
       fromUser {
@@ -125,6 +125,81 @@ export const DECLINE_FRIEND_REQUEST = gql`
 export const REMOVE_FRIEND = gql`
   mutation RemoveFriend($friendId: ID!) {
     removeFriend(friendId: $friendId) {
+      success
+      message
+    }
+  }
+`;
+
+export const CREATE_BET_GROUP = gql`
+  mutation CreateBetGroup($input: CreateBetGroupInput!) {
+    createBetGroup(input: $input) {
+      id
+      name
+      description
+      owner {
+        id
+        email
+        displayName
+        profilePicture
+      }
+      members {
+        id
+        user {
+          id
+          email
+          displayName
+          profilePicture
+        }
+        joinedAt
+      }
+      bets {
+        id
+        title
+        status
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const ADD_GROUP_MEMBERS = gql`
+  mutation AddGroupMembers($groupId: ID!, $usernames: [String!]!) {
+    addGroupMembers(groupId: $groupId, usernames: $usernames) {
+      id
+      name
+      description
+      owner {
+        id
+        email
+        displayName
+        profilePicture
+      }
+      members {
+        id
+        user {
+          id
+          email
+          displayName
+          profilePicture
+        }
+        joinedAt
+      }
+      bets {
+        id
+        title
+        status
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const REMOVE_GROUP_MEMBER = gql`
+  mutation RemoveGroupMember($groupId: ID!, $userId: ID!) {
+    removeGroupMember(groupId: $groupId, userId: $userId) {
       success
       message
     }

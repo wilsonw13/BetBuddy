@@ -91,6 +91,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(message);
       }
 
+      // Basic display name validation
+      if (!/^[a-zA-Z0-9]{3,20}$/.test(displayName)) {
+        const message = "Display name must be 3-20 characters and contain only letters and numbers";
+        setError(message);
+        throw new Error(message);
+      }
+
       // Debug: log what we're about to send (don't log passwords)
       // eslint-disable-next-line no-console
       console.debug("Register variables:", { email: trimmedEmail, displayName });

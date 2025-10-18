@@ -28,12 +28,6 @@ export const GET_MY_FRIENDS = gql`
       email
       displayName
       profilePicture
-      # Optional leaderboard stats (backend may provide these fields)
-      successRate
-      totalBets
-      successfulBets
-      points
-      rank
       createdAt
     }
   }
@@ -66,6 +60,39 @@ export const GET_SENT_FRIEND_REQUESTS = gql`
         email
         displayName
         profilePicture
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GET_MY_BET_GROUPS = gql`
+  query GetMyBetGroups {
+    myBetGroups {
+      id
+      name
+      description
+      owner {
+        id
+        email
+        displayName
+        profilePicture
+      }
+      members {
+        id
+        user {
+          id
+          email
+          displayName
+          profilePicture
+        }
+        joinedAt
+      }
+      bets {
+        id
+        title
+        status
       }
       createdAt
       updatedAt

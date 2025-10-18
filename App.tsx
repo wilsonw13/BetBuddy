@@ -16,6 +16,7 @@ import BetsScreen from "./src/screens/BetsScreen";
 import LeaderboardScreen from "./src/screens/LeaderboardScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import FriendGroupsScreen from "./src/screens/FriendGroupsScreen";
+import BetGroupsScreen from "./src/screens/BetGroupsScreen";
 import SubmitProofScreen from "./src/screens/SubmitProofScreen";
 
 const Tab = createBottomTabNavigator();
@@ -44,6 +45,7 @@ function ProfileStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ProfileHome" component={ProfileScreen} />
       <Stack.Screen name="FriendGroups" component={FriendGroupsScreen} />
+      <Stack.Screen name="BetGroups" component={BetGroupsScreen} />
     </Stack.Navigator>
   );
 }

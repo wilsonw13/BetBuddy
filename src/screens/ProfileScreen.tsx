@@ -13,7 +13,7 @@ const mockUser: User = {
   successfulBets: 17,
   points: 850,
   rank: "advanced",
-  friendGroups: ["Friends", "Gym Buddies"],
+  friendGroups: ["Friends", "Groups"],
   pranksActive: [],
 };
 
@@ -87,27 +87,23 @@ export default function ProfileScreen({ navigation }: any) {
   const rankInfo = getRankInfo(user.rank);
 
   const handleSignOut = () => {
-    Alert.alert(
-      "Sign Out",
-      "Are you sure you want to sign out?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await logout();
+          } catch (error) {
+            Alert.alert("Error", "Failed to sign out. Please try again.");
+          }
         },
-        {
-          text: "Sign Out",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await logout();
-            } catch (error) {
-              Alert.alert("Error", "Failed to sign out. Please try again.");
-            }
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleRedeem = (item: RedeemableItem) => {
@@ -211,18 +207,24 @@ export default function ProfileScreen({ navigation }: any) {
       </TouchableOpacity>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Friend Groups</Text>
-        {user.friendGroups.map((group, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.groupCard}
-            onPress={() => navigation.navigate("FriendGroups", { groupName: group })}
-          >
-            <Ionicons name="people" size={24} color="#007AFF" />
-            <Text style={styles.groupName}>{group}</Text>
-            <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
-          </TouchableOpacity>
-        ))}
+        <Text style={styles.sectionTitle}>Social</Text>
+        {user.friendGroups.map((group, index) => {
+          const isGroups = group === "Groups";
+          const navigationTarget = isGroups ? "BetGroups" : "FriendGroups";
+          const iconName = isGroups ? "grid" : "people";
+
+          return (
+            <TouchableOpacity
+              key={index}
+              style={styles.groupCard}
+              onPress={() => navigation.navigate(navigationTarget, { groupName: group })}
+            >
+              <Ionicons name={iconName} size={24} color="#007AFF" />
+              <Text style={styles.groupName}>{group}</Text>
+              <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       <View style={styles.section}>

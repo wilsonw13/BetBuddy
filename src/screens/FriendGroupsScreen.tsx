@@ -47,12 +47,16 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
   const [addFriendModalVisible, setAddFriendModalVisible] = useState(false);
   const [createGroupModalVisible, setCreateGroupModalVisible] = useState(false);
   const [friendRequestsModalVisible, setFriendRequestsModalVisible] = useState(false);
-  const [newFriendEmail, setNewFriendEmail] = useState("");
+  const [newFriendDisplayName, setNewFriendDisplayName] = useState("");
   const [newGroupName, setNewGroupName] = useState("");
 
   // Fetch friends and friend requests
-  const { data: friendsData, loading: friendsLoading, refetch: refetchFriends } = useQuery(GET_MY_FRIENDS);
-  const { data: requestsData, loading: requestsLoading, refetch: refetchRequests } = useQuery(GET_MY_FRIEND_REQUESTS);
+  const { data: friendsData, loading: friendsLoading, refetch: refetchFriends } = useQuery(GET_MY_FRIENDS, {
+    fetchPolicy: "network-only", // Always fetch from network, not cache
+  });
+  const { data: requestsData, loading: requestsLoading, refetch: refetchRequests } = useQuery(GET_MY_FRIEND_REQUESTS, {
+    fetchPolicy: "network-only", // Always fetch from network, not cache
+  });
 
   // Mutations
   const [sendFriendRequest, { loading: sendingRequest }] = useMutation(SEND_FRIEND_REQUEST);
@@ -63,18 +67,24 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
   const friends: Friend[] = friendsData?.myFriends || [];
   const friendRequests: FriendRequest[] = requestsData?.myFriendRequests || [];
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log("Friends data updated:", friends.length, "friends");
+    console.log("Friend requests data updated:", friendRequests.length, "requests");
+  }, [friends.length, friendRequests.length]);
+
   const handleAddFriend = async () => {
-    if (!newFriendEmail.trim()) {
-      Alert.alert("Error", "Please enter an email address");
+    if (!newFriendDisplayName.trim()) {
+      Alert.alert("Error", "Please enter a display name");
       return;
     }
 
     try {
       await sendFriendRequest({
-        variables: { toUserEmail: newFriendEmail },
+        variables: { toDisplayName: newFriendDisplayName },
       });
-      Alert.alert("Friend Request Sent", `Invitation sent to ${newFriendEmail}`);
-      setNewFriendEmail("");
+      Alert.alert("Friend Request Sent", `Invitation sent to ${newFriendDisplayName}`);
+      setNewFriendDisplayName("");
       setAddFriendModalVisible(false);
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to send friend request");
@@ -120,13 +130,29 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
 
   const handleAcceptRequest = async (request: FriendRequest) => {
     try {
+      console.log("Accepting friend request:", request.id);
+
       await acceptFriendRequest({
         variables: { requestId: request.id },
       });
+
+      console.log("Friend request accepted, refetching data...");
+
+      // Refetch both queries to update the UI
+      const [requestsResult, friendsResult] = await Promise.all([
+        refetchRequests(),
+        refetchFriends(),
+      ]);
+
+      console.log("Refetch complete - Friends:", friendsResult.data?.myFriends?.length);
+      console.log("Refetch complete - Requests:", requestsResult.data?.myFriendRequests?.length);
+
       Alert.alert("Success", `You are now friends with ${request.fromUser.displayName}!`);
-      refetchRequests();
-      refetchFriends();
+
+      // Close the modal to show the updated friends list
+      setFriendRequestsModalVisible(false);
     } catch (error: any) {
+      console.error("Error accepting friend request:", error);
       Alert.alert("Error", error.message || "Failed to accept friend request");
     }
   };
@@ -285,13 +311,12 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
               </TouchableOpacity>
             </View>
             <View style={styles.modalBody}>
-              <Text style={styles.modalLabel}>Friend's Email</Text>
+              <Text style={styles.modalLabel}>Friend's Display Name</Text>
               <TextInput
                 style={styles.modalInput}
-                placeholder="Enter email address"
-                value={newFriendEmail}
-                onChangeText={setNewFriendEmail}
-                keyboardType="email-address"
+                placeholder="Enter display name"
+                value={newFriendDisplayName}
+                onChangeText={setNewFriendDisplayName}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
