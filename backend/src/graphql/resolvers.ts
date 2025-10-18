@@ -81,6 +81,10 @@ export const resolvers = {
         });
       }
 
+      // Debug: log the query
+      // eslint-disable-next-line no-console
+      console.debug("myFriends query for userId:", context.user.userId);
+
       // Get friendships where user is either user1 or user2
       const friendships = await prisma.friendship.findMany({
         where: {
@@ -108,10 +112,22 @@ export const resolvers = {
         },
       });
 
+      // Debug: log results
+      // eslint-disable-next-line no-console
+      console.debug("Found friendships:", friendships.length);
+      // eslint-disable-next-line no-console
+      console.debug("Friendships data:", JSON.stringify(friendships, null, 2));
+
       // Return the friend (not the current user)
-      return friendships.map((friendship) =>
+      const friends = friendships.map((friendship) =>
         friendship.user1Id === context.user?.userId ? friendship.user2 : friendship.user1,
       );
+
+      // Debug: log mapped friends
+      // eslint-disable-next-line no-console
+      console.debug("Mapped friends:", JSON.stringify(friends, null, 2));
+
+      return friends;
     },
 
     myFriendRequests: async (_: any, __: any, context: Context) => {
@@ -120,6 +136,10 @@ export const resolvers = {
           extensions: { code: "UNAUTHENTICATED" },
         });
       }
+
+      // Debug: log the query
+      // eslint-disable-next-line no-console
+      console.debug("myFriendRequests query for userId:", context.user.userId);
 
       const requests = await prisma.friendRequest.findMany({
         where: {
@@ -155,6 +175,10 @@ export const resolvers = {
         },
       });
 
+      // Debug: log results
+      // eslint-disable-next-line no-console
+      console.debug("Found friend requests:", requests.length);
+
       return requests;
     },
 
@@ -164,6 +188,10 @@ export const resolvers = {
           extensions: { code: "UNAUTHENTICATED" },
         });
       }
+
+      // Debug: log the query
+      // eslint-disable-next-line no-console
+      console.debug("sentFriendRequests query for userId:", context.user.userId);
 
       const requests = await prisma.friendRequest.findMany({
         where: {
@@ -198,6 +226,10 @@ export const resolvers = {
           createdAt: "desc",
         },
       });
+
+      // Debug: log results
+      // eslint-disable-next-line no-console
+      console.debug("Found sent friend requests:", requests.length);
 
       return requests;
     },
@@ -844,6 +876,13 @@ export const resolvers = {
         });
       }
 
+      // Debug: log friend request attempt
+      // eslint-disable-next-line no-console
+      console.debug("sendFriendRequest:", {
+        fromUserId: context.user.userId,
+        toDisplayName,
+      });
+
       // Find the user by displayName
       const toUser = await prisma.user.findUnique({
         where: { displayName: toDisplayName },
@@ -958,8 +997,16 @@ export const resolvers = {
         });
       }
 
+      // Debug: log before creating friendship
+      // eslint-disable-next-line no-console
+      console.debug("acceptFriendRequest - creating friendship:", {
+        user1Id: friendRequest.fromUserId,
+        user2Id: friendRequest.toUserId,
+        requestId,
+      });
+
       // Create friendship and update request status in a transaction
-      await prisma.$transaction([
+      const result = await prisma.$transaction([
         prisma.friendRequest.update({
           where: { id: requestId },
           data: { status: "accepted" },
@@ -971,6 +1018,10 @@ export const resolvers = {
           },
         }),
       ]);
+
+      // Debug: log created friendship
+      // eslint-disable-next-line no-console
+      console.debug("Friendship created:", result[1]);
 
       return {
         success: true,
