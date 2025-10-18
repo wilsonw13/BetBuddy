@@ -9,10 +9,11 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_MY_BET_GROUPS } from "@/graphql/queries";
+import { GET_MY_BET_GROUPS, GET_MY_FRIENDS } from "@/graphql/queries";
 import { CREATE_BET_GROUP, ADD_GROUP_MEMBERS, REMOVE_GROUP_MEMBER } from "@/graphql/mutations";
 
 interface BetGroup {
@@ -33,7 +34,15 @@ interface BetGroup {
       profilePicture?: string;
     };
   }>;
-  bets: Array<any>; // Will be typed properly later
+  bets: Array<any>;
+  createdAt: string;
+}
+
+interface Friend {
+  id: string;
+  email: string;
+  displayName: string;
+  profilePicture?: string;
   createdAt: string;
 }
 
@@ -45,11 +54,19 @@ export default function BetGroupsScreen({ navigation }: any) {
 
   // Fetch bet groups
   const {
-    data: groupsData,
+    data: groupsData, 
     loading: groupsLoading,
     refetch: refetchGroups,
   } = useQuery(GET_MY_BET_GROUPS, {
-    fetchPolicy: "network-only", // Always fetch from network, not cache
+    fetchPolicy: "network-only",
+  });
+
+  // Fetch friends for member selection
+  const {
+    data: friendsData,
+    loading: friendsLoading,
+  } = useQuery(GET_MY_FRIENDS, {
+    fetchPolicy: "cache-first",
   });
 
   // Mutations
@@ -58,6 +75,7 @@ export default function BetGroupsScreen({ navigation }: any) {
   const [removeGroupMember, { loading: removingMember }] = useMutation(REMOVE_GROUP_MEMBER);
 
   const groups: BetGroup[] = groupsData?.myBetGroups || [];
+  const friends: Friend[] = friendsData?.myFriends || [];
 
   // Debug logging
   React.useEffect(() => {
@@ -71,14 +89,21 @@ export default function BetGroupsScreen({ navigation }: any) {
     }
 
     try {
+      const input: any = {
+        name: newGroupName,
+        description: newGroupDescription || null,
+      };
+
+      // Only include memberUsernames if there are selected members
+      // memberUsernames should be displayNames
+      if (selectedMembers.length > 0) {
+        input.memberUsernames = selectedMembers;
+      }
+
+      console.log("Creating group with input:", input);
+
       const result = await createBetGroup({
-        variables: {
-          input: {
-            name: newGroupName,
-            description: newGroupDescription || null,
-            memberUsernames: selectedMembers, // This should be usernames, not IDs
-          },
-        },
+        variables: { input },
       });
 
       Alert.alert("Success", `Group "${newGroupName}" created successfully!`);
@@ -89,12 +114,20 @@ export default function BetGroupsScreen({ navigation }: any) {
       refetchGroups();
     } catch (error: any) {
       console.error("Create group error:", error);
+      console.error("Full error details:", JSON.stringify(error, null, 2));
       Alert.alert("Error", error.message || "Failed to create group");
     }
   };
 
+  const toggleMemberSelection = (displayName: string) => {
+    setSelectedMembers((prev) =>
+      prev.includes(displayName)
+        ? prev.filter((u) => u !== displayName)
+        : [...prev, displayName]
+    );
+  };
+
   const handleGroupPress = (group: BetGroup) => {
-    // Navigate to group details screen (to be implemented)
     navigation.navigate("GroupDetails", { groupId: group.id, groupName: group.name });
   };
 
@@ -125,6 +158,32 @@ export default function BetGroupsScreen({ navigation }: any) {
       <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
     </TouchableOpacity>
   );
+
+  const renderFriendSelector = ({ item }: { item: Friend }) => {
+    const isSelected = selectedMembers.includes(item.displayName);
+    
+    return (
+      <TouchableOpacity
+        style={[styles.friendItem, isSelected && styles.friendItemSelected]}
+        onPress={() => toggleMemberSelection(item.displayName)}
+      >
+        <View style={styles.friendInfo}>
+          <View style={styles.friendAvatar}>
+            <Text style={styles.friendAvatarText}>
+              {item.displayName.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <View>
+            <Text style={styles.friendName}>{item.displayName}</Text>
+            <Text style={styles.friendUsername}>{item.email}</Text>
+          </View>
+        </View>
+        <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+          {isSelected && <Ionicons name="checkmark" size={16} color="white" />}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   if (groupsLoading) {
     return (
@@ -189,11 +248,17 @@ export default function BetGroupsScreen({ navigation }: any) {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Create Bet Group</Text>
-              <TouchableOpacity onPress={() => setCreateGroupModalVisible(false)}>
+              <TouchableOpacity onPress={() => {
+                setCreateGroupModalVisible(false);
+                setNewGroupName("");
+                setNewGroupDescription("");
+                setSelectedMembers([]);
+              }}>
                 <Ionicons name="close" size={28} color="#000" />
               </TouchableOpacity>
             </View>
-            <View style={styles.modalBody}>
+            
+            <ScrollView style={styles.modalBody}>
               <Text style={styles.modalLabel}>Group Name</Text>
               <TextInput
                 style={styles.modalInput}
@@ -214,14 +279,41 @@ export default function BetGroupsScreen({ navigation }: any) {
                 textAlignVertical="top"
               />
 
-              <TouchableOpacity style={styles.modalButton} onPress={handleCreateGroup} disabled={creatingGroup}>
+              <Text style={styles.modalLabel}>
+                Add Members (Optional) - {selectedMembers.length} selected
+              </Text>
+              
+              {friendsLoading ? (
+                <View style={styles.friendsLoading}>
+                  <ActivityIndicator size="small" color="#007AFF" />
+                </View>
+              ) : friends.length === 0 ? (
+                <View style={styles.noFriendsContainer}>
+                  <Text style={styles.noFriendsText}>No friends yet</Text>
+                  <Text style={styles.noFriendsSubtext}>Add friends to invite them to groups</Text>
+                </View>
+              ) : (
+                <View style={styles.friendsList}>
+                  {friends.map((friend) => (
+                    <View key={friend.id}>
+                      {renderFriendSelector({ item: friend })}
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              <TouchableOpacity 
+                style={[styles.modalButton, { marginTop: 20, marginBottom: 20 }]} 
+                onPress={handleCreateGroup} 
+                disabled={creatingGroup}
+              >
                 {creatingGroup ? (
                   <ActivityIndicator color="white" />
                 ) : (
                   <Text style={styles.modalButtonText}>Create Group</Text>
                 )}
               </TouchableOpacity>
-            </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -272,7 +364,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   headerSpacer: {
-    width: 40, // Same width as back button to center title
+    width: 40,
   },
   actionButtons: {
     flexDirection: "row",
@@ -379,6 +471,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    maxHeight: "90%",
   },
   modalHeader: {
     flexDirection: "row",
@@ -422,5 +515,88 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "600",
+  },
+  friendsList: {
+    backgroundColor: "#F2F2F7",
+    borderRadius: 12,
+    padding: 8,
+    marginBottom: 8,
+    maxHeight: 300,
+  },
+  friendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "white",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  friendItemSelected: {
+    backgroundColor: "#E3F2FD",
+    borderWidth: 1,
+    borderColor: "#007AFF",
+  },
+  friendInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  friendAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#007AFF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  friendAvatarText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  friendName: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#000",
+  },
+  friendUsername: {
+    fontSize: 13,
+    color: "#8E8E93",
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#C7C7CC",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  checkboxSelected: {
+    backgroundColor: "#007AFF",
+    borderColor: "#007AFF",
+  },
+  friendsLoading: {
+    padding: 20,
+    alignItems: "center",
+  },
+  noFriendsContainer: {
+    backgroundColor: "#F2F2F7",
+    borderRadius: 12,
+    padding: 20,
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  noFriendsText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#8E8E93",
+  },
+  noFriendsSubtext: {
+    fontSize: 12,
+    color: "#C7C7CC",
+    marginTop: 4,
   },
 });
