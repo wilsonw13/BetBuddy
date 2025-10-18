@@ -32,6 +32,8 @@ export const GOOGLE_CLIENT_SECRET = getEnv("GOOGLE_CLIENT_SECRET", "");
 export const RATE_LIMIT_WINDOW_MS = Number(getEnv("RATE_LIMIT_WINDOW_MS", "900000"));
 export const RATE_LIMIT_MAX_REQUESTS = Number(getEnv("RATE_LIMIT_MAX_REQUESTS", "100"));
 
+export const BCRYPT_ROUNDS = Number(getEnv("BCRYPT_ROUNDS", "12"));
+
 // Post-process BASE_URL into its components
 const baseUrl = new URL(BASE_URL);
 export const BASE_PROTOCOL = baseUrl.protocol;

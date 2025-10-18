@@ -6,8 +6,7 @@ import { prisma } from "@/config/prisma";
 import { tokenService } from "@/services/tokenService";
 import { googleOAuthService } from "@/services/googleOAuth";
 import { Context } from "@/types";
-
-const BCRYPT_ROUNDS = 12;
+import { BCRYPT_ROUNDS } from "@/config/env";
 
 // Validation schemas
 const registerSchema = Joi.object({

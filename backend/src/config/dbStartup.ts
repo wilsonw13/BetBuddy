@@ -1,5 +1,3 @@
-import { prisma } from "@/config/prisma";
-
 /**
 INSTRUCTIONS FOR AI AGENTS:
 Whenever you update this file, also update:
@@ -7,6 +5,10 @@ Whenever you update this file, also update:
   - docs/tables.md
 to ensure all seed data, schema, and documentation are consistent.
 */
+
+import { prisma } from "@/config/prisma";
+import bcrypt from "bcrypt";
+import { BCRYPT_ROUNDS } from "@/config/env";
 
 /**
  * The login password for all initially created users.
@@ -295,13 +297,15 @@ export async function seedDatabase(resetDb: boolean = false) {
   // Seed users
   console.log("[Seed] Seeding users...");
   for (const user of TABLE_SEED_DATA.users) {
+    // Hash the password before inserting (same rounds as registration)
+    const hashedPassword = await bcrypt.hash(user.password, BCRYPT_ROUNDS);
     await prisma.user.upsert({
       where: { id: user.id },
       update: {},
       create: {
         id: user.id,
         email: user.email,
-        passwordHash: user.password, // You may want to hash this in production
+        passwordHash: hashedPassword,
         displayName: user.displayName,
       },
     });
