@@ -78,7 +78,16 @@ export default function LoginScreen({ navigation }: any) {
           <View style={styles.inputContainer}>
             <Ionicons name="lock-closed-outline" size={20} color="#8E8E93" style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                error && error.toLowerCase().includes("email")
+                  ? null
+                  : error && error.toLowerCase().includes("password")
+                    ? null
+                    : error
+                      ? styles.inputError
+                      : null,
+              ]}
               placeholder="Password"
               value={password}
               onChangeText={setPassword}
@@ -93,15 +102,6 @@ export default function LoginScreen({ navigation }: any) {
           <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isLoading}>
             {isLoading ? <ActivityIndicator color="white" /> : <Text style={styles.loginButtonText}>Sign In</Text>}
           </TouchableOpacity>
-
-          {/* Google Sign-In removed */}
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-              <Text style={styles.footerLink}>Sign Up</Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -169,6 +169,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: "#000",
+  },
+  inputError: {
+    borderColor: "#FF3B30",
+    borderWidth: 1,
+    backgroundColor: "#FFF0F0",
   },
   loginButton: {
     backgroundColor: "#007AFF",

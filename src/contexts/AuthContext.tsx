@@ -132,39 +132,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const trimmedEmail = email.trim();
 
+    // Basic validation
     if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
-      const message = "Please enter a valid email address";
+      const message = "Please enter a valid email address.";
       setError(message);
+      setIsLoading(false);
+      throw new Error(message);
+    }
+    if (!password) {
+      const message = "Password cannot be empty.";
+      setError(message);
+      setIsLoading(false);
       throw new Error(message);
     }
 
-    console.debug("Login variables:", { email: trimmedEmail });
-
-    const { data } = await loginMutation({
-      variables: {
-        input: {
-          email: trimmedEmail,
-          password,
+    try {
+      const { data } = await loginMutation({
+        variables: {
+          input: {
+            email: trimmedEmail,
+            password,
+          },
         },
-      },
-    });
+      });
 
-    if (data?.login) {
-      const { user, accessToken, refreshToken } = data.login;
-
-      // Store tokens
-      setAccessToken(accessToken);
-      await SecureStore.setItemAsync("refreshToken", refreshToken);
-
-      setUser(user);
+      if (data?.login) {
+        const { user, accessToken, refreshToken } = data.login;
+        setAccessToken(accessToken);
+        await SecureStore.setItemAsync("refreshToken", refreshToken);
+        setUser(user);
+        setIsLoading(false);
+        return;
+      }
+      // If login failed (no data.login), reject promise
       setIsLoading(false);
-      return;
+      const message = "Incorrect email or password.";
+      setError(message);
+      throw new Error(message);
+    } catch (error: any) {
+      setIsLoading(false);
+      // Try to extract a specific error message from GraphQL
+      const graphQLError = error?.graphQLErrors?.[0]?.message;
+      if (graphQLError) {
+        setError(graphQLError);
+        throw new Error(graphQLError);
+      }
+      setError(error.message || "Login failed. Please try again.");
+      throw error;
     }
-    // If login failed (no data.login), reject promise
-    setIsLoading(false);
-    const message = "Login failed";
-    setError(message);
-    throw new Error(message);
   };
 
   const logout = async () => {
