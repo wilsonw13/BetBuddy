@@ -75,7 +75,12 @@ Fields:
 - latitude (Float?): Latitude (if location proof)
 - longitude (Float?): Longitude (if location proof)
 - address (String?): Address (if location proof)
-- verified (Boolean): Whether proof is verified
+- peerVerified (Boolean): Peer review verification (default: false)
+- peerVerifiedBy (String?): User who peer-verified
+- peerRejected (Boolean): Peer review rejection (default: false)
+- peerRejectedBy (String?): User who peer-rejected
+- peerReviewedAt (DateTime?): When peer review happened
+- verified (Boolean): Whether proof is verified (default: false)
 - verifiedBy (String?): Who verified the proof
 - aiSuggestionSuspicious (Boolean?): AI flagged as suspicious
 - aiSuggestionReason (String?): Reason for AI suspicion

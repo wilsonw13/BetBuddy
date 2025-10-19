@@ -190,20 +190,25 @@ model BetParticipant {
 }
 
 model BetProof {
-  id                      String   @id @default(uuid())
-  betId                   String   @map("bet_id")
-  userId                  String   @map("user_id")
-  proofType               String   @map("proof_type")
-  imageUrl                String?  @map("image_url")
+  id                      String    @id @default(uuid())
+  betId                   String    @map("bet_id")
+  userId                  String    @map("user_id")
+  proofType               String    @map("proof_type")
+  imageUrl                String?   @map("image_url")
   latitude                Float?
   longitude               Float?
   address                 String?
-  verified                Boolean  @default(false)
-  verifiedBy              String?  @map("verified_by")
-  aiSuggestionSuspicious  Boolean? @map("ai_suggestion_suspicious")
-  aiSuggestionReason      String?  @map("ai_suggestion_reason")
-  aiSuggestionConfidence  Float?   @map("ai_suggestion_confidence")
-  createdAt               DateTime @default(now()) @map("created_at")
+  peerVerified            Boolean   @default(false) @map("peer_verified") // Peer review verification
+  peerVerifiedBy          String?   @map("peer_verified_by") // User who peer-verified
+  peerRejected            Boolean   @default(false) @map("peer_rejected") // Peer review rejection
+  peerRejectedBy          String?   @map("peer_rejected_by") // User who peer-rejected
+  peerReviewedAt          DateTime? @map("peer_reviewed_at") // When peer review happened
+  verified                Boolean   @default(false)
+  verifiedBy              String?   @map("verified_by")
+  aiSuggestionSuspicious  Boolean?  @map("ai_suggestion_suspicious")
+  aiSuggestionReason      String?   @map("ai_suggestion_reason")
+  aiSuggestionConfidence  Float?    @map("ai_suggestion_confidence")
+  createdAt               DateTime  @default(now()) @map("created_at")
 
   // Relations
   bet                     Bet      @relation(fields: [betId], references: [id], onDelete: Cascade)
