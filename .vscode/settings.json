@@ -30,7 +30,7 @@
     "**/ios/build": true,
     "**/android/app/build": true
   },
-  "files.associations": {
+  "material-icon-theme.files.associations": {
     "*.service.ts": "typescript"
   },
   "reactnative.ios.runArguments": ["--simulator", "iPhone 15 Pro"]
