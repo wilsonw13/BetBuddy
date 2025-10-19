@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "backend/prisma/**"
+      - ".github/workflows/prisma-migrate.yml"
   workflow_dispatch:
     inputs:
       skip_backup:
@@ -16,13 +17,23 @@ on:
 
 env:
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'postgres' }}
+  POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'betbuddy' }}
+  CONTAINER_NAME: betbuddy-postgres
   MAX_RETRIES: 3
   RETRY_DELAY: 5
 
 jobs:
-  migrate:
+  # ============================================
+  # Job 1: Pre-flight Checks
+  # ============================================
+  preflight:
+    name: Pre-flight Checks
     runs-on: self-hosted
-    timeout-minutes: 15
+    timeout-minutes: 5
+
+    outputs:
+      container_running: ${{ steps.check_container.outputs.running }}
 
     steps:
       - name: Checkout repository
@@ -30,38 +41,67 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify Docker is running
+      - name: Verify Docker daemon is running
+        id: check_docker
         run: |
+          echo "🔍 Checking Docker daemon..."
           if ! docker info > /dev/null 2>&1; then
             echo "❌ Docker daemon is not running"
             echo "Please start Docker: sudo systemctl start docker"
             exit 1
           fi
-          echo "✅ Docker is running"
+          echo "✅ Docker daemon is running"
 
-      - name: Start Docker Compose services
+      - name: Check if betbuddy-postgres container exists and is running
+        id: check_container
         run: |
-          echo "🚀 Starting Docker services..."
-          docker compose up -d
+          echo "🔍 Checking for container: $CONTAINER_NAME"
 
-      - name: Wait for database to be ready
+          # Check if container exists
+          if ! docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+            echo "❌ Container '${CONTAINER_NAME}' does not exist"
+            echo "💡 Run: docker compose up -d"
+            exit 1
+          fi
+
+          # Check if container is running
+          if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+            echo "❌ Container '${CONTAINER_NAME}' exists but is not running"
+            echo "Current status:"
+            docker ps -a --filter "name=${CONTAINER_NAME}" --format "table {{.Names}}\t{{.Status}}"
+            echo ""
+            echo "💡 Start it with: docker compose up -d"
+            exit 1
+          fi
+
+          echo "✅ Container '${CONTAINER_NAME}' is running"
+          echo "running=true" >> $GITHUB_OUTPUT
+
+      - name: Verify database is responsive
         run: |
-          echo "⏳ Waiting for database to be ready..."
+          echo "⏳ Waiting for PostgreSQL to accept connections..."
           MAX_ATTEMPTS=30
           ATTEMPT=0
 
-          until docker compose exec -T db pg_isready -U ${POSTGRES_USER:-postgres} > /dev/null 2>&1; do
+          until docker exec $CONTAINER_NAME pg_isready -U $POSTGRES_USER > /dev/null 2>&1; do
             ATTEMPT=$((ATTEMPT + 1))
             if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
               echo "❌ Database failed to become ready after $MAX_ATTEMPTS attempts"
-              docker compose logs db
+              echo ""
+              echo "📋 Container logs:"
+              docker logs --tail=50 $CONTAINER_NAME
               exit 1
             fi
             echo "Waiting for database... (attempt $ATTEMPT/$MAX_ATTEMPTS)"
             sleep 2
           done
 
-          echo "✅ Database is ready"
+          echo "✅ PostgreSQL is accepting connections"
+
+          # Show database info
+          echo ""
+          echo "📊 Database Information:"
+          docker exec $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT version();" || true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -85,91 +125,367 @@ jobs:
       - name: Verify Prisma schema
         run: |
           echo "🔍 Validating Prisma schema..."
+          cd backend
           npx prisma validate
           npx prisma format --check
+          echo "✅ Prisma schema is valid"
+
+      - name: Pre-flight summary
+        run: |
+          echo "✅ ================================"
+          echo "✅ Pre-flight checks passed!"
+          echo "✅ ================================"
+          echo "📦 Container: $CONTAINER_NAME"
+          echo "🗄️  Database: $POSTGRES_DB"
+          echo "👤 User: $POSTGRES_USER"
+
+  # ============================================
+  # Job 2: Database Backup
+  # ============================================
+  backup:
+    name: Backup Database
+    runs-on: self-hosted
+    timeout-minutes: 10
+    needs: preflight
+    if: ${{ !inputs.skip_backup }}
+
+    outputs:
+      backup_file: ${{ steps.create_backup.outputs.backup_file }}
+      backup_created: ${{ steps.create_backup.outputs.created }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Check migration status
         id: migration_check
         continue-on-error: true
         run: |
+          cd backend
           echo "📊 Checking current migration status..."
-          npx prisma migrate status || echo "pending_migrations=true" >> $GITHUB_OUTPUT
+          npx prisma migrate status
+          echo "pending_migrations=true" >> $GITHUB_OUTPUT
 
-      - name: Backup database
-        if: ${{ !inputs.skip_backup }}
+      - name: Create database backup
+        id: create_backup
         run: |
           echo "💾 Creating database backup..."
-          BACKUP_FILE="backup_$(date +%Y%m%d_%H%M%S).sql"
+          BACKUP_DIR="backups"
+          mkdir -p $BACKUP_DIR
+          BACKUP_FILE="$BACKUP_DIR/backup_$(date +%Y%m%d_%H%M%S).sql"
 
-          docker compose exec -T db pg_dump -U ${POSTGRES_USER:-postgres} ${POSTGRES_DB:-mydb} > "$BACKUP_FILE"
+          # Create backup
+          docker exec $CONTAINER_NAME pg_dump -U $POSTGRES_USER $POSTGRES_DB > "$BACKUP_FILE"
 
-          if [ -f "$BACKUP_FILE" ]; then
-            echo "✅ Backup created: $BACKUP_FILE"
-            echo "backup_file=$BACKUP_FILE" >> $GITHUB_OUTPUT
+          if [ -f "$BACKUP_FILE" ] && [ -s "$BACKUP_FILE" ]; then
+            # Get file size
+            SIZE=$(du -h "$BACKUP_FILE" | cut -f1)
+            echo "✅ Backup created successfully"
+            echo "📁 File: $BACKUP_FILE"
+            echo "📊 Size: $SIZE"
+
+            # Compress backup
+            gzip "$BACKUP_FILE"
+            COMPRESSED_SIZE=$(du -h "${BACKUP_FILE}.gz" | cut -f1)
+            echo "🗜️  Compressed: ${BACKUP_FILE}.gz ($COMPRESSED_SIZE)"
+
+            echo "backup_file=${BACKUP_FILE}.gz" >> $GITHUB_OUTPUT
+            echo "created=true" >> $GITHUB_OUTPUT
           else
-            echo "⚠️ Backup creation failed, but continuing..."
+            echo "❌ Backup file is empty or was not created"
+            echo "created=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        if: steps.create_backup.outputs.created == 'true'
+        with:
+          name: database-backup-${{ github.run_number }}
+          path: backups/backup_*.sql.gz
+          retention-days: 7
+
+      - name: Backup summary
+        run: |
+          echo "✅ ================================"
+          echo "✅ Backup completed successfully"
+          echo "✅ ================================"
+
+  # ============================================
+  # Job 3: Run Migrations
+  # ============================================
+  migrate:
+    name: Run Migrations
+    runs-on: self-hosted
+    timeout-minutes: 15
+    needs: [preflight, backup]
+    if: |
+      always() &&
+      needs.preflight.result == 'success' &&
+      (needs.backup.result == 'success' || needs.backup.result == 'skipped')
+
+    outputs:
+      migration_status: ${{ steps.run_migration.outputs.status }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          if [ -f package-lock.json ]; then
+            npm ci
+          elif [ -f yarn.lock ]; then
+            yarn install --frozen-lockfile
+          elif [ -f pnpm-lock.yaml ]; then
+            npm install -g pnpm && pnpm install --frozen-lockfile
+          else
+            npm install
           fi
 
       - name: Run Prisma migrations
-        id: migrate
+        id: run_migration
         run: |
           echo "🔄 Deploying migrations..."
-          npx prisma migrate deploy --schema=./prisma/schema.prisma
-          echo "✅ Migrations completed successfully"
+          cd backend
 
-      - name: Run post-migration script
-        if: success()
-        run: |
-          if [ -f scripts/postprisma-migrate.sh ]; then
-            echo "🔧 Running post-migration script..."
-            bash scripts/postprisma-migrate.sh
-            echo "✅ Post-migration script completed"
+          # Run migration with error handling
+          if npx prisma migrate deploy; then
+            echo "✅ Migrations completed successfully"
+            echo "status=success" >> $GITHUB_OUTPUT
           else
-            echo "ℹ️ No post-migration script found, skipping..."
+            echo "❌ Migration failed"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
           fi
 
-      - name: Verify migration
-        if: success()
-        run: |
-          echo "✅ Verifying migration status..."
-          npx prisma migrate status
-
       - name: Generate Prisma Client
-        if: success()
+        if: steps.run_migration.outputs.status == 'success'
         run: |
           echo "🏗️ Generating Prisma Client..."
+          cd backend
           npx prisma generate
+          echo "✅ Prisma Client generated"
 
-      - name: Cleanup old backups
-        if: success() && !inputs.skip_backup
-        run: |
-          echo "🧹 Cleaning up old backups (keeping last 5)..."
-          ls -t backup_*.sql 2>/dev/null | tail -n +6 | xargs -r rm -f
-          echo "✅ Cleanup completed"
-
-      - name: Report migration success
+      - name: Migration summary
         if: success()
         run: |
           echo "✅ ================================"
           echo "✅ Migration completed successfully"
           echo "✅ ================================"
 
-      - name: Rollback on failure
-        if: failure() && steps.migrate.outcome == 'failure'
+  # ============================================
+  # Job 4: Post-Migration Tasks
+  # ============================================
+  post-migrate:
+    name: Post-Migration Tasks
+    runs-on: self-hosted
+    timeout-minutes: 10
+    needs: migrate
+    if: needs.migrate.result == 'success'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
         run: |
-          echo "❌ Migration failed, checking for backup..."
-          if [ -f "${{ steps.backup.outputs.backup_file }}" ]; then
-            echo "🔄 Restoring from backup..."
-            cat "${{ steps.backup.outputs.backup_file }}" | docker compose exec -T db psql -U ${POSTGRES_USER:-postgres} ${POSTGRES_DB:-mydb}
-            echo "✅ Database restored from backup"
+          echo "📦 Installing dependencies..."
+          if [ -f package-lock.json ]; then
+            npm ci
+          elif [ -f yarn.lock ]; then
+            yarn install --frozen-lockfile
+          elif [ -f pnpm-lock.yaml ]; then
+            npm install -g pnpm && pnpm install --frozen-lockfile
           else
-            echo "⚠️ No backup available for rollback"
+            npm install
           fi
 
-      - name: Notify on failure
-        if: failure()
+      - name: Run post-migration script
+        id: post_script
         run: |
-          echo "❌ ================================"
-          echo "❌ Migration failed!"
-          echo "❌ ================================"
-          docker compose logs db --tail=50
+          if [ -f scripts/postprisma-migrate.sh ]; then
+            echo "🔧 Running post-migration script..."
+            bash scripts/postprisma-migrate.sh
+            echo "✅ Post-migration script completed"
+          else
+            echo "ℹ️ No post-migration script found (scripts/postprisma-migrate.sh)"
+            echo "Skipping post-migration tasks..."
+          fi
+
+      - name: Verify migration status
+        run: |
+          echo "✅ Verifying migration status..."
+          cd backend
+          npx prisma migrate status
+          echo "✅ All migrations are up to date"
+
+      - name: Database statistics
+        run: |
+          echo "📊 Database Statistics:"
+          docker exec $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -c "
+            SELECT
+              schemaname,
+              tablename,
+              pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size
+            FROM pg_tables
+            WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
+            ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC
+            LIMIT 10;
+          " || echo "⚠️ Could not retrieve database statistics"
+
+      - name: Cleanup old backups
+        if: ${{ !inputs.skip_backup }}
+        run: |
+          echo "🧹 Cleaning up old backups (keeping last 5)..."
+          if [ -d "backups" ]; then
+            cd backups
+            ls -t backup_*.sql.gz 2>/dev/null | tail -n +6 | xargs -r rm -f
+            echo "✅ Cleanup completed"
+            echo ""
+            echo "📁 Remaining backups:"
+            ls -lh backup_*.sql.gz 2>/dev/null || echo "No backups found"
+          else
+            echo "ℹ️ No backups directory found"
+          fi
+
+      - name: Post-migration summary
+        run: |
+          echo "✅ ================================"
+          echo "✅ Post-migration tasks completed"
+          echo "✅ ================================"
+
+  # ============================================
+  # Job 5: Rollback on Failure
+  # ============================================
+  rollback:
+    name: Rollback Database
+    runs-on: self-hosted
+    timeout-minutes: 10
+    needs: [backup, migrate]
+    if: |
+      always() &&
+      needs.migrate.result == 'failure' &&
+      needs.backup.outputs.backup_created == 'true'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download backup artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: database-backup-${{ github.run_number }}
+          path: backups/
+
+      - name: Restore database from backup
+        run: |
+          echo "❌ Migration failed - initiating rollback..."
+          echo ""
+
+          BACKUP_FILE=$(ls -t backups/backup_*.sql.gz | head -1)
+
+          if [ -f "$BACKUP_FILE" ]; then
+            echo "🔄 Restoring from backup: $BACKUP_FILE"
+            echo "⚠️  This will restore the database to its previous state"
+
+            # Decompress and restore
+            gunzip -c "$BACKUP_FILE" | docker exec -i $CONTAINER_NAME psql -U $POSTGRES_USER $POSTGRES_DB
+
+            if [ $? -eq 0 ]; then
+              echo "✅ Database restored successfully from backup"
+            else
+              echo "❌ Restore failed!"
+              echo "📋 Manual intervention required"
+              exit 1
+            fi
+          else
+            echo "❌ No backup file found for rollback"
+            echo "📋 Manual intervention required"
+            exit 1
+          fi
+
+      - name: Verify database after rollback
+        run: |
+          echo "🔍 Verifying database status after rollback..."
+          docker exec $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT NOW();" > /dev/null 2>&1
+          if [ $? -eq 0 ]; then
+            echo "✅ Database is responsive after rollback"
+          else
+            echo "❌ Database verification failed"
+            exit 1
+          fi
+
+  # ============================================
+  # Job 6: Final Summary
+  # ============================================
+  summary:
+    name: Workflow Summary
+    runs-on: self-hosted
+    timeout-minutes: 5
+    needs: [preflight, backup, migrate, post-migrate, rollback]
+    if: always()
+
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# 📊 Migration Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Pre-flight Checks | ${{ needs.preflight.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Database Backup | ${{ needs.backup.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Run Migrations | ${{ needs.migrate.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Post-Migration | ${{ needs.post-migrate.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rollback | ${{ needs.rollback.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.migrate.result }}" == "success" ]; then
+            echo "## ✅ Migration Successful" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All migrations have been deployed successfully!" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.rollback.result }}" == "success" ]; then
+            echo "## ⚠️ Migration Failed - Rollback Successful" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Migration failed but database was successfully restored from backup." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ❌ Migration Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please check the logs for details." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Final status report
+        run: |
+          echo "=========================================="
+          echo "📊 WORKFLOW SUMMARY"
+          echo "=========================================="
+          echo "Pre-flight: ${{ needs.preflight.result }}"
+          echo "Backup: ${{ needs.backup.result }}"
+          echo "Migration: ${{ needs.migrate.result }}"
+          echo "Post-Migration: ${{ needs.post-migrate.result }}"
+          echo "Rollback: ${{ needs.rollback.result }}"
+          echo "=========================================="
+
+          if [ "${{ needs.migrate.result }}" == "success" ]; then
+            echo "✅ WORKFLOW COMPLETED SUCCESSFULLY"
+            exit 0
+          elif [ "${{ needs.rollback.result }}" == "success" ]; then
+            echo "⚠️ MIGRATION FAILED BUT ROLLBACK SUCCEEDED"
+            exit 1
+          else
+            echo "❌ WORKFLOW FAILED"
+            exit 1
+          fi
