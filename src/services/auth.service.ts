@@ -154,28 +154,7 @@ class AuthService {
   }
 
   // Login with Google
-  async loginWithGoogle(idToken: string): Promise<AuthResponse> {
-    try {
-      const response = await this.api.post<ApiResponse<AuthResponse>>("/google/mobile", {
-        idToken,
-      });
-
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || "Google login failed");
-      }
-
-      const { accessToken, refreshToken, user } = response.data.data;
-      await this.storeTokens(accessToken, refreshToken);
-      this.accessToken = accessToken;
-
-      this.currentUser = user;
-      console.log("Logged in user:", user);
-
-      return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.error || error.message || "Google login failed");
-    }
-  }
+  // loginWithGoogle removed
 
   // Refresh access token
   async refreshToken(): Promise<{ accessToken: string; refreshToken: string }> {

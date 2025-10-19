@@ -18,7 +18,7 @@ export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { login, loginWithGoogle, isLoading, error, clearError } = useAuth();
+  const { login, isLoading, error, clearError } = useAuth();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -34,14 +34,7 @@ export default function LoginScreen({ navigation }: any) {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      clearError();
-      await loginWithGoogle();
-    } catch (err) {
-      // Error is handled in context
-    }
-  };
+  // Google login removed
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
@@ -91,19 +84,7 @@ export default function LoginScreen({ navigation }: any) {
             {isLoading ? <ActivityIndicator color="white" /> : <Text style={styles.loginButtonText}>Sign In</Text>}
           </TouchableOpacity>
 
-          {/* Google Sign-In temporarily disabled - requires custom dev client */}
-          {/*
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin} disabled={isLoading}>
-            <Ionicons name="logo-google" size={20} color="#DB4437" />
-            <Text style={styles.googleButtonText}>Continue with Google</Text>
-          </TouchableOpacity>
-          */}
+          {/* Google Sign-In removed */}
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>

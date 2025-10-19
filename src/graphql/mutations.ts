@@ -36,24 +36,6 @@ export const LOGIN = gql`
   }
 `;
 
-export const GOOGLE_AUTH = gql`
-  mutation GoogleAuth($input: GoogleAuthInput!) {
-    googleAuth(input: $input) {
-      user {
-        id
-        email
-        displayName
-        profileImage
-        emailVerified
-        createdAt
-        updatedAt
-      }
-      accessToken
-      refreshToken
-    }
-  }
-`;
-
 export const REFRESH_TOKEN = gql`
   mutation RefreshToken($input: RefreshTokenInput!) {
     refreshToken(input: $input) {
@@ -66,15 +48,6 @@ export const REFRESH_TOKEN = gql`
 export const LOGOUT = gql`
   mutation Logout($refreshToken: String!) {
     logout(refreshToken: $refreshToken) {
-      success
-      message
-    }
-  }
-`;
-
-export const LOGOUT_ALL = gql`
-  mutation LogoutAll {
-    logoutAll {
       success
       message
     }

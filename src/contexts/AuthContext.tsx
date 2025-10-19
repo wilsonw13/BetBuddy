@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import { useMutation } from "@apollo/client";
 import * as SecureStore from "expo-secure-store";
 import { setAccessToken } from "@/config/apolloClient";
-import { REGISTER, LOGIN, GOOGLE_AUTH, LOGOUT } from "@/graphql/mutations";
+import { REGISTER, LOGIN, LOGOUT } from "@/graphql/mutations";
 
 interface User {
   id: string;
@@ -20,7 +20,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, displayName: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
+  // loginWithGoogle removed
   logout: () => Promise<void>;
   error: string | null;
   clearError: () => void;
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // GraphQL Mutations
   const [registerMutation] = useMutation(REGISTER);
   const [loginMutation] = useMutation(LOGIN);
-  const [googleAuthMutation] = useMutation(GOOGLE_AUTH);
+  // const [googleAuthMutation] = useMutation(GOOGLE_AUTH); // removed
   const [logoutMutation] = useMutation(LOGOUT);
 
   // Auto-login on app start
@@ -171,69 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const loginWithGoogle = async () => {
-    // Google Sign-In temporarily disabled - requires custom dev client
-    throw new Error("Google Sign-In is temporarily disabled. Please use email/password authentication.");
-
-    /* COMMENTED OUT - Enable when building custom dev client
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // Check if Play Services are available (Android)
-      await GoogleSignin.hasPlayServices();
-
-      // Sign in with Google
-      const googleUser = await GoogleSignin.signIn();
-
-      // Get the ID token
-      const idToken = googleUser.idToken;
-
-      if (!idToken) {
-        throw new Error("Failed to get Google ID token");
-      }
-
-      // Authenticate with backend
-      const { data } = await googleAuthMutation({
-        variables: {
-          input: {
-            idToken,
-          },
-        },
-      });
-
-      if (data?.googleAuth) {
-        const { user, accessToken, refreshToken } = data.googleAuth;
-
-        // Store tokens
-        setAccessToken(accessToken);
-        await SecureStore.setItemAsync("refreshToken", refreshToken);
-
-        setUser(user);
-      }
-    } catch (error: any) {
-      console.error("Google sign in error:", error);
-
-      let message = "Google sign in failed";
-      if (error.code === "SIGN_IN_CANCELLED") {
-        message = "Google sign in was cancelled";
-      } else if (error.code === "IN_PROGRESS") {
-        message = "Google sign in already in progress";
-      } else if (error.code === "PLAY_SERVICES_NOT_AVAILABLE") {
-        message = "Play services not available";
-      } else if (error.graphQLErrors?.[0]?.message) {
-        message = error.graphQLErrors[0].message;
-      } else if (error.message) {
-        message = error.message;
-      }
-
-      setError(message);
-      throw new Error(message);
-    } finally {
-      setIsLoading(false);
-    }
-    */
-  };
+  // loginWithGoogle removed
 
   const logout = async () => {
     try {
@@ -285,7 +223,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         login,
         register,
-        loginWithGoogle,
+        // loginWithGoogle removed
         logout,
         error,
         clearError,

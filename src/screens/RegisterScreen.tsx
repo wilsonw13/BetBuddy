@@ -20,7 +20,7 @@ export default function RegisterScreen({ navigation }: any) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { register, loginWithGoogle, isLoading, error, clearError } = useAuth();
+  const { register, isLoading, error, clearError } = useAuth();
 
   const validatePassword = (pwd: string): boolean => {
     const hasUpperCase = /[A-Z]/.test(pwd);
@@ -59,14 +59,7 @@ export default function RegisterScreen({ navigation }: any) {
     }
   };
 
-  const handleGoogleRegister = async () => {
-    try {
-      clearError();
-      await loginWithGoogle();
-    } catch (err) {
-      // Error is handled in context
-    }
-  };
+  // Google register removed
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
@@ -143,19 +136,7 @@ export default function RegisterScreen({ navigation }: any) {
             {isLoading ? <ActivityIndicator color="white" /> : <Text style={styles.registerButtonText}>Sign Up</Text>}
           </TouchableOpacity>
 
-          {/* Google Sign-In temporarily disabled - requires custom dev client */}
-          {/*
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <TouchableOpacity style={styles.googleButton} onPress={handleGoogleRegister} disabled={isLoading}>
-            <Ionicons name="logo-google" size={20} color="#DB4437" />
-            <Text style={styles.googleButtonText}>Continue with Google</Text>
-          </TouchableOpacity>
-          */}
+          {/* Google Sign-In removed */}
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Already have an account? </Text>
