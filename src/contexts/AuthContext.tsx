@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useMutation } from "@apollo/client";
-import SecureStore from "expo-secure-store";
+import * as SecureStore from "expo-secure-store";
 import { setAccessToken } from "@/config/apolloClient";
 import { REGISTER, LOGIN, GOOGLE_AUTH, LOGOUT } from "@/graphql/mutations";
 
