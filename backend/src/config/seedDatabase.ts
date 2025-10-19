@@ -303,8 +303,6 @@ export async function seedDatabase(resetDb: boolean = false) {
     await prisma.friendRequest.deleteMany({});
     await prisma.friendship.deleteMany({});
     await prisma.user.deleteMany({});
-    await prisma.refreshToken.deleteMany({});
-    await prisma.notification.deleteMany({});
     console.log("[Seed] All tables cleared.");
   }
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@apollo/client";
@@ -44,21 +44,32 @@ export default function LeaderboardScreen() {
   const { data: groupsData } = useQuery(GET_MY_BET_GROUPS);
   const groups = Array.isArray(groupsData?.myBetGroups) ? groupsData.myBetGroups : [];
 
+  // Default to first group for group leaderboard
+  useEffect(() => {
+    if (groups.length > 0 && !selectedGroupId) {
+      setSelectedGroupId(groups[0].id);
+    }
+  }, [groups, selectedGroupId]);
+
   // Fetch leaderboards
   const { data: globalData, loading: globalLoading } = useQuery(GET_GLOBAL_LEADERBOARD);
   const { data: friendData, loading: friendLoading } = useQuery(GET_FRIEND_LEADERBOARD, {
-    skip: !userId,
     variables: { ownerId: userId },
   });
   const { data: groupData, loading: groupLoading } = useQuery(GET_GROUP_LEADERBOARD, {
-    skip: !selectedGroupId,
     variables: { groupId: selectedGroupId },
   });
 
   let leaderboard: any[] = [];
-  if (tab === "global") leaderboard = Array.isArray(globalData?.globalLeaderboard) ? globalData.globalLeaderboard : [];
-  if (tab === "friend") leaderboard = Array.isArray(friendData?.friendLeaderboard) ? friendData.friendLeaderboard : [];
-  if (tab === "group") leaderboard = Array.isArray(groupData?.groupLeaderboard) ? groupData.groupLeaderboard : [];
+  if (tab === "global") {
+    leaderboard = Array.isArray(globalData?.globalLeaderboard) ? globalData.globalLeaderboard : [];
+  }
+  if (tab === "friend") {
+    leaderboard = Array.isArray(friendData?.friendLeaderboard) ? friendData.friendLeaderboard : [];
+  }
+  if (tab === "group") {
+    leaderboard = Array.isArray(groupData?.groupLeaderboard) ? groupData.groupLeaderboard : [];
+  }
 
   const renderLeaderboardItem = ({ item }: { item: any }) => {
     const rank = item.leaderboardRank ?? item.rank;

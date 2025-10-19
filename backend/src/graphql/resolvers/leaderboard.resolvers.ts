@@ -7,6 +7,7 @@ export const leaderboardResolvers = {
     globalLeaderboard: async (_: any, __: any, context: Context) => {
       // No auth required for global leaderboard
       const entries = await prisma.leaderboard_global.findMany();
+      console.log("Raw globalLeaderboard entries:", entries);
       return entries.map((entry: any) => ({
         userId: entry.user_id,
         displayName: entry.displayName,
@@ -24,6 +25,7 @@ export const leaderboardResolvers = {
       const entries = await prisma.leaderboard_friends.findMany({
         where: { owner_id: ownerId },
       });
+      console.log("Raw friendLeaderboard entries:", entries);
       return entries.map((entry: any) => ({
         ownerId: entry.owner_id,
         friendId: entry.friend_id,
@@ -42,6 +44,7 @@ export const leaderboardResolvers = {
       const entries = await prisma.leaderboard_group.findMany({
         where: { group_id: groupId },
       });
+      console.log("Raw groupLeaderboard entries:", entries);
       return entries.map((entry: any) => ({
         memberId: entry.member_id,
         displayName: entry.displayName,
