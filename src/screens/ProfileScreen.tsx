@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { User, RedeemableItem, UserRank } from "@types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@apollo/client";
-import { GET_UNREAD_NOTIFICATION_COUNT } from "@/graphql/queries";
+import { GET_UNREAD_NOTIFICATION_COUNT, GET_MY_FRIEND_REQUESTS } from "@/graphql/queries";
 
 import { GET_ME } from "@/graphql/queries";
 
@@ -93,6 +93,10 @@ export default function ProfileScreen({ navigation }: any) {
   const { data: notificationData } = useQuery(GET_UNREAD_NOTIFICATION_COUNT, {
     pollInterval: 10000, // Poll every 10 seconds
   });
+  const { data: friendRequestsData } = useQuery(GET_MY_FRIEND_REQUESTS, {
+    pollInterval: 10000, // Poll every 10 seconds
+    fetchPolicy: "network-only",
+  });
 
   // Loading state
   if (loading) {
@@ -139,7 +143,8 @@ export default function ProfileScreen({ navigation }: any) {
  //console.log(user)
 
   const rankInfo = getRankInfo(user.rank);
-  const unreadCount = notificationData?.unreadNotificationCount || 0;
+  const friendRequestCount = friendRequestsData?.myFriendRequests?.length || 0;
+  const unreadCount = (notificationData?.unreadNotificationCount || 0) + friendRequestCount;
 
   const handleSignOut = () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [

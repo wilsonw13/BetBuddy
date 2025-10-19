@@ -1,8 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_MY_NOTIFICATIONS, GET_UNREAD_NOTIFICATION_COUNT, GET_MY_BETS } from "@/graphql/queries";
+import { GET_MY_NOTIFICATIONS, GET_UNREAD_NOTIFICATION_COUNT, GET_MY_BETS, GET_MY_FRIEND_REQUESTS, GET_MY_FRIENDS } from "@/graphql/queries";
 import {
   MARK_NOTIFICATION_AS_READ,
   MARK_ALL_NOTIFICATIONS_AS_READ,
@@ -12,10 +12,14 @@ import {
   ACCEPT_BET,
   DECLINE_BET,
 } from "@/graphql/mutations";
-import { Notification } from "@types";
+import { Notification, FriendRequest } from "@types";
 
 export default function NotificationsScreen({ navigation }: any) {
   const { data, loading, refetch } = useQuery(GET_MY_NOTIFICATIONS, {
+    fetchPolicy: "network-only",
+  });
+
+  const { data: friendRequestsData, loading: friendRequestsLoading, refetch: refetchFriendRequests } = useQuery(GET_MY_FRIEND_REQUESTS, {
     fetchPolicy: "network-only",
   });
 
@@ -32,16 +36,20 @@ export default function NotificationsScreen({ navigation }: any) {
   });
 
   const [acceptFriendRequest] = useMutation(ACCEPT_FRIEND_REQUEST, {
+    refetchQueries: [{ query: GET_MY_FRIENDS }, { query: GET_MY_FRIEND_REQUESTS }],
     onCompleted: () => {
       Alert.alert("Success", "Friend request accepted!");
       refetch();
+      refetchFriendRequests();
     },
   });
 
   const [declineFriendRequest] = useMutation(DECLINE_FRIEND_REQUEST, {
+    refetchQueries: [{ query: GET_MY_FRIEND_REQUESTS }],
     onCompleted: () => {
       Alert.alert("Success", "Friend request declined");
       refetch();
+      refetchFriendRequests();
     },
   });
 
@@ -64,10 +72,32 @@ export default function NotificationsScreen({ navigation }: any) {
   });
 
   const notifications: Notification[] = data?.myNotifications || [];
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const friendRequests: FriendRequest[] = friendRequestsData?.myFriendRequests || [];
+
+  // Convert friend requests to notification-like items for unified display
+  const friendRequestNotifications = friendRequests.map((request) => ({
+    id: `fr-${request.id}`,
+    type: "friend_request",
+    title: "Friend Request",
+    message: `${request.fromUser.displayName} sent you a friend request`,
+    isRead: false, // Friend requests are always unread until acted upon
+    metadata: {
+      friendRequestId: request.id,
+      fromUser: request.fromUser,
+    },
+    createdAt: request.createdAt,
+  }));
+
+  // Merge and sort all notifications by date
+  const allNotifications = [...notifications, ...friendRequestNotifications].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length + friendRequests.length;
 
   const handleNotificationPress = async (notification: Notification) => {
-    if (!notification.isRead) {
+    // Don't mark friend request pseudo-notifications as read
+    if (!notification.isRead && !notification.id.startsWith('fr-')) {
       await markAsRead({ variables: { notificationId: notification.id } });
     }
   };
@@ -83,7 +113,13 @@ export default function NotificationsScreen({ navigation }: any) {
 
   const handleDelete = async (notificationId: string) => {
     try {
-      await deleteNotification({ variables: { notificationId } });
+      // If it's a friend request pseudo-notification, decline it instead
+      if (notificationId.startsWith('fr-')) {
+        const friendRequestId = notificationId.replace('fr-', '');
+        await declineFriendRequest({ variables: { requestId: friendRequestId } });
+      } else {
+        await deleteNotification({ variables: { notificationId } });
+      }
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to delete notification");
     }
@@ -92,7 +128,10 @@ export default function NotificationsScreen({ navigation }: any) {
   const handleAcceptFriendRequest = async (friendRequestId: string, notificationId: string) => {
     try {
       await acceptFriendRequest({ variables: { requestId: friendRequestId } });
-      await deleteNotification({ variables: { notificationId } });
+      // Only delete if it's a regular notification (not a friend request pseudo-notification)
+      if (!notificationId.startsWith('fr-')) {
+        await deleteNotification({ variables: { notificationId } });
+      }
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to accept friend request");
     }
@@ -101,7 +140,10 @@ export default function NotificationsScreen({ navigation }: any) {
   const handleDeclineFriendRequest = async (friendRequestId: string, notificationId: string) => {
     try {
       await declineFriendRequest({ variables: { requestId: friendRequestId } });
-      await deleteNotification({ variables: { notificationId } });
+      // Only delete if it's a regular notification (not a friend request pseudo-notification)
+      if (!notificationId.startsWith('fr-')) {
+        await deleteNotification({ variables: { notificationId } });
+      }
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to decline friend request");
     }
@@ -143,9 +185,23 @@ export default function NotificationsScreen({ navigation }: any) {
       style={[styles.notificationCard, !item.isRead && styles.notificationCardUnread]}
       onPress={() => handleNotificationPress(item)}
     >
-      <View style={styles.notificationIcon}>
-        <Ionicons name={getNotificationIcon(item.type)} size={24} color={item.isRead ? "#8E8E93" : "#007AFF"} />
-      </View>
+      {/* Show user avatar for friend requests */}
+      {item.type === "friend_request" && item.metadata?.fromUser?.profileImage ? (
+        <View style={styles.notificationIcon}>
+          <Image
+            source={{
+              uri: item.metadata.fromUser.profileImage.startsWith("data:")
+                ? item.metadata.fromUser.profileImage
+                : `data:image/jpeg;base64,${item.metadata.fromUser.profileImage}`,
+            }}
+            style={styles.notificationAvatar}
+          />
+        </View>
+      ) : (
+        <View style={styles.notificationIcon}>
+          <Ionicons name={getNotificationIcon(item.type)} size={24} color={item.isRead ? "#8E8E93" : "#007AFF"} />
+        </View>
+      )}
       <View style={styles.notificationContent}>
         <Text style={[styles.notificationTitle, !item.isRead && styles.notificationTitleUnread]}>{item.title}</Text>
         <Text style={styles.notificationMessage}>{item.message}</Text>
@@ -225,7 +281,7 @@ export default function NotificationsScreen({ navigation }: any) {
     </TouchableOpacity>
   );
 
-  if (loading) {
+  if (loading || friendRequestsLoading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
         <ActivityIndicator size="large" color="#007AFF" />
@@ -258,7 +314,7 @@ export default function NotificationsScreen({ navigation }: any) {
 
       {/* Notifications List */}
       <FlatList
-        data={notifications}
+        data={allNotifications}
         renderItem={renderNotification}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
@@ -358,6 +414,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
+  },
+  notificationAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   notificationContent: {
     flex: 1,
