@@ -13,7 +13,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@apollo/client": "^3.8.8",
+    "@apollo/client": "3.13.0",
     "@babel/runtime": "^7.28.4",
     "@expo/vector-icons": "^14.0.0",
     "@google/generative-ai": "^0.1.3",

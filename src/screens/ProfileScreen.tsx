@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Modal, Fla
 import { Ionicons } from "@expo/vector-icons";
 import { User, RedeemableItem, UserRank } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@apollo/client";
+import { GET_UNREAD_NOTIFICATION_COUNT } from "@/graphql/queries";
 
 // Mock data - replace with real data from your backend
 const mockUser: User = {
@@ -86,6 +88,12 @@ export default function ProfileScreen({ navigation }: any) {
 
   const rankInfo = getRankInfo(user.rank);
 
+  const { data: notificationData } = useQuery(GET_UNREAD_NOTIFICATION_COUNT, {
+    pollInterval: 10000, // Poll every 10 seconds
+  });
+
+  const unreadCount = notificationData?.unreadNotificationCount || 0;
+
   const handleSignOut = () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
       {
@@ -154,6 +162,23 @@ export default function ProfileScreen({ navigation }: any) {
 
   return (
     <ScrollView style={styles.container}>
+      {/* Notification Bell Header */}
+      <View style={styles.notificationHeader}>
+        <TouchableOpacity
+          style={styles.notificationButton}
+          onPress={() => navigation.navigate("Notifications")}
+        >
+          <Ionicons name="notifications" size={28} color="#000" />
+          {unreadCount > 0 && (
+            <View style={styles.notificationBadge}>
+              <Text style={styles.notificationBadgeText}>
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.bannerContainer}>
         {user.bannerImage ? (
           <Image source={{ uri: user.bannerImage }} style={styles.banner} />
@@ -289,6 +314,34 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F2F2F7",
+  },
+  notificationHeader: {
+    backgroundColor: "#F2F2F7",
+    paddingTop: 60,
+    paddingRight: 16,
+    paddingBottom: 8,
+    alignItems: "flex-end",
+  },
+  notificationButton: {
+    padding: 8,
+    position: "relative",
+  },
+  notificationBadge: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: "#FF3B30",
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+  },
+  notificationBadgeText: {
+    color: "white",
+    fontSize: 11,
+    fontWeight: "700",
   },
   bannerContainer: {
     height: 150,

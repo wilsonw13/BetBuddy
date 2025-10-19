@@ -36,7 +36,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow BetBuddy to access your photos to upload proof for bets."
+          "photosPermission": "Allow BetBuddy to access your photos to upload proof for bets.",
+          "cameraPermission": "Allow BetBuddy to use your camera to take photos as proof for bets."
         }
       ]
     ]

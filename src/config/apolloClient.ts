@@ -135,15 +135,44 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
 // Create Apollo Client
 export const apolloClient = new ApolloClient({
   link: ApolloLink.from([errorLink, authLink, httpLink]),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          myBetGroups: {
+            merge(existing, incoming) {
+              // Always use incoming data to replace existing
+              return incoming;
+            },
+          },
+          myBets: {
+            merge(existing, incoming) {
+              // Always use incoming data to replace existing
+              return incoming;
+            },
+          },
+          myNotifications: {
+            merge(existing, incoming) {
+              // Always use incoming data to replace existing
+              return incoming;
+            },
+          },
+        },
+      },
+    },
+  }),
   defaultOptions: {
     watchQuery: {
       fetchPolicy: "cache-and-network",
       errorPolicy: "all",
+      // Remove deprecated options that may be causing warnings
+      returnPartialData: false,
     },
     query: {
       fetchPolicy: "network-only",
       errorPolicy: "all",
+      // Remove deprecated options that may be causing warnings
+      returnPartialData: false,
     },
     mutate: {
       errorPolicy: "all",

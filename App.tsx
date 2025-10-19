@@ -19,6 +19,7 @@ import FriendGroupsScreen from "@/screens/FriendGroupsScreen";
 import BetGroupsScreen from "@/screens/BetGroupsScreen";
 import SubmitProofScreen from "@/screens/SubmitProofScreen";
 import GroupDetailsScreen from "@/screens/GroupDetailsScreen";
+import NotificationsScreen from "@/screens/NotificationsScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -45,6 +46,7 @@ function ProfileStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ProfileHome" component={ProfileScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="FriendGroups" component={FriendGroupsScreen} />
       <Stack.Screen name="BetGroups" component={BetGroupsScreen} />
       <Stack.Screen name="GroupDetails" component={GroupDetailsScreen} />

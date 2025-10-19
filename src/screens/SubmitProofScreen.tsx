@@ -49,9 +49,15 @@ export default function SubmitProofScreen({ navigation, route }: SubmitProofScre
 
   const requestPermissions = async () => {
     if (bet.proofType === "live_photo") {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== "granted") {
+      // Request both camera and media library permissions
+      const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
+      if (cameraStatus.status !== "granted") {
         Alert.alert("Permission Required", "Camera permission is required to take photos");
+      }
+
+      const mediaLibraryStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (mediaLibraryStatus.status !== "granted") {
+        Alert.alert("Permission Required", "Photo library access is required to upload photos");
       }
     } else if (bet.proofType === "location") {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -65,7 +71,7 @@ export default function SubmitProofScreen({ navigation, route }: SubmitProofScre
     try {
       setLoading(true);
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ["images"],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
@@ -87,8 +93,17 @@ export default function SubmitProofScreen({ navigation, route }: SubmitProofScre
   const handlePickFromGallery = async () => {
     try {
       setLoading(true);
+
+      // Request permission if not already granted
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission Denied", "Photo library access is required to upload photos from your gallery");
+        setLoading(false);
+        return;
+      }
+
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,

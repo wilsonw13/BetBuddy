@@ -165,8 +165,8 @@ export const CREATE_BET_GROUP = gql`
 `;
 
 export const ADD_GROUP_MEMBERS = gql`
-  mutation AddGroupMembers($groupId: ID!, $usernames: [String!]!) {
-    addGroupMembers(groupId: $groupId, usernames: $usernames) {
+  mutation AddGroupMembers($groupId: ID!, $displayNames: [String!]!) {
+    addGroupMembers(groupId: $groupId, displayNames: $displayNames) {
       id
       name
       description
@@ -200,6 +200,154 @@ export const ADD_GROUP_MEMBERS = gql`
 export const REMOVE_GROUP_MEMBER = gql`
   mutation RemoveGroupMember($groupId: ID!, $userId: ID!) {
     removeGroupMember(groupId: $groupId, userId: $userId) {
+      success
+      message
+    }
+  }
+`;
+
+export const UPDATE_BET_GROUP = gql`
+  mutation UpdateBetGroup($groupId: ID!, $name: String, $description: String) {
+    updateBetGroup(groupId: $groupId, name: $name, description: $description) {
+      id
+      name
+      description
+      owner {
+        id
+        email
+        displayName
+        profilePicture
+      }
+      members {
+        id
+        user {
+          id
+          email
+          displayName
+          profilePicture
+        }
+        joinedAt
+      }
+      bets {
+        id
+        title
+        status
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const LEAVE_GROUP = gql`
+  mutation LeaveGroup($groupId: ID!) {
+    leaveGroup(groupId: $groupId) {
+      success
+      message
+    }
+  }
+`;
+
+export const DELETE_GROUP = gql`
+  mutation DeleteGroup($groupId: ID!) {
+    deleteGroup(groupId: $groupId) {
+      success
+      message
+    }
+  }
+`;
+
+export const CREATE_BET = gql`
+  mutation CreateBet($input: CreateBetInput!) {
+    createBet(input: $input) {
+      id
+      title
+      description
+      betActivity
+      proofType
+      frequency
+      betLength
+      pointsStaked
+      startDate
+      endDate
+      status
+      isGroupBet
+      creator {
+        id
+        email
+        displayName
+        profilePicture
+      }
+      group {
+        id
+        name
+        description
+      }
+      participants {
+        id
+        status
+        acceptedAt
+        user {
+          id
+          email
+          displayName
+          profilePicture
+        }
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const ACCEPT_BET = gql`
+  mutation AcceptBet($betId: ID!) {
+    acceptBet(betId: $betId) {
+      success
+      message
+    }
+  }
+`;
+
+export const DECLINE_BET = gql`
+  mutation DeclineBet($betId: ID!) {
+    declineBet(betId: $betId) {
+      success
+      message
+    }
+  }
+`;
+
+export const CANCEL_BET = gql`
+  mutation CancelBet($betId: ID!) {
+    cancelBet(betId: $betId) {
+      success
+      message
+    }
+  }
+`;
+
+export const MARK_NOTIFICATION_AS_READ = gql`
+  mutation MarkNotificationAsRead($notificationId: ID!) {
+    markNotificationAsRead(notificationId: $notificationId) {
+      success
+      message
+    }
+  }
+`;
+
+export const MARK_ALL_NOTIFICATIONS_AS_READ = gql`
+  mutation MarkAllNotificationsAsRead {
+    markAllNotificationsAsRead {
+      success
+      message
+    }
+  }
+`;
+
+export const DELETE_NOTIFICATION = gql`
+  mutation DeleteNotification($notificationId: ID!) {
+    deleteNotification(notificationId: $notificationId) {
       success
       message
     }

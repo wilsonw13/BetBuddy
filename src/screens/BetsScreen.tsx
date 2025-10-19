@@ -16,8 +16,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Bet, BetFrequency, ProofType } from "@/types";
 import { suggestBets } from "@/services/geminiService";
-import { useQuery } from "@apollo/client";
-import { GET_MY_FRIENDS } from "@/graphql/queries";
+import { useQuery, useMutation } from "@apollo/client";
+import { GET_MY_FRIENDS, GET_MY_BET_GROUPS, GET_MY_BETS, GET_ME } from "@/graphql/queries";
+import { CREATE_BET } from "@/graphql/mutations";
 
 interface Friend {
   id: string;
@@ -27,45 +28,76 @@ interface Friend {
   createdAt: string;
 }
 
-// Mock data - replace with real data from your backend
-const mockBets: Bet[] = [
-  {
-    id: "1",
-    userId1: "user1",
-    userId2: "user2",
-    betActivity: "Go to gym 3x a week",
-    proofType: "live_photo",
-    frequency: "3x/week",
-    betLength: 30,
-    startDate: new Date("2024-01-01"),
-    endDate: new Date("2024-01-31"),
-    status: "active",
-    pointsStaked: 100,
-    proofs: [],
-    createdAt: new Date("2024-01-01"),
-  },
-];
+interface BetGroup {
+  id: string;
+  name: string;
+  description?: string;
+  members: {
+    id: string;
+    user: Friend;
+  }[];
+}
 
 export default function BetsScreen({ navigation }: any) {
-  const [bets, setBets] = useState<Bet[]>(mockBets);
   const [modalVisible, setModalVisible] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [betMode, setBetMode] = useState<"individual" | "group">("individual");
   const [friendSearchQuery, setFriendSearchQuery] = useState("");
   const [showFriendsList, setShowFriendsList] = useState(false);
-  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
+  const [selectedFriends, setSelectedFriends] = useState<Friend[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<BetGroup | null>(null);
+  const [showGroupsList, setShowGroupsList] = useState(false);
   const [newBet, setNewBet] = useState({
     activity: "",
-    opponent: "",
     frequency: "1x/week" as BetFrequency,
     proofType: "live_photo" as ProofType,
     betLength: 30,
     pointsStaked: 50,
   });
 
+  // Fetch bets
+  const { data: betsData, loading: betsLoading, refetch: refetchBets } = useQuery(GET_MY_BETS);
+  const { data: meData } = useQuery(GET_ME);
+  const allBets = betsData?.myBets || [];
+  const currentUserId = meData?.me?.id;
+
+  // Filter out cancelled, completed bets, and bets where user declined
+  const bets = allBets.filter((bet: any) => {
+    // Debug: log all bet statuses
+    if (bet.status === 'cancelled') {
+      console.log("FILTERING OUT cancelled bet:", bet.id, bet.title);
+    }
+
+    if (bet.status === 'cancelled' || bet.status === 'completed') {
+      return false;
+    }
+
+    // Check if current user declined this bet
+    const userParticipant = bet.participants?.find((p: any) => p.user.id === currentUserId);
+    if (userParticipant && userParticipant.status === 'declined') {
+      return false;
+    }
+
+    return true;
+  });
+
+  console.log("Total bets from backend:", allBets.length);
+  console.log("Bets after filtering:", bets.length);
+
   // Fetch friends list
   const { data: friendsData, loading: friendsLoading } = useQuery(GET_MY_FRIENDS);
   const friends: Friend[] = friendsData?.myFriends || [];
+
+  // Fetch bet groups
+  const { data: groupsData, loading: groupsLoading } = useQuery(GET_MY_BET_GROUPS);
+  const betGroups: BetGroup[] = groupsData?.myBetGroups || [];
+
+  // Create bet mutation
+  const [createBetMutation, { loading: creatingBet }] = useMutation(CREATE_BET, {
+    refetchQueries: [{ query: GET_MY_BETS }],
+    awaitRefetchQueries: true,
+  });
 
   // Filter friends based on search query
   const filteredFriends = friends.filter(
@@ -79,7 +111,7 @@ export default function BetsScreen({ navigation }: any) {
     setSuggestions([]); // Clear previous suggestions before fetching new ones
     try {
       const userInterests = ["fitness", "productivity", "health"];
-      const pastBets = bets.map((bet) => bet.betActivity);
+      const pastBets = bets.map((bet: any) => bet.betActivity);
       const betSuggestions = await suggestBets(userInterests, pastBets);
       setSuggestions(betSuggestions);
     } catch (error) {
@@ -121,56 +153,92 @@ export default function BetsScreen({ navigation }: any) {
   };
 
   const handleSelectFriend = (friend: Friend) => {
-    setSelectedFriend(friend);
-    setNewBet({ ...newBet, opponent: friend.id });
-    setShowFriendsList(false);
-    setFriendSearchQuery("");
+    // Toggle selection for multi-select
+    const isAlreadySelected = selectedFriends.some((f) => f.id === friend.id);
+    if (isAlreadySelected) {
+      setSelectedFriends(selectedFriends.filter((f) => f.id !== friend.id));
+    } else {
+      setSelectedFriends([...selectedFriends, friend]);
+    }
   };
 
-  const handleAddBet = () => {
-    if (!newBet.activity || !selectedFriend) {
-      Alert.alert("Error", "Please fill in all required fields");
+  const handleSelectGroup = (group: BetGroup) => {
+    setSelectedGroup(group);
+    setShowGroupsList(false);
+  };
+
+  const handleRemoveFriend = (friendId: string) => {
+    setSelectedFriends(selectedFriends.filter((f) => f.id !== friendId));
+  };
+
+  const handleAddBet = async () => {
+    if (!newBet.activity) {
+      Alert.alert("Error", "Please enter a bet activity");
       return;
     }
 
-    const bet: Bet = {
-      id: Date.now().toString(),
-      userId1: "currentUser",
-      userId2: selectedFriend.id,
-      betActivity: newBet.activity,
-      proofType: newBet.proofType,
-      frequency: newBet.frequency,
-      betLength: newBet.betLength,
-      startDate: new Date(),
-      endDate: new Date(Date.now() + newBet.betLength * 24 * 60 * 60 * 1000),
-      status: "active",
-      pointsStaked: newBet.pointsStaked,
-      proofs: [],
-      createdAt: new Date(),
-    };
+    if (betMode === "individual" && selectedFriends.length === 0) {
+      Alert.alert("Error", "Please select at least one friend");
+      return;
+    }
 
-    setBets([bet, ...bets]);
-    setModalVisible(false);
-    setSelectedFriend(null);
+    if (betMode === "group" && !selectedGroup) {
+      Alert.alert("Error", "Please select a bet group");
+      return;
+    }
+
+    try {
+      const input = {
+        title: newBet.activity,
+        description: "",
+        betActivity: newBet.activity,
+        proofType: newBet.proofType,
+        frequency: newBet.frequency,
+        betLength: newBet.betLength,
+        pointsStaked: newBet.pointsStaked,
+        startDate: new Date().toISOString(),
+        ...(betMode === "individual"
+          ? { participantDisplayNames: selectedFriends.map((f) => f.displayName) }
+          : { groupId: selectedGroup!.id }),
+      };
+
+      await createBetMutation({ variables: { input } });
+
+      Alert.alert("Success", "Bet created successfully!");
+      setModalVisible(false);
+      resetForm();
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to create bet");
+    }
+  };
+
+  const resetForm = () => {
+    setSelectedFriends([]);
+    setSelectedGroup(null);
+    setShowFriendsList(false);
+    setShowGroupsList(false);
+    setFriendSearchQuery("");
+    setBetMode("individual");
     setNewBet({
       activity: "",
-      opponent: "",
       frequency: "1x/week",
       proofType: "live_photo",
       betLength: 30,
       pointsStaked: 50,
     });
+    setSuggestions([]);
   };
 
-  const handleProofSubmitted = (proof: any) => {
-    // Update the bet with the new proof
-    setBets((prevBets) =>
-      prevBets.map((bet) => (bet.id === proof.betId ? { ...bet, proofs: [...bet.proofs, proof] } : bet)),
-    );
-  };
+  const renderBetItem = ({ item }: { item: any }) => {
+    const endDate = new Date(item.endDate);
+    const daysLeft = Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
-  const renderBetItem = ({ item }: { item: Bet }) => {
-    const daysLeft = Math.ceil((item.endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    // Get participant names (excluding the current user if possible)
+    const participantNames = item.participants
+      ?.map((p: any) => p.user.displayName)
+      .filter((name: string, index: number, self: string[]) => self.indexOf(name) === index)
+      .slice(0, 2)
+      .join(", ") || "Unknown";
 
     return (
       <TouchableOpacity
@@ -178,18 +246,17 @@ export default function BetsScreen({ navigation }: any) {
         onPress={() =>
           navigation.navigate("SubmitProof", {
             bet: item,
-            onProofSubmitted: handleProofSubmitted,
           })
         }
       >
         <View style={styles.betHeader}>
           <View style={styles.betIconContainer}>
-            <Ionicons name="hand-left" size={24} color="#007AFF" />
+            <Ionicons name={item.isGroupBet ? "people-circle" : "hand-left"} size={24} color="#007AFF" />
           </View>
           <View style={styles.betInfo}>
             <Text style={styles.betActivity}>{item.betActivity}</Text>
             <Text style={styles.betDetails}>
-              vs. {item.userId2} • {item.frequency}
+              {item.isGroupBet ? item.group?.name : `vs. ${participantNames}`} • {item.frequency}
             </Text>
           </View>
           <View style={styles.betStatus}>
@@ -205,7 +272,7 @@ export default function BetsScreen({ navigation }: any) {
           <Text style={styles.daysLeft}>{daysLeft} days left</Text>
         </View>
 
-        {item.proofs.length > 0 && (
+        {item.proofs && item.proofs.length > 0 && (
           <View style={styles.proofsIndicator}>
             <Ionicons name="checkmark-circle" size={16} color="#34C759" />
             <Text style={styles.proofsIndicatorText}>
@@ -300,38 +367,63 @@ export default function BetsScreen({ navigation }: any) {
                   onChangeText={(text) => setNewBet({ ...newBet, activity: text })}
                 />
 
-                <Text style={styles.label}>Opponent</Text>
-                {selectedFriend ? (
+                <Text style={styles.label}>Bet With</Text>
+                <View style={styles.betModeContainer}>
                   <TouchableOpacity
-                    style={styles.selectedFriendContainer}
-                    onPress={() => {
-                      setSelectedFriend(null);
-                      setNewBet({ ...newBet, opponent: "" });
-                    }}
+                    style={[styles.betModeButton, betMode === "individual" && styles.betModeButtonActive]}
+                    onPress={() => setBetMode("individual")}
                   >
-                    <View style={styles.selectedFriendInfo}>
-                      <View style={styles.friendAvatarSmall}>
-                        {selectedFriend.profilePicture ? (
-                          <Image source={{ uri: selectedFriend.profilePicture }} style={styles.friendAvatarImage} />
-                        ) : (
-                          <Ionicons name="person" size={20} color="#8E8E93" />
-                        )}
-                      </View>
-                      <View style={styles.selectedFriendDetails}>
-                        <Text style={styles.selectedFriendName}>{selectedFriend.displayName}</Text>
-                        <Text style={styles.selectedFriendEmail}>{selectedFriend.email}</Text>
-                      </View>
-                    </View>
-                    <Ionicons name="close-circle" size={24} color="#8E8E93" />
+                    <Ionicons
+                      name="people"
+                      size={18}
+                      color={betMode === "individual" ? "#007AFF" : "#8E8E93"}
+                    />
+                    <Text style={[styles.betModeText, betMode === "individual" && styles.betModeTextActive]}>
+                      Individual Friends
+                    </Text>
                   </TouchableOpacity>
-                ) : (
+                  <TouchableOpacity
+                    style={[styles.betModeButton, betMode === "group" && styles.betModeButtonActive]}
+                    onPress={() => setBetMode("group")}
+                  >
+                    <Ionicons
+                      name="people-circle"
+                      size={18}
+                      color={betMode === "group" ? "#007AFF" : "#8E8E93"}
+                    />
+                    <Text style={[styles.betModeText, betMode === "group" && styles.betModeTextActive]}>
+                      Bet Group
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {betMode === "individual" ? (
                   <>
+                    {selectedFriends.length > 0 && (
+                      <View style={styles.selectedFriendsContainer}>
+                        <Text style={styles.selectedFriendsLabel}>Selected ({selectedFriends.length})</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectedFriendsScroll}>
+                          {selectedFriends.map((friend) => (
+                            <TouchableOpacity
+                              key={friend.id}
+                              style={styles.selectedFriendChip}
+                              onPress={() => handleRemoveFriend(friend.id)}
+                            >
+                              <Text style={styles.selectedFriendChipText}>{friend.displayName}</Text>
+                              <Ionicons name="close-circle" size={16} color="#007AFF" />
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      </View>
+                    )}
                     <TouchableOpacity
                       style={styles.friendSearchInput}
                       onPress={() => setShowFriendsList(!showFriendsList)}
                     >
                       <Ionicons name="search" size={20} color="#8E8E93" />
-                      <Text style={styles.friendSearchPlaceholder}>Search friends...</Text>
+                      <Text style={styles.friendSearchPlaceholder}>
+                        {selectedFriends.length > 0 ? "Add more friends..." : "Search friends..."}
+                      </Text>
                       <Ionicons name={showFriendsList ? "chevron-up" : "chevron-down"} size={20} color="#8E8E93" />
                     </TouchableOpacity>
 
@@ -348,25 +440,29 @@ export default function BetsScreen({ navigation }: any) {
                           <ActivityIndicator size="small" color="#007AFF" style={styles.friendsLoader} />
                         ) : filteredFriends.length > 0 ? (
                           <ScrollView style={styles.friendsScroll} nestedScrollEnabled>
-                            {filteredFriends.map((friend) => (
-                              <TouchableOpacity
-                                key={friend.id}
-                                style={styles.friendItem}
-                                onPress={() => handleSelectFriend(friend)}
-                              >
-                                <View style={styles.friendAvatarSmall}>
-                                  {friend.profilePicture ? (
-                                    <Image source={{ uri: friend.profilePicture }} style={styles.friendAvatarImage} />
-                                  ) : (
-                                    <Ionicons name="person" size={20} color="#8E8E93" />
-                                  )}
-                                </View>
-                                <View style={styles.friendItemDetails}>
-                                  <Text style={styles.friendItemName}>{friend.displayName}</Text>
-                                  <Text style={styles.friendItemEmail}>{friend.email}</Text>
-                                </View>
-                              </TouchableOpacity>
-                            ))}
+                            {filteredFriends.map((friend) => {
+                              const isSelected = selectedFriends.some((f) => f.id === friend.id);
+                              return (
+                                <TouchableOpacity
+                                  key={friend.id}
+                                  style={[styles.friendItem, isSelected && styles.friendItemSelected]}
+                                  onPress={() => handleSelectFriend(friend)}
+                                >
+                                  <View style={styles.friendAvatarSmall}>
+                                    {friend.profilePicture ? (
+                                      <Image source={{ uri: friend.profilePicture }} style={styles.friendAvatarImage} />
+                                    ) : (
+                                      <Ionicons name="person" size={20} color="#8E8E93" />
+                                    )}
+                                  </View>
+                                  <View style={styles.friendItemDetails}>
+                                    <Text style={styles.friendItemName}>{friend.displayName}</Text>
+                                    <Text style={styles.friendItemEmail}>{friend.email}</Text>
+                                  </View>
+                                  {isSelected && <Ionicons name="checkmark-circle" size={24} color="#007AFF" />}
+                                </TouchableOpacity>
+                              );
+                            })}
                           </ScrollView>
                         ) : (
                           <View style={styles.noFriendsContainer}>
@@ -380,6 +476,69 @@ export default function BetsScreen({ navigation }: any) {
                           </View>
                         )}
                       </View>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {selectedGroup ? (
+                      <TouchableOpacity
+                        style={styles.selectedGroupContainer}
+                        onPress={() => setSelectedGroup(null)}
+                      >
+                        <View style={styles.selectedGroupInfo}>
+                          <Ionicons name="people-circle" size={32} color="#007AFF" />
+                          <View style={styles.selectedGroupDetails}>
+                            <Text style={styles.selectedGroupName}>{selectedGroup.name}</Text>
+                            <Text style={styles.selectedGroupMembers}>
+                              {selectedGroup.members.length} member{selectedGroup.members.length !== 1 ? "s" : ""}
+                            </Text>
+                          </View>
+                        </View>
+                        <Ionicons name="close-circle" size={24} color="#8E8E93" />
+                      </TouchableOpacity>
+                    ) : (
+                      <>
+                        <TouchableOpacity
+                          style={styles.friendSearchInput}
+                          onPress={() => setShowGroupsList(!showGroupsList)}
+                        >
+                          <Ionicons name="people-circle" size={20} color="#8E8E93" />
+                          <Text style={styles.friendSearchPlaceholder}>Select a bet group...</Text>
+                          <Ionicons name={showGroupsList ? "chevron-up" : "chevron-down"} size={20} color="#8E8E93" />
+                        </TouchableOpacity>
+
+                        {showGroupsList && (
+                          <View style={styles.friendsListContainer}>
+                            {groupsLoading ? (
+                              <ActivityIndicator size="small" color="#007AFF" style={styles.friendsLoader} />
+                            ) : betGroups.length > 0 ? (
+                              <ScrollView style={styles.friendsScroll} nestedScrollEnabled>
+                                {betGroups.map((group) => (
+                                  <TouchableOpacity
+                                    key={group.id}
+                                    style={styles.groupItem}
+                                    onPress={() => handleSelectGroup(group)}
+                                  >
+                                    <Ionicons name="people-circle" size={32} color="#007AFF" />
+                                    <View style={styles.groupItemDetails}>
+                                      <Text style={styles.groupItemName}>{group.name}</Text>
+                                      <Text style={styles.groupItemMembers}>
+                                        {group.members.length} member{group.members.length !== 1 ? "s" : ""}
+                                      </Text>
+                                    </View>
+                                  </TouchableOpacity>
+                                ))}
+                              </ScrollView>
+                            ) : (
+                              <View style={styles.noFriendsContainer}>
+                                <Ionicons name="people-circle-outline" size={32} color="#C7C7CC" />
+                                <Text style={styles.noFriendsText}>No bet groups yet</Text>
+                                <Text style={styles.noFriendsSubtext}>Create a bet group first</Text>
+                              </View>
+                            )}
+                          </View>
+                        )}
+                      </>
                     )}
                   </>
                 )}
@@ -447,8 +606,16 @@ export default function BetsScreen({ navigation }: any) {
                   onChangeText={(text) => setNewBet({ ...newBet, pointsStaked: parseInt(text) || 50 })}
                 />
 
-                <TouchableOpacity style={styles.createButton} onPress={handleAddBet}>
-                  <Text style={styles.createButtonText}>Create Bet</Text>
+                <TouchableOpacity
+                  style={[styles.createButton, creatingBet && styles.createButtonDisabled]}
+                  onPress={handleAddBet}
+                  disabled={creatingBet}
+                >
+                  {creatingBet ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <Text style={styles.createButtonText}>Create Bet</Text>
+                  )}
                 </TouchableOpacity>
               </ScrollView>
             </View>
@@ -667,6 +834,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  createButtonDisabled: {
+    opacity: 0.6,
+  },
   suggestionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -823,5 +993,121 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#C7C7CC",
     marginTop: 4,
+  },
+  betModeContainer: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 8,
+  },
+  betModeButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F2F2F7",
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: "#F2F2F7",
+  },
+  betModeButtonActive: {
+    backgroundColor: "#E3F2FD",
+    borderColor: "#007AFF",
+  },
+  betModeText: {
+    fontSize: 14,
+    color: "#8E8E93",
+    fontWeight: "500",
+  },
+  betModeTextActive: {
+    color: "#007AFF",
+    fontWeight: "600",
+  },
+  selectedFriendsContainer: {
+    marginBottom: 8,
+  },
+  selectedFriendsLabel: {
+    fontSize: 12,
+    color: "#8E8E93",
+    marginBottom: 6,
+    fontWeight: "500",
+  },
+  selectedFriendsScroll: {
+    marginBottom: 4,
+  },
+  selectedFriendChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E3F2FD",
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginRight: 8,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: "#007AFF",
+  },
+  selectedFriendChipText: {
+    fontSize: 13,
+    color: "#007AFF",
+    fontWeight: "500",
+  },
+  friendItemSelected: {
+    backgroundColor: "#E3F2FD",
+    borderLeftWidth: 3,
+    borderLeftColor: "#007AFF",
+  },
+  selectedGroupContainer: {
+    backgroundColor: "#E3F2FD",
+    borderRadius: 10,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#007AFF",
+  },
+  selectedGroupInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    gap: 12,
+  },
+  selectedGroupDetails: {
+    flex: 1,
+  },
+  selectedGroupName: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#000",
+  },
+  selectedGroupMembers: {
+    fontSize: 13,
+    color: "#8E8E93",
+    marginTop: 2,
+  },
+  groupItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5EA",
+    backgroundColor: "white",
+    gap: 12,
+  },
+  groupItemDetails: {
+    flex: 1,
+  },
+  groupItemName: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#000",
+  },
+  groupItemMembers: {
+    fontSize: 13,
+    color: "#8E8E93",
+    marginTop: 2,
   },
 });

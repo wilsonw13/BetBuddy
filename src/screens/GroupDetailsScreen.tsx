@@ -3,16 +3,24 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
   ScrollView,
+  Modal,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_MY_BET_GROUPS, GET_MY_FRIENDS } from "@/graphql/queries";
-import { ADD_GROUP_MEMBERS, REMOVE_GROUP_MEMBER } from "@/graphql/mutations";
+import { GET_MY_BET_GROUPS, GET_MY_FRIENDS, GET_ME } from "@/graphql/queries";
+import {
+  ADD_GROUP_MEMBERS,
+  REMOVE_GROUP_MEMBER,
+  UPDATE_BET_GROUP,
+  LEAVE_GROUP,
+  DELETE_GROUP,
+  CANCEL_BET,
+} from "@/graphql/mutations";
 
 interface Member {
   id: string;
@@ -41,6 +49,16 @@ interface BetGroup {
 
 export default function GroupDetailsScreen({ route, navigation }: any) {
   const { groupId, groupName } = route.params;
+  const [settingsModalVisible, setSettingsModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [inviteMembersModalVisible, setInviteMembersModalVisible] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [editedDescription, setEditedDescription] = useState("");
+  const [selectedMembersToInvite, setSelectedMembersToInvite] = useState<string[]>([]);
+
+  // Fetch current user
+  const { data: meData } = useQuery(GET_ME);
+  const currentUserId = meData?.me?.id;
 
   // Fetch group details
   const {
@@ -51,9 +69,224 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
     fetchPolicy: "network-only",
   });
 
+  // Fetch friends for inviting
+  const { data: friendsData } = useQuery(GET_MY_FRIENDS);
+  const friends = friendsData?.myFriends || [];
+
   const group: BetGroup | undefined = groupsData?.myBetGroups?.find(
     (g: BetGroup) => g.id === groupId
   );
+
+  // Mutations
+  const [updateBetGroup, { loading: updating }] = useMutation(UPDATE_BET_GROUP, {
+    onCompleted: () => {
+      refetchGroup();
+      setEditModalVisible(false);
+      Alert.alert("Success", "Group updated successfully");
+    },
+  });
+
+  const [addGroupMembers, { loading: adding }] = useMutation(ADD_GROUP_MEMBERS, {
+    onCompleted: (data) => {
+      console.log("Members added successfully:", data);
+      refetchGroup();
+      setInviteMembersModalVisible(false);
+      setSelectedMembersToInvite([]);
+      Alert.alert("Success", "Members invited successfully");
+    },
+    onError: (error) => {
+      console.error("Error adding members:", error);
+      Alert.alert("Error", error.message || "Failed to invite members");
+    },
+  });
+
+  const [removeGroupMember, { loading: removing }] = useMutation(REMOVE_GROUP_MEMBER, {
+    onCompleted: () => {
+      refetchGroup();
+      Alert.alert("Success", "Member removed from group");
+    },
+  });
+
+  const [leaveGroup, { loading: leaving }] = useMutation(LEAVE_GROUP, {
+    onCompleted: () => {
+      Alert.alert("Success", "You have left the group", [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
+    },
+  });
+
+  const [deleteGroup, { loading: deleting }] = useMutation(DELETE_GROUP, {
+    onCompleted: () => {
+      Alert.alert("Success", "Group deleted successfully", [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
+    },
+  });
+
+  const [cancelBet] = useMutation(CANCEL_BET, {
+    onCompleted: () => {
+      refetchGroup();
+      Alert.alert("Success", "Bet cancelled successfully");
+    },
+  });
+
+  const isOwner = group?.owner.id === currentUserId;
+
+  // Get friends not already in group
+  const availableFriendsToInvite = friends.filter(
+    (friend: any) => !group?.members.some((m) => m.user.id === friend.id)
+  );
+
+  const handleEditGroup = () => {
+    if (!group) return;
+    setEditedName(group.name);
+    setEditedDescription(group.description || "");
+    setEditModalVisible(true);
+    setSettingsModalVisible(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editedName.trim()) {
+      Alert.alert("Error", "Group name cannot be empty");
+      return;
+    }
+
+    try {
+      await updateBetGroup({
+        variables: {
+          groupId,
+          name: editedName,
+          description: editedDescription || null,
+        },
+      });
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to update group");
+    }
+  };
+
+  const handleInviteMembers = () => {
+    setInviteMembersModalVisible(true);
+    setSettingsModalVisible(false);
+  };
+
+  const handleSaveInvite = async () => {
+    console.log("handleSaveInvite called");
+    console.log("selectedMembersToInvite:", selectedMembersToInvite);
+    console.log("groupId:", groupId);
+
+    if (selectedMembersToInvite.length === 0) {
+      Alert.alert("Error", "Please select at least one friend to invite");
+      return;
+    }
+
+    try {
+      console.log("Calling addGroupMembers mutation...");
+      await addGroupMembers({
+        variables: {
+          groupId,
+          displayNames: selectedMembersToInvite,
+        },
+      });
+      console.log("Mutation completed");
+    } catch (error: any) {
+      console.error("Caught error in handleSaveInvite:", error);
+      Alert.alert("Error", error.message || "Failed to invite members");
+    }
+  };
+
+  const handleKickMember = (memberId: string, memberName: string) => {
+    Alert.alert(
+      "Remove Member",
+      `Are you sure you want to remove ${memberName} from this group?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await removeGroupMember({
+                variables: { groupId, userId: memberId },
+              });
+            } catch (error: any) {
+              Alert.alert("Error", error.message || "Failed to remove member");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleLeaveGroup = () => {
+    Alert.alert(
+      "Leave Group",
+      "Are you sure you want to leave this group?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Leave",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await leaveGroup({ variables: { groupId } });
+            } catch (error: any) {
+              Alert.alert("Error", error.message || "Failed to leave group");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteGroup = () => {
+    Alert.alert(
+      "Delete Group",
+      "Are you sure you want to delete this group? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteGroup({ variables: { groupId } });
+            } catch (error: any) {
+              Alert.alert("Error", error.message || "Failed to delete group");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleCancelBet = (betId: string, betTitle: string) => {
+    Alert.alert(
+      "Cancel Bet",
+      `Are you sure you want to cancel "${betTitle}"?`,
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Yes, Cancel",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await cancelBet({ variables: { betId } });
+            } catch (error: any) {
+              Alert.alert("Error", error.message || "Failed to cancel bet");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const toggleMemberToInvite = (displayName: string) => {
+    setSelectedMembersToInvite((prev) =>
+      prev.includes(displayName)
+        ? prev.filter((d) => d !== displayName)
+        : [...prev, displayName]
+    );
+  };
 
   if (groupLoading) {
     return (
@@ -98,6 +331,14 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
           <Text style={styles.ownerBadgeText}>Owner</Text>
         </View>
       )}
+      {isOwner && group.owner.id !== item.user.id && (
+        <TouchableOpacity
+          onPress={() => handleKickMember(item.user.id, item.user.displayName)}
+          style={styles.kickButton}
+        >
+          <Ionicons name="close-circle" size={24} color="#FF3B30" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -117,7 +358,12 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
             {group.members.length} {group.members.length === 1 ? "member" : "members"}
           </Text>
         </View>
-        <View style={styles.headerSpacer} />
+        <TouchableOpacity
+          onPress={() => setSettingsModalVisible(true)}
+          style={styles.settingsButton}
+        >
+          <Ionicons name="settings" size={24} color="#000" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content}>
@@ -148,6 +394,12 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Members</Text>
+            {isOwner && (
+              <TouchableOpacity onPress={handleInviteMembers} style={styles.addButton}>
+                <Ionicons name="person-add" size={20} color="#007AFF" />
+                <Text style={styles.addButtonText}>Invite</Text>
+              </TouchableOpacity>
+            )}
           </View>
           {group.members.map((member) => (
             <View key={member.id}>{renderMember({ item: member })}</View>
@@ -170,15 +422,195 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
           ) : (
             <View style={styles.betsContainer}>
               {group.bets.map((bet) => (
-                <View key={bet.id} style={styles.betCard}>
-                  <Text style={styles.betTitle}>{bet.title}</Text>
-                  <Text style={styles.betStatus}>{bet.status}</Text>
-                </View>
+                <TouchableOpacity
+                  key={bet.id}
+                  style={styles.betCard}
+                  onPress={() => navigation.navigate("SubmitProof", { bet })}
+                >
+                  <View style={styles.betCardLeft}>
+                    <Text style={styles.betTitle}>{bet.title}</Text>
+                    <Text style={styles.betStatus}>{bet.status}</Text>
+                  </View>
+                  {isOwner && (
+                    <TouchableOpacity
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        handleCancelBet(bet.id, bet.title);
+                      }}
+                      style={styles.cancelBetButton}
+                    >
+                      <Ionicons name="close-circle" size={24} color="#FF3B30" />
+                    </TouchableOpacity>
+                  )}
+                </TouchableOpacity>
               ))}
             </View>
           )}
         </View>
       </ScrollView>
+
+      {/* Settings Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={settingsModalVisible}
+        onRequestClose={() => setSettingsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Group Settings</Text>
+              <TouchableOpacity onPress={() => setSettingsModalVisible(false)}>
+                <Ionicons name="close" size={28} color="#000" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.settingsList}>
+              {isOwner && (
+                <>
+                  <TouchableOpacity style={styles.settingItem} onPress={handleEditGroup}>
+                    <Ionicons name="create-outline" size={24} color="#007AFF" />
+                    <Text style={styles.settingText}>Edit Group Info</Text>
+                    <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.settingItem} onPress={handleInviteMembers}>
+                    <Ionicons name="person-add-outline" size={24} color="#007AFF" />
+                    <Text style={styles.settingText}>Invite Members</Text>
+                    <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.settingItem} onPress={handleDeleteGroup}>
+                    <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+                    <Text style={[styles.settingText, styles.dangerText]}>Delete Group</Text>
+                    <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+                  </TouchableOpacity>
+                </>
+              )}
+              {!isOwner && (
+                <TouchableOpacity style={styles.settingItem} onPress={handleLeaveGroup}>
+                  <Ionicons name="exit-outline" size={24} color="#FF3B30" />
+                  <Text style={[styles.settingText, styles.dangerText]}>Leave Group</Text>
+                  <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Group Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={editModalVisible}
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Edit Group</Text>
+              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                <Ionicons name="close" size={28} color="#000" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.modalBody}>
+              <Text style={styles.label}>Group Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter group name"
+                value={editedName}
+                onChangeText={setEditedName}
+              />
+              <Text style={styles.label}>Description (Optional)</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Enter description"
+                value={editedDescription}
+                onChangeText={setEditedDescription}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleSaveEdit}
+                disabled={updating}
+              >
+                {updating ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={styles.saveButtonText}>Save Changes</Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Invite Members Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={inviteMembersModalVisible}
+        onRequestClose={() => setInviteMembersModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Invite Members</Text>
+              <TouchableOpacity onPress={() => {
+                setInviteMembersModalVisible(false);
+                setSelectedMembersToInvite([]);
+              }}>
+                <Ionicons name="close" size={28} color="#000" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.modalBody}>
+              <Text style={styles.label}>
+                Select Friends to Invite ({selectedMembersToInvite.length} selected)
+              </Text>
+              {availableFriendsToInvite.length === 0 ? (
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>All friends are already members</Text>
+                </View>
+              ) : (
+                availableFriendsToInvite.map((friend: any) => {
+                  const isSelected = selectedMembersToInvite.includes(friend.displayName);
+                  return (
+                    <TouchableOpacity
+                      key={friend.id}
+                      style={[styles.friendSelectItem, isSelected && styles.friendSelectItemSelected]}
+                      onPress={() => toggleMemberToInvite(friend.displayName)}
+                    >
+                      <View style={styles.friendAvatar}>
+                        <Text style={styles.friendAvatarText}>
+                          {friend.displayName.charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                      <View style={styles.friendInfo}>
+                        <Text style={styles.friendName}>{friend.displayName}</Text>
+                        <Text style={styles.friendEmail}>{friend.email}</Text>
+                      </View>
+                      <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+                        {isSelected && <Ionicons name="checkmark" size={16} color="white" />}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })
+              )}
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleSaveInvite}
+                disabled={adding || selectedMembersToInvite.length === 0}
+              >
+                {adding ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={styles.saveButtonText}>Invite Selected</Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -243,8 +675,8 @@ const styles = StyleSheet.create({
     color: "#8E8E93",
     marginTop: 2,
   },
-  headerSpacer: {
-    width: 40,
+  settingsButton: {
+    padding: 8,
   },
   content: {
     flex: 1,
@@ -318,6 +750,16 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#000",
   },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  addButtonText: {
+    fontSize: 16,
+    color: "#007AFF",
+    fontWeight: "600",
+  },
   memberCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -369,6 +811,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
+  kickButton: {
+    padding: 4,
+  },
   emptyState: {
     alignItems: "center",
     paddingVertical: 40,
@@ -395,6 +840,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  betCardLeft: {
+    flex: 1,
+  },
   betTitle: {
     fontSize: 16,
     fontWeight: "600",
@@ -404,5 +852,139 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#8E8E93",
     textTransform: "capitalize",
+    marginTop: 4,
+  },
+  cancelBetButton: {
+    padding: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "80%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5EA",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#000",
+  },
+  modalBody: {
+    padding: 20,
+  },
+  settingsList: {
+    padding: 20,
+  },
+  settingItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5EA",
+    gap: 12,
+  },
+  settingText: {
+    flex: 1,
+    fontSize: 16,
+    color: "#000",
+    fontWeight: "500",
+  },
+  dangerText: {
+    color: "#FF3B30",
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#000",
+    marginBottom: 8,
+    marginTop: 8,
+  },
+  input: {
+    backgroundColor: "#F2F2F7",
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    marginBottom: 12,
+  },
+  textArea: {
+    height: 80,
+  },
+  saveButton: {
+    backgroundColor: "#007AFF",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  saveButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  friendSelectItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    backgroundColor: "#F2F2F7",
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  friendSelectItemSelected: {
+    backgroundColor: "#E3F2FD",
+    borderWidth: 1,
+    borderColor: "#007AFF",
+  },
+  friendAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#007AFF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  friendAvatarText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  friendInfo: {
+    flex: 1,
+  },
+  friendName: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#000",
+  },
+  friendEmail: {
+    fontSize: 13,
+    color: "#8E8E93",
+    marginTop: 2,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#C7C7CC",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  checkboxSelected: {
+    backgroundColor: "#007AFF",
+    borderColor: "#007AFF",
   },
 });
