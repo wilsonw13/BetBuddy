@@ -1,3 +1,28 @@
+export const SUBMIT_PROOF = gql`
+  mutation SubmitProof($input: SubmitProofInput!) {
+    submitProof(input: $input) {
+      id
+      bet {
+        id
+      }
+      user {
+        id
+        displayName
+        profileImage
+      }
+      proofType
+      imageUrl
+      latitude
+      longitude
+      address
+      aiSuggestionSuspicious
+      aiSuggestionReason
+      aiSuggestionConfidence
+      verified
+      createdAt
+    }
+  }
+`;
 import { gql } from "@apollo/client";
 
 export const REGISTER = gql`
@@ -240,7 +265,8 @@ export const CREATE_BET = gql`
       proofType
       frequency
       betLength
-      pointsStaked
+      moneyStaked
+      pointsReward
       startDate
       endDate
       status

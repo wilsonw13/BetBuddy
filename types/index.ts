@@ -101,7 +101,7 @@ export interface Bet {
   endDate: Date;
   status: BetStatus;
   moneyStaked?: number;
-  pointsStaked?: number;
+  pointsReward?: number;
   proofs?: Proof[];
   createdAt?: Date;
   groupId?: string;
@@ -354,7 +354,7 @@ export interface Bet {
   endDate: Date;
   status: BetStatus;
   moneyStaked?: number;
-  pointsStaked?: number;
+  pointsReward?: number;
   proofs?: Proof[];
   createdAt?: Date;
   groupId?: string;

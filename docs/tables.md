@@ -271,7 +271,7 @@ Fields:
 - proofType (String): Type of proof (live_photo, location)
 - frequency (String): How often activity must be done
 - betLength (Int): Duration in days
-- pointsStaked (Int): Points wagered
+- moneyStaked (Int): Points wagered
 - startDate (DateTime): Bet start date
 - endDate (DateTime): Bet end date
 - status (String): Bet status (pending, active, completed, cancelled)

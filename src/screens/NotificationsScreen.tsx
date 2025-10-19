@@ -161,7 +161,7 @@ export default function NotificationsScreen({ navigation }: any) {
             </View>
             <View style={styles.betDetailRow}>
               <Ionicons name="trophy-outline" size={14} color="#8E8E93" />
-              <Text style={styles.betDetailText}>{item.metadata.pointsStaked} points</Text>
+              <Text style={styles.betDetailText}>{item.metadata.moneyStaked} points</Text>
             </View>
           </View>
         )}

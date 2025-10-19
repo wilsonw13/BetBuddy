@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useMutation } from "@apollo/client";
+import { SUBMIT_PROOF } from "@/graphql/mutations";
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import ImagePicker from "expo-image-picker";
+import * as ImagePicker from "expo-image-picker";
 import Location from "expo-location";
 import { verifyBetPhoto } from "@/services/gemini.service";
 import { Bet, Proof } from "@types";
@@ -17,7 +19,7 @@ interface SubmitProofScreenProps {
 }
 
 export default function SubmitProofScreen({ navigation, route }: SubmitProofScreenProps) {
-  const { bet, onProofSubmitted } = route.params;
+  const { bet } = route.params;
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [location, setLocation] = useState<{
     latitude: number;
@@ -195,27 +197,41 @@ export default function SubmitProofScreen({ navigation, route }: SubmitProofScre
     }
   };
 
-  const submitProof = () => {
-    const proof: Proof = {
-      id: Date.now().toString(),
-      betId: bet.id,
-      userId: bet.userId1 ?? "", // Assuming current user is userId1
-      timestamp: new Date(),
-      proofType: bet.proofType,
-      imageUri: imageUri || undefined,
-      locationData: location || undefined,
-      verified: false,
-      aiSuggestionSuspicious: verification?.isSuspicious,
-      aiSuggestionReason: verification?.reason,
-    };
+  // Apollo mutation for submitting proof
+  const [submitProofMutation, { loading: submitting }] = useMutation(SUBMIT_PROOF);
 
-    onProofSubmitted?.(proof);
-    Alert.alert("Success", "Proof submitted successfully!", [
-      {
-        text: "OK",
-        onPress: () => navigation.goBack(),
-      },
-    ]);
+  const submitProof = async () => {
+    try {
+      const input: any = {
+        betId: bet.id,
+        proofType: bet.proofType,
+        imageUrl: imageUri || undefined,
+        latitude: location?.latitude,
+        longitude: location?.longitude,
+        address: location?.address,
+        aiSuggestionSuspicious: verification?.isSuspicious,
+        aiSuggestionReason: verification?.reason,
+        aiSuggestionConfidence: verification?.confidence,
+      };
+
+      const { data } = await submitProofMutation({ variables: { input } });
+      if (data?.submitProof) {
+        // If a callback is provided in navigation params, call it to trigger refetch
+        if (route.params?.onProofSubmitted) {
+          route.params.onProofSubmitted(data.submitProof);
+        }
+        Alert.alert("Success", "Proof submitted successfully!", [
+          {
+            text: "OK",
+            onPress: () => navigation.goBack(),
+          },
+        ]);
+      } else {
+        throw new Error("No proof returned from backend");
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to submit proof");
+    }
   };
 
   return (
@@ -367,9 +383,15 @@ export default function SubmitProofScreen({ navigation, route }: SubmitProofScre
 
       {/* Submit Button */}
       {((bet.proofType === "live_photo" && imageUri) || (bet.proofType === "location" && location)) && (
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmitProof} disabled={verifying}>
-          <Text style={styles.submitButtonText}>Submit Proof</Text>
-          <Ionicons name="checkmark-circle" size={24} color="white" />
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmitProof} disabled={verifying || submitting}>
+          {submitting ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <>
+              <Text style={styles.submitButtonText}>Submit Proof</Text>
+              <Ionicons name="checkmark-circle" size={24} color="white" />
+            </>
+          )}
         </TouchableOpacity>
       )}
     </ScrollView>

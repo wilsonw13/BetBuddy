@@ -37,6 +37,7 @@ export default function BetsScreen({ navigation }: any) {
     proofType: "live_photo" as ProofType,
     betLength: 30,
     moneyStaked: 50,
+    pointsReward: 10,
   });
 
   // Fetch bets
@@ -179,10 +180,11 @@ export default function BetsScreen({ navigation }: any) {
         frequency: newBet.frequency,
         betLength: newBet.betLength,
         moneyStaked: newBet.moneyStaked,
-        startDate: new Date().toISOString(),
+        pointsReward: newBet.pointsReward,
         ...(betMode === "individual"
           ? { participantDisplayNames: selectedFriends.map((f) => f.displayName) }
           : { groupId: selectedGroup!.id }),
+        startDate: new Date().toISOString(),
       };
 
       await createBetMutation({ variables: { input } });
@@ -208,6 +210,7 @@ export default function BetsScreen({ navigation }: any) {
       proofType: "live_photo",
       betLength: 30,
       moneyStaked: 50,
+      pointsReward: 10,
     });
     setSuggestions([]);
   };
@@ -230,6 +233,9 @@ export default function BetsScreen({ navigation }: any) {
         onPress={() =>
           navigation.navigate("SubmitProof", {
             bet: item,
+            onProofSubmitted: () => {
+              refetchBets();
+            },
           })
         }
       >
@@ -244,7 +250,7 @@ export default function BetsScreen({ navigation }: any) {
             </Text>
           </View>
           <View style={styles.betStatus}>
-            <Text style={styles.pointsStaked}>{item.moneyStaked} pts</Text>
+            <Text style={styles.moneyStaked}>{item.moneyStaked} pts</Text>
           </View>
         </View>
 
@@ -572,13 +578,22 @@ export default function BetsScreen({ navigation }: any) {
                   onChangeText={(text) => setNewBet({ ...newBet, betLength: parseInt(text) || 30 })}
                 />
 
-                <Text style={styles.label}>Points to Stake</Text>
+                <Text style={styles.label}>Money to Stake</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="50"
                   keyboardType="numeric"
                   value={newBet.moneyStaked.toString()}
                   onChangeText={(text) => setNewBet({ ...newBet, moneyStaked: parseInt(text) || 50 })}
+                />
+
+                <Text style={styles.label}>Points Reward</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="50"
+                  keyboardType="numeric"
+                  value={newBet.pointsReward.toString()}
+                  onChangeText={(text) => setNewBet({ ...newBet, pointsReward: parseInt(text) || 10 })}
                 />
 
                 <TouchableOpacity
@@ -654,10 +669,15 @@ const styles = StyleSheet.create({
   betStatus: {
     alignItems: "flex-end",
   },
-  pointsStaked: {
+  moneyStaked: {
     fontSize: 16,
     fontWeight: "700",
     color: "#007AFF",
+  },
+  pointsReward: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#34C759",
   },
   betFooter: {
     flexDirection: "row",

@@ -11,7 +11,6 @@ export const GET_ME = gql`
       emailVerified
       createdAt
       updatedAt
-      
     }
   }
 `;
@@ -112,6 +111,7 @@ export const GET_MY_BETS = gql`
       frequency
       betLength
       moneyStaked
+      pointsReward
       startDate
       endDate
       status
@@ -161,7 +161,8 @@ export const GET_PENDING_BETS = gql`
       proofType
       frequency
       betLength
-      pointsStaked
+      moneyStaked
+      pointsReward
       startDate
       endDate
       status
@@ -204,7 +205,8 @@ export const GET_ACTIVE_BETS = gql`
       proofType
       frequency
       betLength
-      pointsStaked
+      moneyStaked
+      pointsReward
       startDate
       endDate
       status

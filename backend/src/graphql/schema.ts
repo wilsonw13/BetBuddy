@@ -76,6 +76,7 @@ export const typeDefs = gql`
     frequency: String!
     betLength: Int!
     moneyStaked: Float!
+    pointsReward: Int!
     startDate: DateTime!
     endDate: DateTime!
     status: String!
@@ -189,7 +190,8 @@ export const typeDefs = gql`
     proofType: String!
     frequency: String!
     betLength: Int!
-    moneyStaked: Int!
+    moneyStaked: Float!
+    pointsReward: Int!
     startDate: DateTime!
     participantDisplayNames: [String!]
     groupId: ID
