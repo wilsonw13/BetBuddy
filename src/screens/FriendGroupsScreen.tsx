@@ -153,9 +153,18 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
         Alert.alert("View Profile", `View ${item.displayName}'s profile`);
       }}
     >
+
+      {/* console.log("Rendering friend:", item.displayName); */}
+      {/* console.log("Friend data:", item.profileImage); */}
+      
       <View style={styles.friendAvatar}>
         {item.profileImage ? (
-          <Image source={{ uri: item.profileImage }} style={styles.avatarImage} />
+          <Image 
+            source={{ uri: item.profileImage.startsWith('data:')
+              ? item.profileImage
+              : `data:image/jpeg;base64,${item.profileImage}`         
+          }} 
+          style={styles.avatarImage} />
         ) : (
           <Ionicons name="person" size={32} color="#8E8E93" />
         )}

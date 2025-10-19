@@ -86,7 +86,11 @@ export default function LeaderboardScreen() {
 
         <View style={styles.avatarContainer}>
           {item.profileImage ? (
-            <Image source={{ uri: item.profileImage }} style={styles.avatar} />
+            <Image source={{ 
+              uri: item.profileImage.startsWith('data:')
+                ? item.profileImage
+                : `data:image/png;base64,${item.profileImage}`
+            }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
               <Ionicons name="person" size={24} color="#8E8E93" />
