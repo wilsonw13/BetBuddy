@@ -1,5 +1,5 @@
 import { GraphQLError } from "graphql";
-import { DateTimeResolver } from "graphql-scalars";
+import { DateTimeResolver, JSONResolver } from "graphql-scalars";
 import bcrypt from "bcrypt";
 import Joi from "joi";
 import { prisma } from "@/config/prisma";
@@ -33,6 +33,7 @@ const loginSchema = Joi.object({
 
 export const resolvers = {
   DateTime: DateTimeResolver,
+  JSON: JSONResolver,
 
   Query: {
     health: () => "OK",
@@ -626,6 +627,52 @@ export const resolvers = {
 
       return group;
     },
+
+    myNotifications: async (_: any, __: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const notifications = await prisma.notification.findMany({
+        where: {
+          userId: context.user.userId,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              displayName: true,
+              profilePicture: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return notifications;
+    },
+
+    unreadNotificationCount: async (_: any, __: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const count = await prisma.notification.count({
+        where: {
+          userId: context.user.userId,
+          isRead: false,
+        },
+      });
+
+      return count;
+    },
   },
 
   Mutation: {
@@ -958,6 +1005,24 @@ export const resolvers = {
         },
       });
 
+      // Create notification for friend request
+      const fromUser = await prisma.user.findUnique({
+        where: { id: context.user.userId },
+      });
+
+      await prisma.notification.create({
+        data: {
+          userId: toUser.id,
+          type: "friend_request",
+          title: "New Friend Request",
+          message: `${fromUser?.displayName || "Someone"} sent you a friend request`,
+          metadata: {
+            friendRequestId: friendRequest.id,
+            fromUserId: context.user.userId,
+          },
+        },
+      });
+
       return friendRequest;
     },
 
@@ -1103,22 +1168,42 @@ export const resolvers = {
 
       const { name, description, memberDisplayNames } = input;
 
-      // Find all users by displayName
-      const users = await prisma.user.findMany({
-        where: {
-          displayName: {
-            in: memberDisplayNames,
+      let users: any[] = [];
+
+      // Find users by displayName if memberDisplayNames is provided and not empty
+      if (memberDisplayNames && memberDisplayNames.length > 0) {
+        users = await prisma.user.findMany({
+          where: {
+            displayName: {
+              in: memberDisplayNames,
+            },
           },
-        },
+        });
+
+        if (users.length !== memberDisplayNames.length) {
+          throw new GraphQLError("One or more display names not found", {
+            extensions: { code: "USER_NOT_FOUND" },
+          });
+        }
+      }
+
+      // Always include the owner in the members list
+      const owner = await prisma.user.findUnique({
+        where: { id: context.user.userId },
       });
 
-      if (users.length !== memberDisplayNames.length) {
-        throw new GraphQLError("One or more display names not found", {
+      if (!owner) {
+        throw new GraphQLError("Owner not found", {
           extensions: { code: "USER_NOT_FOUND" },
         });
       }
 
-      // Create group with members
+      // Add owner to users if not already included
+      if (!users.some((user) => user.id === owner.id)) {
+        users.push(owner);
+      }
+
+      // Create group with members (including owner)
       const group = await prisma.betGroup.create({
         data: {
           name,
@@ -1197,7 +1282,7 @@ export const resolvers = {
       }
 
       // Add members
-      await prisma.groupMember.createMany({
+      await prisma.betGroupMember.createMany({
         data: users.map((user) => ({
           groupId,
           userId: user.id,
@@ -1232,6 +1317,37 @@ export const resolvers = {
         },
       });
 
+      // Create notifications for newly added members
+      const owner = await prisma.user.findUnique({
+        where: { id: context.user.userId },
+      });
+
+      if (users.length > 0) {
+        console.log("Creating notifications for users:", users.map(u => u.displayName));
+        console.log("prisma.notification exists?", !!prisma.notification);
+        console.log("prisma.notification.createMany exists?", !!(prisma.notification && prisma.notification.createMany));
+
+        try {
+          await prisma.notification.createMany({
+            data: users.map((user) => ({
+              userId: user.id,
+              type: "group_invite",
+              title: "Added to Bet Group",
+              message: `${owner?.displayName || "Someone"} added you to the group: ${group.name}`,
+              metadata: {
+                groupId: group.id,
+                groupName: group.name,
+                ownerId: group.ownerId,
+              },
+            })),
+          });
+          console.log("Notifications created successfully");
+        } catch (notifError) {
+          console.error("Failed to create notifications:", notifError);
+          // Don't fail the whole operation if notification creation fails
+        }
+      }
+
       return updatedGroup;
     },
 
@@ -1258,7 +1374,7 @@ export const resolvers = {
         });
       }
 
-      await prisma.groupMember.deleteMany({
+      await prisma.betGroupMember.deleteMany({
         where: {
           groupId,
           userId,
@@ -1268,6 +1384,133 @@ export const resolvers = {
       return {
         success: true,
         message: "Member removed from group",
+      };
+    },
+
+    updateBetGroup: async (_: any, { groupId, name, description }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const group = await prisma.betGroup.findUnique({
+        where: { id: groupId },
+      });
+
+      if (!group) {
+        throw new GraphQLError("Bet group not found", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+
+      if (group.ownerId !== context.user.userId) {
+        throw new GraphQLError("Only group owner can update group", {
+          extensions: { code: "UNAUTHORIZED" },
+        });
+      }
+
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (description !== undefined) updateData.description = description;
+
+      const updatedGroup = await prisma.betGroup.update({
+        where: { id: groupId },
+        data: updateData,
+        include: {
+          owner: {
+            select: {
+              id: true,
+              email: true,
+              displayName: true,
+              profilePicture: true,
+            },
+          },
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  displayName: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+          bets: true,
+        },
+      });
+
+      return updatedGroup;
+    },
+
+    leaveGroup: async (_: any, { groupId }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const group = await prisma.betGroup.findUnique({
+        where: { id: groupId },
+      });
+
+      if (!group) {
+        throw new GraphQLError("Bet group not found", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+
+      if (group.ownerId === context.user.userId) {
+        throw new GraphQLError("Owner cannot leave group. Please delete the group or transfer ownership first.", {
+          extensions: { code: "INVALID_OPERATION" },
+        });
+      }
+
+      await prisma.betGroupMember.deleteMany({
+        where: {
+          groupId,
+          userId: context.user.userId,
+        },
+      });
+
+      return {
+        success: true,
+        message: "Left group successfully",
+      };
+    },
+
+    deleteGroup: async (_: any, { groupId }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const group = await prisma.betGroup.findUnique({
+        where: { id: groupId },
+      });
+
+      if (!group) {
+        throw new GraphQLError("Bet group not found", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+
+      if (group.ownerId !== context.user.userId) {
+        throw new GraphQLError("Only group owner can delete group", {
+          extensions: { code: "UNAUTHORIZED" },
+        });
+      }
+
+      await prisma.betGroup.delete({
+        where: { id: groupId },
+      });
+
+      return {
+        success: true,
+        message: "Group deleted successfully",
       };
     },
 
@@ -1425,6 +1668,32 @@ export const resolvers = {
         },
       });
 
+      // Create notifications for all participants except creator
+      const creator = await prisma.user.findUnique({
+        where: { id: context.user.userId },
+      });
+
+      const participantsToNotify = bet.participants.filter((p) => p.userId !== context.user.userId);
+
+      if (participantsToNotify.length > 0) {
+        await prisma.notification.createMany({
+          data: participantsToNotify.map((participant) => ({
+            userId: participant.userId,
+            type: "bet_invite",
+            title: "New Bet Invitation",
+            message: `${creator?.displayName || "Someone"} invited you to a bet: ${bet.title}`,
+            metadata: {
+              betId: bet.id,
+              creatorId: context.user.userId,
+              betTitle: bet.title,
+              pointsStaked: bet.pointsStaked,
+              frequency: bet.frequency,
+              betLength: bet.betLength,
+            },
+          })),
+        });
+      }
+
       return bet;
     },
 
@@ -1470,11 +1739,34 @@ export const resolvers = {
 
       const allAccepted = allParticipants.every((p) => p.status === "accepted");
 
-      // If all accepted, update bet status to active
+      // If all accepted, update bet status to active and delete all notifications
       if (allAccepted) {
         await prisma.bet.update({
           where: { id: betId },
           data: { status: "active" },
+        });
+
+        // Delete all bet invite notifications since everyone accepted
+        await prisma.notification.deleteMany({
+          where: {
+            type: "bet_invite",
+            metadata: {
+              path: ["betId"],
+              equals: betId,
+            },
+          },
+        });
+      } else {
+        // Delete only this user's notification
+        await prisma.notification.deleteMany({
+          where: {
+            userId: context.user.userId,
+            type: "bet_invite",
+            metadata: {
+              path: ["betId"],
+              equals: betId,
+            },
+          },
         });
       }
 
@@ -1522,6 +1814,17 @@ export const resolvers = {
         data: { status: "cancelled" },
       });
 
+      // Delete all bet invite notifications for this bet for all users
+      await prisma.notification.deleteMany({
+        where: {
+          type: "bet_invite",
+          metadata: {
+            path: ["betId"],
+            equals: betId,
+          },
+        },
+      });
+
       return {
         success: true,
         message: "Bet declined",
@@ -1560,6 +1863,17 @@ export const resolvers = {
       await prisma.bet.update({
         where: { id: betId },
         data: { status: "cancelled" },
+      });
+
+      // Delete all bet invite notifications for this bet for all users
+      await prisma.notification.deleteMany({
+        where: {
+          type: "bet_invite",
+          metadata: {
+            path: ["betId"],
+            equals: betId,
+          },
+        },
       });
 
       return {
@@ -1687,6 +2001,94 @@ export const resolvers = {
       });
 
       return updatedProof;
+    },
+
+    markNotificationAsRead: async (_: any, { notificationId }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const notification = await prisma.notification.findUnique({
+        where: { id: notificationId },
+      });
+
+      if (!notification) {
+        throw new GraphQLError("Notification not found", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+
+      if (notification.userId !== context.user.userId) {
+        throw new GraphQLError("Unauthorized", {
+          extensions: { code: "UNAUTHORIZED" },
+        });
+      }
+
+      await prisma.notification.update({
+        where: { id: notificationId },
+        data: { isRead: true },
+      });
+
+      return {
+        success: true,
+        message: "Notification marked as read",
+      };
+    },
+
+    markAllNotificationsAsRead: async (_: any, __: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      await prisma.notification.updateMany({
+        where: {
+          userId: context.user.userId,
+          isRead: false,
+        },
+        data: { isRead: true },
+      });
+
+      return {
+        success: true,
+        message: "All notifications marked as read",
+      };
+    },
+
+    deleteNotification: async (_: any, { notificationId }: any, context: Context) => {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+
+      const notification = await prisma.notification.findUnique({
+        where: { id: notificationId },
+      });
+
+      if (!notification) {
+        throw new GraphQLError("Notification not found", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+
+      if (notification.userId !== context.user.userId) {
+        throw new GraphQLError("Unauthorized", {
+          extensions: { code: "UNAUTHORIZED" },
+        });
+      }
+
+      await prisma.notification.delete({
+        where: { id: notificationId },
+      });
+
+      return {
+        success: true,
+        message: "Notification deleted",
+      };
     },
   },
 };

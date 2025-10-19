@@ -2,6 +2,7 @@ import gql from "graphql-tag";
 
 export const typeDefs = gql`
   scalar DateTime
+  scalar JSON
 
   type User {
     id: ID!
@@ -111,6 +112,18 @@ export const typeDefs = gql`
     createdAt: DateTime!
   }
 
+  type Notification {
+    id: ID!
+    user: User!
+    type: String!
+    title: String!
+    message: String!
+    isRead: Boolean!
+    actionUrl: String
+    metadata: JSON
+    createdAt: DateTime!
+  }
+
   input RegisterInput {
     email: String!
     password: String!
@@ -174,6 +187,9 @@ export const typeDefs = gql`
     completedBets: [Bet!]!
     bet(id: ID!): Bet
 
+    myNotifications: [Notification!]!
+    unreadNotificationCount: Int!
+
     myBetGroups: [BetGroup!]!
     betGroup(id: ID!): BetGroup
   }
@@ -192,8 +208,11 @@ export const typeDefs = gql`
     removeFriend(friendId: ID!): SuccessResponse!
 
     createBetGroup(input: CreateBetGroupInput!): BetGroup!
+    updateBetGroup(groupId: ID!, name: String, description: String): BetGroup!
     addGroupMembers(groupId: ID!, displayNames: [String!]!): BetGroup!
     removeGroupMember(groupId: ID!, userId: ID!): SuccessResponse!
+    leaveGroup(groupId: ID!): SuccessResponse!
+    deleteGroup(groupId: ID!): SuccessResponse!
 
     createBet(input: CreateBetInput!): Bet!
     acceptBet(betId: ID!): SuccessResponse!
@@ -202,5 +221,9 @@ export const typeDefs = gql`
 
     submitProof(input: SubmitProofInput!): BetProof!
     verifyProof(proofId: ID!, verified: Boolean!): BetProof!
+
+    markNotificationAsRead(notificationId: ID!): SuccessResponse!
+    markAllNotificationsAsRead: SuccessResponse!
+    deleteNotification(notificationId: ID!): SuccessResponse!
   }
 `;
