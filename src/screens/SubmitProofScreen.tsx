@@ -4,6 +4,7 @@ import { SUBMIT_PROOF } from "@/graphql/mutations";
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
 import Location from "expo-location";
 import { verifyBetPhoto } from "@/services/gemini.service";
 import { Bet, Proof } from "@types";
@@ -117,7 +118,15 @@ export default function SubmitProofScreen({ navigation, route }: SubmitProofScre
   const verifyPhoto = async (uri: string) => {
     try {
       setVerifying(true);
-      const result = await verifyBetPhoto(uri, bet.betActivity);
+
+      // Convert image to base64
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: "base64",
+      });
+
+      // Send base64 data URL instead of file path
+      const dataUrl = `data:image/jpeg;base64,${base64}`;
+      const result = await verifyBetPhoto(dataUrl, bet.betActivity);
       setVerification(result);
     } catch (error) {
       console.error("Error verifying photo:", error);

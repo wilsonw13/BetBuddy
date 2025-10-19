@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Alert, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
 import { verifyBetPhoto } from "@/services/gemini.service";
 import { Proof } from "@types";
 
@@ -68,9 +69,17 @@ export default function PhotoVerificationScreen({
 
     setVerifying(true);
     try {
-      const result = await verifyBetPhoto(imageUri, betActivity);
+      // Convert image to base64
+      const base64 = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: "base64",
+      });
+
+      // Send base64 data URL instead of file path
+      const dataUrl = `data:image/jpeg;base64,${base64}`;
+      const result = await verifyBetPhoto(dataUrl, betActivity);
       setVerificationResult(result);
     } catch (error) {
+      console.error("Verification error:", error);
       Alert.alert("Error", "Failed to verify photo. Please try again.");
     } finally {
       setVerifying(false);

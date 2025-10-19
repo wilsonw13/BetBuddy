@@ -1,7 +1,11 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import fetch from "node-fetch";
-import fs from "fs/promises";
 import path from "path";
+import fs from "fs/promises";
+import fetch from "node-fetch";
+
+// Load .env.local if present
+import dotenv from "dotenv";
+dotenv.config({ path: path.resolve(__dirname, "../../.env.local") });
 
 const API_KEY_for_text = process.env.GEMINI_API_KEY_TEXT || "";
 const genAI_for_text = new GoogleGenerativeAI(API_KEY_for_text);
@@ -62,16 +66,48 @@ export async function verifyBetPhoto(imagePathOrUrl: string, betContext: string)
 
 export async function suggestBets(userInterests: string[], pastBets: string[]): Promise<string[]> {
   try {
-    const model = genAI_for_text.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const prompt = `You are a bet suggestion assistant. Based on these user interests: ${userInterests.join(", ")} and past bets: ${pastBets.join(", ")}, suggest 5 creative and achievable bet ideas.\n\nRequirements:\n- Bets should be measurable and verifiable\n- Include a mix of fitness, productivity, and lifestyle activities\n- Make them challenging but achievable\n- Avoid repeating past bets exactly\n\nReturn ONLY a JSON array of strings, like:\n["Bet idea 1", "Bet idea 2", "Bet idea 3", "Bet idea 4", "Bet idea 5. Keep your Suggestions Short, 30 characters max."]`;
+    console.log("🤖 Calling Gemini API for bet suggestions...");
+    const model = genAI_for_text.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      generationConfig: {
+        temperature: 1.5,
+        topP: 0.95,
+        topK: 64,
+      },
+    });
+
+    const timestamp = Date.now();
+    const randomSeed = Math.floor(Math.random() * 1000000);
+    const prompt = `You are a bet suggestion assistant. Based on these user interests: ${userInterests.join(", ")} and past bets: ${pastBets.join(", ")}, suggest 5 creative and achievable bet ideas.
+
+Requirements:
+- Bets should be measurable and verifiable
+- Include a mix of fitness, productivity, and lifestyle activities
+- Make them challenging but achievable
+- Avoid repeating past bets exactly
+- IMPORTANT: Generate completely different suggestions each time
+- Be creative and think outside the box
+- Context: ${randomSeed}-${timestamp}
+
+Return ONLY a JSON array of strings:
+["Bet idea 1", "Bet idea 2", "Bet idea 3", "Bet idea 4", "Bet idea 5"]
+
+Keep each suggestion under 35 characters.`;
+
+    console.log("📤 Sending request to Gemini...");
     const result = await model.generateContent(prompt);
-    const response = await result.response;
+    const response = result.response;
     const text = response.text();
+    console.log("📥 Gemini response:", text);
+
     const jsonMatch = text.match(/\[[\s\S]*\]/);
     if (jsonMatch) {
       const suggestions: string[] = JSON.parse(jsonMatch[0]);
+      console.log("✅ Parsed suggestions:", suggestions);
       return suggestions;
     }
+
+    console.warn("⚠️ No JSON array found, using fallback");
     return [
       "Go to gym 3x per week",
       "Read for 30 minutes daily",
@@ -80,7 +116,7 @@ export async function suggestBets(userInterests: string[], pastBets: string[]): 
       "Meditate 10 minutes daily",
     ];
   } catch (error) {
-    console.error("Error generating bet suggestions:", error);
+    console.error("❌ Error generating bet suggestions:", error);
     return [
       "Go to gym 3x per week",
       "Read for 30 minutes daily",
@@ -92,14 +128,23 @@ export async function suggestBets(userInterests: string[], pastBets: string[]): 
 }
 
 export async function imageToBase64(imagePathOrUrl: string): Promise<string> {
+  // Handle base64 data URLs (data:image/jpeg;base64,...)
+  if (imagePathOrUrl.startsWith("data:")) {
+    const base64Data = imagePathOrUrl.split(",")[1];
+    return base64Data;
+  }
+
+  // Handle HTTP/HTTPS URLs
   if (imagePathOrUrl.startsWith("http")) {
     const response = await fetch(imagePathOrUrl);
-    const buffer = await response.buffer();
-    return buffer.toString("base64");
-  } else {
-    const buffer = await fs.readFile(path.resolve(imagePathOrUrl));
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
     return buffer.toString("base64");
   }
+
+  // Handle local file paths (though this won't work for mobile app file:// URIs)
+  const buffer = await fs.readFile(path.resolve(imagePathOrUrl));
+  return buffer.toString("base64");
 }
 
 export default {
