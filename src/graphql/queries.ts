@@ -109,7 +109,7 @@ export const GET_MY_BETS = gql`
       proofType
       frequency
       betLength
-      pointsStaked
+      moneyStaked
       startDate
       endDate
       status

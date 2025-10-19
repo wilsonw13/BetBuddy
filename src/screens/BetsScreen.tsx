@@ -36,7 +36,7 @@ export default function BetsScreen({ navigation }: any) {
     frequency: "1x/week" as BetFrequency,
     proofType: "live_photo" as ProofType,
     betLength: 30,
-    pointsStaked: 50,
+    moneyStaked: 50,
   });
 
   // Fetch bets
@@ -178,7 +178,7 @@ export default function BetsScreen({ navigation }: any) {
         proofType: newBet.proofType,
         frequency: newBet.frequency,
         betLength: newBet.betLength,
-        pointsStaked: newBet.pointsStaked,
+        moneyStaked: newBet.moneyStaked,
         startDate: new Date().toISOString(),
         ...(betMode === "individual"
           ? { participantDisplayNames: selectedFriends.map((f) => f.displayName) }
@@ -207,7 +207,7 @@ export default function BetsScreen({ navigation }: any) {
       frequency: "1x/week",
       proofType: "live_photo",
       betLength: 30,
-      pointsStaked: 50,
+      moneyStaked: 50,
     });
     setSuggestions([]);
   };
@@ -244,7 +244,7 @@ export default function BetsScreen({ navigation }: any) {
             </Text>
           </View>
           <View style={styles.betStatus}>
-            <Text style={styles.pointsStaked}>{item.pointsStaked} pts</Text>
+            <Text style={styles.pointsStaked}>{item.moneyStaked} pts</Text>
           </View>
         </View>
 
@@ -577,8 +577,8 @@ export default function BetsScreen({ navigation }: any) {
                   style={styles.input}
                   placeholder="50"
                   keyboardType="numeric"
-                  value={newBet.pointsStaked.toString()}
-                  onChangeText={(text) => setNewBet({ ...newBet, pointsStaked: parseInt(text) || 50 })}
+                  value={newBet.moneyStaked.toString()}
+                  onChangeText={(text) => setNewBet({ ...newBet, moneyStaked: parseInt(text) || 50 })}
                 />
 
                 <TouchableOpacity
