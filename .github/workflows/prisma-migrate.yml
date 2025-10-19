@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - "backend/prisma/**"
-      - ".github/workflows/prisma-migrate.yml"
   workflow_dispatch:
     inputs:
       skip_backup:
@@ -107,27 +106,36 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
-          cache: "npm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
         run: |
-          echo "📦 Installing dependencies..."
-          if [ -f package-lock.json ]; then
-            npm ci
-          elif [ -f yarn.lock ]; then
-            yarn install --frozen-lockfile
-          elif [ -f pnpm-lock.yaml ]; then
-            npm install -g pnpm && pnpm install --frozen-lockfile
-          else
-            npm install
-          fi
+          echo "📦 Installing workspace dependencies..."
+          pnpm install --frozen-lockfile
 
       - name: Verify Prisma schema
         run: |
           echo "🔍 Validating Prisma schema..."
           cd backend
-          npx prisma validate
-          npx prisma format --check
+          pnpm exec prisma validate
+          pnpm exec prisma format --check
           echo "✅ Prisma schema is valid"
 
       - name: Pre-flight summary
@@ -163,7 +171,7 @@ jobs:
         run: |
           cd backend
           echo "📊 Checking current migration status..."
-          npx prisma migrate status
+          pnpm exec prisma migrate status
           echo "pending_migrations=true" >> $GITHUB_OUTPUT
 
       - name: Create database backup
@@ -235,20 +243,29 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
-          cache: "npm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
         run: |
-          echo "📦 Installing dependencies..."
-          if [ -f package-lock.json ]; then
-            npm ci
-          elif [ -f yarn.lock ]; then
-            yarn install --frozen-lockfile
-          elif [ -f pnpm-lock.yaml ]; then
-            npm install -g pnpm && pnpm install --frozen-lockfile
-          else
-            npm install
-          fi
+          echo "📦 Installing workspace dependencies..."
+          pnpm install --frozen-lockfile
 
       - name: Run Prisma migrations
         id: run_migration
@@ -257,7 +274,7 @@ jobs:
           cd backend
 
           # Run migration with error handling
-          if npx prisma migrate deploy; then
+          if pnpm exec prisma migrate deploy; then
             echo "✅ Migrations completed successfully"
             echo "status=success" >> $GITHUB_OUTPUT
           else
@@ -271,7 +288,7 @@ jobs:
         run: |
           echo "🏗️ Generating Prisma Client..."
           cd backend
-          npx prisma generate
+          pnpm exec prisma generate
           echo "✅ Prisma Client generated"
 
       - name: Migration summary
@@ -299,20 +316,29 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
-          cache: "npm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
         run: |
-          echo "📦 Installing dependencies..."
-          if [ -f package-lock.json ]; then
-            npm ci
-          elif [ -f yarn.lock ]; then
-            yarn install --frozen-lockfile
-          elif [ -f pnpm-lock.yaml ]; then
-            npm install -g pnpm && pnpm install --frozen-lockfile
-          else
-            npm install
-          fi
+          echo "📦 Installing workspace dependencies..."
+          pnpm install --frozen-lockfile
 
       - name: Run post-migration script
         id: post_script
@@ -330,7 +356,7 @@ jobs:
         run: |
           echo "✅ Verifying migration status..."
           cd backend
-          npx prisma migrate status
+          pnpm exec prisma migrate status
           echo "✅ All migrations are up to date"
 
       - name: Database statistics
