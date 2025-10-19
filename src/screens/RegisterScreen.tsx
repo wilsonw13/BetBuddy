@@ -54,8 +54,14 @@ export default function RegisterScreen({ navigation }: any) {
 
     try {
       await register(email, password, displayName);
+      // Only clear fields on successful registration
+      setDisplayName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
     } catch (err) {
       // Error is handled in context
+      // Do not clear fields on error - keep values for user to fix
     }
   };
 

@@ -110,8 +110,16 @@ function MainTabs() {
 
 function AppNavigator() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [isInitialLoad, setIsInitialLoad] = React.useState(true);
 
-  if (isLoading) {
+  React.useEffect(() => {
+    if (!isLoading && isInitialLoad) {
+      setIsInitialLoad(false);
+    }
+  }, [isLoading, isInitialLoad]);
+
+  // Only show loading screen on initial app load, not during login/logout
+  if (isInitialLoad && isLoading) {
     return null; // Add loading screen here if desired
   }
 
