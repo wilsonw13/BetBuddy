@@ -181,9 +181,15 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
 
   const renderFriendRequest = ({ item }: { item: FriendRequest }) => (
     <View style={styles.requestCard}>
+      
       <View style={styles.friendAvatar}>
         {item.fromUser.profileImage ? (
-          <Image source={{ uri: item.fromUser.profileImage }} style={styles.avatarImage} />
+          <Image 
+            source={{ uri: item.fromUser.profileImage.startsWith('data:')
+              ? item.fromUser.profileImage
+              : `data:image/jpeg;base64,${item.fromUser.profileImage}`         
+          }} 
+          style={styles.avatarImage} />
         ) : (
           <Ionicons name="person" size={32} color="#8E8E93" />
         )}
