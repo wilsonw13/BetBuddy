@@ -19,7 +19,7 @@ view user_profile {
   successfulBets  Int
   successRate     Float
   points          Int
-  friendGroups    String[]
+  betGroups       String[]
 
   @@unique([id])
 }

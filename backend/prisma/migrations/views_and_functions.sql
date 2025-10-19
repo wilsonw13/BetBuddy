@@ -31,7 +31,7 @@ SELECT
       SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END)::NUMERIC, 2)
     ELSE 0 END AS "successRate",
   COALESCE(SUM(b.points_reward), 0) AS "points",
-  ARRAY(SELECT bg.name FROM bet_groups bg JOIN bet_group_members bgm ON bg.id = bgm.group_id WHERE bgm.user_id = u.id) AS "friendGroups"
+  ARRAY(SELECT bg.name FROM bet_groups bg JOIN bet_group_members bgm ON bg.id = bgm.group_id WHERE bgm.user_id = u.id) AS "betGroups"
 FROM users u
 LEFT JOIN bets b ON b.creator_id = u.id
 GROUP BY u.id, u.display_name, u.profile_image, u.banner_image;
