@@ -43,7 +43,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // GraphQL Mutations
   const [registerMutation] = useMutation(REGISTER);
   const [loginMutation] = useMutation(LOGIN);
-  // const [googleAuthMutation] = useMutation(GOOGLE_AUTH); // removed
   const [logoutMutation] = useMutation(LOGOUT);
 
   // Auto-login on app start
@@ -128,50 +127,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
+    setIsLoading(true);
+    setError(null);
 
-      const trimmedEmail = email.trim();
+    const trimmedEmail = email.trim();
 
-      if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
-        const message = "Please enter a valid email address";
-        setError(message);
-        throw new Error(message);
-      }
-
-      // Debug: log login attempt email only
-      // eslint-disable-next-line no-console
-      console.debug("Login variables:", { email: trimmedEmail });
-
-      const { data } = await loginMutation({
-        variables: {
-          input: {
-            email: trimmedEmail,
-            password,
-          },
-        },
-      });
-
-      if (data?.login) {
-        const { user, accessToken, refreshToken } = data.login;
-
-        // Store tokens
-        setAccessToken(accessToken);
-        await SecureStore.setItemAsync("refreshToken", refreshToken);
-
-        setUser(user);
-      }
-    } catch (error: any) {
-      const message = error.graphQLErrors?.[0]?.message || error.message || "Login failed";
+    if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+      const message = "Please enter a valid email address";
       setError(message);
       throw new Error(message);
-    } finally {
-      setIsLoading(false);
     }
-  };
 
-  // loginWithGoogle removed
+    console.debug("Login variables:", { email: trimmedEmail });
+
+    const { data } = await loginMutation({
+      variables: {
+        input: {
+          email: trimmedEmail,
+          password,
+        },
+      },
+    });
+
+    if (data?.login) {
+      const { user, accessToken, refreshToken } = data.login;
+
+      // Store tokens
+      setAccessToken(accessToken);
+      await SecureStore.setItemAsync("refreshToken", refreshToken);
+
+      setUser(user);
+      setIsLoading(false);
+      return;
+    }
+    // If login failed (no data.login), reject promise
+    setIsLoading(false);
+    const message = "Login failed";
+    setError(message);
+    throw new Error(message);
+  };
 
   const logout = async () => {
     try {
@@ -196,12 +190,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAccessToken(null);
       await SecureStore.deleteItemAsync("refreshToken");
 
-      // Sign out from Google if signed in
-      // const isGoogleSignedIn = await GoogleSignin.isSignedIn();
-      // if (isGoogleSignedIn) {
-      //   await GoogleSignin.signOut();
-      // }
-
       setUser(null);
     } catch (error: any) {
       console.error("Logout error:", error);
@@ -222,9 +210,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         login,
-        register,
-        // loginWithGoogle removed
         logout,
+        register,
         error,
         clearError,
       }}

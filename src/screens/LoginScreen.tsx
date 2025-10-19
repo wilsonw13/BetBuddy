@@ -18,7 +18,7 @@ export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, isLoading, error, clearError, user } = useAuth();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -29,10 +29,20 @@ export default function LoginScreen({ navigation }: any) {
     try {
       clearError();
       await login(email, password);
+      // Only clear fields if login was successful (user is set)
+      if (typeof user === "object" && user !== null) {
+        setEmail("");
+        setPassword("");
+      }
     } catch (err) {
-      // Error is handled in context
+      console.error("log in error:", err);
+      // Do not clear fields on error
     }
   };
+
+  React.useEffect(() => {
+    console.log("LoginScreen mounted");
+  }, []);
 
   // Google login removed
 
