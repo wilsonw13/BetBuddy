@@ -63,7 +63,7 @@ export async function verifyBetPhoto(imagePathOrUrl: string, betContext: string)
 export async function suggestBets(userInterests: string[], pastBets: string[]): Promise<string[]> {
   try {
     const model = genAI_for_text.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const prompt = `You are a bet suggestion assistant. Based on these user interests: ${userInterests.join(", ")} and past bets: ${pastBets.join(", ")}, suggest 5 creative and achievable bet ideas.\n\nRequirements:\n- Bets should be measurable and verifiable\n- Include a mix of fitness, productivity, and lifestyle activities\n- Make them challenging but achievable\n- Avoid repeating past bets exactly\n\nReturn ONLY a JSON array of strings, like:\n["Bet idea 1", "Bet idea 2", "Bet idea 3", "Bet idea 4", "Bet idea 5"]`;
+    const prompt = `You are a bet suggestion assistant. Based on these user interests: ${userInterests.join(", ")} and past bets: ${pastBets.join(", ")}, suggest 5 creative and achievable bet ideas.\n\nRequirements:\n- Bets should be measurable and verifiable\n- Include a mix of fitness, productivity, and lifestyle activities\n- Make them challenging but achievable\n- Avoid repeating past bets exactly\n\nReturn ONLY a JSON array of strings, like:\n["Bet idea 1", "Bet idea 2", "Bet idea 3", "Bet idea 4", "Bet idea 5. Keep your Suggestions Short, 30 characters max."]`;
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
