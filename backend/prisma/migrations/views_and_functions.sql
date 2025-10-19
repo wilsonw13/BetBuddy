@@ -1,10 +1,13 @@
 -- Migration: Create UserProfile and Leaderboard views and score function
 
 -- Score function
-CREATE OR REPLACE FUNCTION user_score(success_rate NUMERIC, successful_bets INT)
-RETURNS NUMERIC AS $$
+CREATE OR REPLACE FUNCTION user_score(successful_bets INT, total_bets INT)
+RETURNS INT AS $$
+DECLARE
+  failed_bets INT;
 BEGIN
-  RETURN 3 * success_rate + successful_bets;
+  failed_bets := total_bets - successful_bets;
+  RETURN 3 * successful_bets - 2 * failed_bets;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -28,13 +31,86 @@ FROM users u
 LEFT JOIN bets b ON b.creator_id = u.id
 GROUP BY u.id, u.display_name, u.profile_image, u.banner_image;
 
--- Leaderboard View
-CREATE OR REPLACE VIEW leaderboard AS
+
+
+-- Global Leaderboard View
+CREATE OR REPLACE VIEW leaderboard_global AS
 SELECT
-  up.displayName,
-  RANK() OVER (ORDER BY user_score(up.successRate, up.successfulBets) DESC) AS leaderboardRank,
-  user_score(up.successRate, up.successfulBets) AS score,
-  up.successRate,
-  up.successfulBets,
-  up.totalBets
+  up.id AS user_id,
+  up."displayName",
+  up."profilePicture" AS profileImage,
+  RANK() OVER (ORDER BY user_score(up."successfulBets"::INT, up."totalBets"::INT) DESC) AS leaderboardRank,
+  user_score(up."successfulBets"::INT, up."totalBets"::INT) AS score,
+  up."successRate",
+  up."successfulBets",
+  up."totalBets"
 FROM user_profile up;
+
+
+
+-- Leaderboard for a user's friends (including user)
+-- Usage: SELECT * FROM leaderboard_friends WHERE owner_id = '<uid>';
+CREATE OR REPLACE VIEW leaderboard_friends AS
+SELECT
+  owner.id AS owner_id,
+  up.id AS friend_id,
+  up."displayName",
+  up."profilePicture" AS profileImage,
+  RANK() OVER (PARTITION BY owner.id ORDER BY user_score(up."successfulBets"::INT, up."totalBets"::INT) DESC) AS leaderboardRank,
+  user_score(up."successfulBets"::INT, up."totalBets"::INT) AS score,
+  up."successRate",
+  up."successfulBets",
+  up."totalBets"
+FROM users owner
+JOIN (
+  SELECT u.id, u.display_name AS "displayName", u.profile_image AS "profilePicture", u.banner_image,
+         COALESCE(SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END), 0) AS "totalBets",
+         COALESCE(SUM(CASE WHEN b.status = 'completed' AND b.points_reward > 0 THEN 1 ELSE 0 END), 0) AS "successfulBets",
+         CASE WHEN SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END) > 0
+           THEN ROUND(
+             SUM(CASE WHEN b.status = 'completed' AND b.points_reward > 0 THEN 1 ELSE 0 END)::NUMERIC /
+             SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END)::NUMERIC, 2)
+           ELSE 0 END AS "successRate"
+  FROM users u
+  LEFT JOIN bets b ON b.creator_id = u.id
+  GROUP BY u.id, u.display_name, u.profile_image, u.banner_image
+) up ON up.id IN (
+  SELECT f.user2_id FROM friendships f WHERE f.user1_id = owner.id
+  UNION
+  SELECT f.user1_id FROM friendships f WHERE f.user2_id = owner.id
+  UNION
+  SELECT owner.id -- include self
+);
+
+
+
+-- Leaderboard for a specific group, for a given owner (viewer)
+-- Usage: SELECT * FROM leaderboard_group WHERE owner_id = '<uid>' AND group_id = '<groupId>';
+CREATE OR REPLACE VIEW leaderboard_group AS
+SELECT
+  owner.id AS owner_id,
+  up.id AS member_id,
+  up."displayName",
+  up."profilePicture" AS profileImage,
+  bgm.group_id,
+  RANK() OVER (PARTITION BY owner.id, bgm.group_id ORDER BY user_score(up."successfulBets"::INT, up."totalBets"::INT) DESC) AS leaderboardRank,
+  user_score(up."successfulBets"::INT, up."totalBets"::INT) AS score,
+  up."successRate",
+  up."successfulBets",
+  up."totalBets"
+FROM users owner
+JOIN bet_group_members bgm_owner ON bgm_owner.user_id = owner.id
+JOIN bet_group_members bgm ON bgm.group_id = bgm_owner.group_id
+JOIN (
+  SELECT u.id, u.display_name AS "displayName", u.profile_image AS "profilePicture", u.banner_image,
+         COALESCE(SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END), 0) AS "totalBets",
+         COALESCE(SUM(CASE WHEN b.status = 'completed' AND b.points_reward > 0 THEN 1 ELSE 0 END), 0) AS "successfulBets",
+         CASE WHEN SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END) > 0
+           THEN ROUND(
+             SUM(CASE WHEN b.status = 'completed' AND b.points_reward > 0 THEN 1 ELSE 0 END)::NUMERIC /
+             SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END)::NUMERIC, 2)
+           ELSE 0 END AS "successRate"
+  FROM users u
+  LEFT JOIN bets b ON b.creator_id = u.id
+  GROUP BY u.id, u.display_name, u.profile_image, u.banner_image
+) up ON up.id = bgm.user_id;

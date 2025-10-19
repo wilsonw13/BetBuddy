@@ -7,6 +7,49 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["views"]
+}
+
+view leaderboard_global {
+  user_id         String
+  displayName     String
+  profileImage    String?
+  leaderboardRank Int
+  score           Int
+  successRate     Float
+  successfulBets  Int
+  totalBets       Int
+
+  @@unique([user_id])
+}
+
+view leaderboard_friends {
+  owner_id        String
+  friend_id       String
+  displayName     String
+  profileImage    String?
+  leaderboardRank Int
+  score           Int
+  successRate     Float
+  successfulBets  Int
+  totalBets       Int
+
+  @@unique([owner_id, friend_id])
+}
+
+view leaderboard_group {
+  owner_id        String
+  member_id       String
+  displayName     String
+  profileImage    String?
+  group_id        String
+  leaderboardRank Int
+  score           Int
+  successRate     Float
+  successfulBets  Int
+  totalBets       Int
+
+  @@unique([owner_id, member_id, group_id])
 }
 
 datasource db {
@@ -23,8 +66,8 @@ model User {
   profileImage       String?    @map("profile_image")
   bannerImage        String?    @map("banner_image")
   emailVerified      Boolean    @default(false) @map("email_verified")
-  points             Int        @default(0) // Points for rewards/shop
-  placeholderMoney   Float      @default(100) @map("placeholder_money") // Virtual currency for betting (will be real money later)
+  points             Int        @default(0)
+  placeholderMoney   Float      @default(100) @map("placeholder_money")
   createdAt          DateTime   @default(now()) @map("created_at")
   updatedAt          DateTime   @updatedAt @map("updated_at")
 
@@ -137,17 +180,17 @@ model Bet {
   title           String
   description     String?
   betActivity     String    @map("bet_activity")
-  proofType       String    @map("proof_type") // live_photo, location
-  frequency       String    // 1x/week, 2x/week, etc
-  betLength       Int       @map("bet_length") // days
-  moneyStaked     Float     @default(0.0) @map("money_staked") // Placeholder money staked per participant (will be real money later)
-  pointsReward    Int       @default(10) @map("points_reward") // Points awarded to winners (not staked, just earned)
-  proofsRequired  Int       @default(1) @map("proofs_required") // Total number of proofs required to win
+  proofType       String    @map("proof_type")
+  frequency       String
+  betLength       Int       @map("bet_length")
+  moneyStaked     Float     @default(0.0) @map("money_staked")
+  pointsReward    Int       @default(10) @map("points_reward")
+  proofsRequired  Int       @default(1) @map("proofs_required")
   startDate       DateTime  @map("start_date")
   endDate         DateTime  @map("end_date")
-  status          String    @default("pending") // pending, active, completed, cancelled
+  status          String    @default("pending")
   creatorId       String    @map("creator_id")
-  groupId         String?   @map("group_id") // null for 1v1 bets
+  groupId         String?   @map("group_id")
   isGroupBet      Boolean   @default(false) @map("is_group_bet")
   autoSettled     Boolean   @default(false) @map("auto_settled")
   createdAt       DateTime  @default(now()) @map("created_at")
@@ -171,12 +214,12 @@ model BetParticipant {
   id                 String    @id @default(uuid())
   betId              String    @map("bet_id")
   userId             String    @map("user_id")
-  status             String    @default("pending") // pending, accepted, declined
+  status             String    @default("pending")
   acceptedAt         DateTime? @map("accepted_at")
-  outcome            String?   // won, lost, null (ongoing/not determined)
-  proofsSubmitted    Int       @default(0) @map("proofs_submitted") // Count of submitted proofs
-  proofsVerified     Int       @default(0) @map("proofs_verified") // Count of peer-verified proofs
-  lastProofReminder  DateTime? @map("last_proof_reminder") // When user was last reminded to submit proof
+  outcome            String?
+  proofsSubmitted    Int       @default(0) @map("proofs_submitted")
+  proofsVerified     Int       @default(0) @map("proofs_verified")
+  lastProofReminder  DateTime? @map("last_proof_reminder")
   createdAt          DateTime  @default(now()) @map("created_at")
 
   // Relations
@@ -199,11 +242,11 @@ model BetProof {
   latitude                Float?
   longitude               Float?
   address                 String?
-  peerVerified            Boolean   @default(false) @map("peer_verified") // Peer review verification
-  peerVerifiedBy          String?   @map("peer_verified_by") // User who peer-verified
-  peerRejected            Boolean   @default(false) @map("peer_rejected") // Peer review rejection
-  peerRejectedBy          String?   @map("peer_rejected_by") // User who peer-rejected
-  peerReviewedAt          DateTime? @map("peer_reviewed_at") // When peer review happened
+  peerVerified            Boolean   @default(false) @map("peer_verified")
+  peerVerifiedBy          String?   @map("peer_verified_by")
+  peerRejected            Boolean   @default(false) @map("peer_rejected")
+  peerRejectedBy          String?   @map("peer_rejected_by")
+  peerReviewedAt          DateTime? @map("peer_reviewed_at")
   verified                Boolean   @default(false)
   verifiedBy              String?   @map("verified_by")
   aiSuggestionSuspicious  Boolean?  @map("ai_suggestion_suspicious")
@@ -224,12 +267,12 @@ model BetProof {
 model Notification {
   id          String   @id @default(uuid())
   userId      String   @map("user_id")
-  type        String   // 'friend_request', 'group_invite', 'bet_invite', 'proof_reminder', 'peer_review_request'
+  type        String
   title       String
   message     String
   isRead      Boolean  @default(false) @map("is_read")
   actionUrl   String?  @map("action_url")
-  metadata    Json?    // Store additional data like betId, friendRequestId, groupId, proofsRemaining, deadline
+  metadata    Json?
   createdAt   DateTime @default(now()) @map("created_at")
 
   // Relations
