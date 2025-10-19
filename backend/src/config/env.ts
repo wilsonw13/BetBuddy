@@ -26,9 +26,6 @@ export const JWT_REFRESH_SECRET = getEnv("JWT_REFRESH_SECRET", "");
 export const JWT_ACCESS_EXPIRES_IN = getEnv("JWT_ACCESS_EXPIRES_IN", "15m");
 export const JWT_REFRESH_EXPIRES_IN = getEnv("JWT_REFRESH_EXPIRES_IN", "7d");
 
-export const RATE_LIMIT_WINDOW_MS = Number(getEnv("RATE_LIMIT_WINDOW_MS", "900000"));
-export const RATE_LIMIT_MAX_REQUESTS = Number(getEnv("RATE_LIMIT_MAX_REQUESTS", "100"));
-
 export const BCRYPT_ROUNDS = Number(getEnv("BCRYPT_ROUNDS", "12"));
 export const DEFAULT_USER_PASSWORD = getEnv("DEFAULT_USER_PASSWORD", "Chang6767");
 
