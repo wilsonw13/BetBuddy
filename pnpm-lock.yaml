@@ -17,9 +17,6 @@ importers:
       '@expo/vector-icons':
         specifier: ^14.0.0
         version: 14.1.0(expo-font@12.0.10(expo@51.0.39(@babel/core@7.28.4)(@babel/preset-env@7.28.3(@babel/core@7.28.4))(react-native@0.74.5(@babel/core@7.28.4)(@babel/preset-env@7.28.3(@babel/core@7.28.4))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0)))(react-native@0.74.5(@babel/core@7.28.4)(@babel/preset-env@7.28.3(@babel/core@7.28.4))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0)
-      '@google/generative-ai':
-        specifier: ^0.1.3
-        version: 0.1.3
       '@react-native-community/slider':
         specifier: ^5.0.1
         version: 5.0.1

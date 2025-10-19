@@ -14,6 +14,7 @@
     "postprisma:migrate": "dotenv -e .env -- sh -c 'psql -d \"$DATABASE_URL\" -f prisma/migrations/views_and_functions.sql'",
     "prisma:studio": "prisma studio",
     "prisma:push": "prisma db push",
+    "prisma:format": "prisma format",
     "test": "jest",
     "type-check": "tsc --noEmit"
   },
