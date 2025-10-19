@@ -313,10 +313,20 @@ export default function BetDetailsScreen({ navigation, route }: BetDetailsScreen
                     })()}
 
                   {!isOwnProof && (
-                    <TouchableOpacity style={styles.reviewButton} onPress={() => handleReviewProof(proof)}>
-                      <Ionicons name="eye" size={18} color="#007AFF" />
-                      <Text style={styles.reviewButtonText}>Review This Proof</Text>
-                    </TouchableOpacity>
+                    <>
+                      <TouchableOpacity style={styles.reviewButton} onPress={() => handleReviewProof(proof)}>
+                        <Ionicons name="eye" size={18} color="#007AFF" />
+                        <Text style={styles.reviewButtonText}>Review This Proof</Text>
+                      </TouchableOpacity>
+                      {proof.verified && (
+                        <View style={styles.verifiedBadge}>
+                          <Ionicons name="shield-checkmark" size={16} color="#34C759" />
+                          <Text style={styles.verifiedText}>
+                            Verified {proof.verifiedBy === "community_vote" ? "by votes" : "by AI"}
+                          </Text>
+                        </View>
+                      )}
+                    </>
                   )}
 
                   {isOwnProof && (
@@ -741,6 +751,21 @@ const styles = StyleSheet.create({
   },
   ownProofText: {
     fontSize: 14,
+    fontWeight: "600",
+    color: "#34C759",
+  },
+  verifiedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#E8F9F0",
+    padding: 8,
+    borderRadius: 8,
+    gap: 6,
+    marginTop: 8,
+  },
+  verifiedText: {
+    fontSize: 13,
     fontWeight: "600",
     color: "#34C759",
   },

@@ -2,6 +2,76 @@ import { GraphQLError } from "graphql";
 import { prisma } from "@/config/prisma";
 import { Context } from "@types";
 
+// Helper function to check and finalize proof verification
+async function checkAndFinalizeProofVerification(betProofId: string, betId: string) {
+  // Get all reviews for this proof
+  const reviews = await prisma.betProofReview.findMany({
+    where: { betProofId },
+  });
+
+  // Get total number of participants in the bet
+  const participantCount = await prisma.betParticipant.count({
+    where: { betId },
+  });
+
+  const requiredReviews = participantCount - 1; // total bettors - 1
+
+  console.log(`📊 Proof verification check:`, {
+    betProofId,
+    reviewCount: reviews.length,
+    requiredReviews,
+    participantCount,
+  });
+
+  // If we have enough reviews (total bettors - 1), use majority vote
+  if (reviews.length >= requiredReviews && requiredReviews > 0) {
+    const accepts = reviews.filter((r) => !r.isSuspicious).length;
+    const rejects = reviews.filter((r) => r.isSuspicious).length;
+
+    const isVerified = accepts > rejects; // Majority vote
+
+    console.log(`✅ Using majority vote:`, {
+      accepts,
+      rejects,
+      isVerified,
+    });
+
+    // Update the proof with the majority decision
+    await prisma.betProof.update({
+      where: { id: betProofId },
+      data: {
+        verified: isVerified,
+        verifiedBy: "community_vote",
+      },
+    });
+  } else {
+    // Not enough reviews, use AI suggestion if available
+    const betProof = await prisma.betProof.findUnique({
+      where: { id: betProofId },
+    });
+
+    if (betProof && betProof.aiSuggestionSuspicious !== null) {
+      const isVerified = !betProof.aiSuggestionSuspicious;
+
+      console.log(`🤖 Using Gemini API decision:`, {
+        aiSuggestionSuspicious: betProof.aiSuggestionSuspicious,
+        isVerified,
+      });
+
+      // Update the proof with AI decision
+      await prisma.betProof.update({
+        where: { id: betProofId },
+        data: {
+          verified: isVerified,
+          verifiedBy: "gemini_api",
+        },
+      });
+    } else {
+      console.log(`⏳ Waiting for more reviews or AI analysis`);
+    }
+  }
+}
+
 export const betProofReviewResolvers = {
   BetProof: {
     reviews: async (parent: any) => {
@@ -147,22 +217,7 @@ export const betProofReviewResolvers = {
         );
       }
 
-      // Check if user is a participant in the bet
-      const isParticipant = await prisma.betParticipant.findFirst({
-        where: {
-          betId: betProof.betId,
-          userId: context.user.userId,
-        },
-      });
-
-      if (!isParticipant) {
-        throw new GraphQLError(
-          "Only bet participants can review proof submissions",
-          {
-            extensions: { code: "UNAUTHORIZED" },
-          }
-        );
-      }
+      // Reviews are now global - anyone can review (removed participant restriction)
 
       // Check if user has already reviewed this proof
       const existingReview = await prisma.betProofReview.findUnique({
@@ -204,6 +259,9 @@ export const betProofReviewResolvers = {
           },
         },
       });
+
+      // Check if we should finalize the proof verification
+      await checkAndFinalizeProofVerification(betProofId, betProof.betId);
 
       return review;
     },

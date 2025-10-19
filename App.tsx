@@ -21,6 +21,7 @@ import BetGroupsScreen from "@/screens/BetGroupsScreen";
 import SubmitProofScreen from "@/screens/SubmitProofScreen";
 import GroupDetailsScreen from "@/screens/GroupDetailsScreen";
 import NotificationsScreen from "@/screens/NotificationsScreen";
+import GlobalReviewsScreen from "@/screens/GlobalReviewsScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -89,6 +90,14 @@ function MainTabs() {
         options={{
           tabBarIcon: ({ color, size }) => <Ionicons name="hand-left" size={size} color={color} />,
           headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="Reviews"
+        component={GlobalReviewsScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => <Ionicons name="eye" size={size} color={color} />,
+          title: "Review Proofs",
         }}
       />
       <Tab.Screen
