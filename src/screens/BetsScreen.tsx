@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import { useQuery, useMutation } from "@apollo/client";
 import { GET_MY_FRIENDS, GET_MY_BET_GROUPS, GET_MY_BETS, GET_ME } from "@/graphql/queries";
 import { CREATE_BET } from "@/graphql/mutations";
 import { Friend, BetGroup } from "@types";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function BetsScreen({ navigation }: any) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -45,6 +46,13 @@ export default function BetsScreen({ navigation }: any) {
   const { data: meData } = useQuery(GET_ME);
   const allBets = betsData?.myBets || [];
   const currentUserId = meData?.me?.id;
+
+  // Refetch bets when screen comes into focus (e.g., after submitting a proof)
+  useFocusEffect(
+    useCallback(() => {
+      refetchBets();
+    }, [refetchBets])
+  );
 
   // Filter out cancelled, completed bets, and bets where user declined
   const bets = allBets.filter((bet: any) => {
@@ -231,11 +239,8 @@ export default function BetsScreen({ navigation }: any) {
       <TouchableOpacity
         style={styles.betCard}
         onPress={() =>
-          navigation.navigate("SubmitProof", {
+          navigation.navigate("BetDetails", {
             bet: item,
-            onProofSubmitted: () => {
-              refetchBets();
-            },
           })
         }
       >

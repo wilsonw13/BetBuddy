@@ -13,6 +13,7 @@ import { pingBackendHealth } from "@/config/apolloClient";
 import LoginScreen from "@/screens/LoginScreen";
 import RegisterScreen from "@/screens/RegisterScreen";
 import BetsScreen from "@/screens/BetsScreen";
+import BetDetailsScreen from "@/screens/BetDetailsScreen";
 import LeaderboardScreen from "@/screens/LeaderboardScreen";
 import ProfileScreen from "@/screens/ProfileScreen";
 import FriendGroupsScreen from "@/screens/FriendGroupsScreen";
@@ -37,6 +38,7 @@ function BetsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="BetsHome" component={BetsScreen} />
+      <Stack.Screen name="BetDetails" component={BetDetailsScreen} />
       <Stack.Screen name="SubmitProof" component={SubmitProofScreen} />
     </Stack.Navigator>
   );
@@ -128,7 +130,7 @@ function AppNavigator() {
 
 export default function App() {
   useEffect(() => {
-    pingBackendHealth().then((result) => {
+    pingBackendHealth().then((result: any) => {
       if (result.status === "ok") {
         console.log("Backend connected successfully");
       } else if (result.status === "unexpected") {

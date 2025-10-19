@@ -290,6 +290,7 @@ model BetProofReview {
   betProof       BetProof  @relation(fields: [betProofId], references: [id], onDelete: Cascade)
   reviewer       User      @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
 
+  @@unique([betProofId, reviewerId])
   @@index([betProofId])
   @@index([reviewerId])
   @@map("bet_proof_reviews")

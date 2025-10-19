@@ -112,6 +112,17 @@ export const typeDefs = gql`
     aiSuggestionSuspicious: Boolean
     aiSuggestionReason: String
     aiSuggestionConfidence: Float
+    reviews: [BetProofReview!]!
+    createdAt: DateTime!
+  }
+
+  type BetProofReview {
+    id: ID!
+    betProof: BetProof!
+    reviewer: User!
+    isSuspicious: Boolean!
+    reason: String
+    confidence: Float
     createdAt: DateTime!
   }
 
@@ -209,6 +220,13 @@ export const typeDefs = gql`
     aiSuggestionConfidence: Float
   }
 
+  input SubmitBetProofReviewInput {
+    betProofId: ID!
+    isSuspicious: Boolean!
+    reason: String
+    confidence: Float
+  }
+
   type UpdateProfileImageResponse {
     success: Boolean!
     imageUrl: String
@@ -236,6 +254,8 @@ export const typeDefs = gql`
     globalLeaderboard: [LeaderboardEntry!]!
     friendLeaderboard(ownerId: ID!): [FriendLeaderboardEntry!]!
     groupLeaderboard(groupId: ID!): [GroupLeaderboardEntry!]!
+
+    betProofReviews(betProofId: ID!): [BetProofReview!]!
   }
 
   type Mutation {
@@ -264,6 +284,8 @@ export const typeDefs = gql`
 
     submitProof(input: SubmitProofInput!): BetProof!
     verifyProof(proofId: ID!, verified: Boolean!): BetProof!
+
+    submitBetProofReview(input: SubmitBetProofReviewInput!): BetProofReview!
 
     markNotificationAsRead(notificationId: ID!): SuccessResponse!
     markAllNotificationsAsRead: SuccessResponse!

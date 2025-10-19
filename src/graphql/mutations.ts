@@ -371,3 +371,20 @@ export const UPDATE_BANNER_IMAGE = gql`
     }
   }
 `;
+
+export const SUBMIT_BET_PROOF_REVIEW = gql`
+  mutation SubmitBetProofReview($input: SubmitBetProofReviewInput!) {
+    submitBetProofReview(input: $input) {
+      id
+      isSuspicious
+      reason
+      confidence
+      reviewer {
+        id
+        displayName
+        profileImage
+      }
+      createdAt
+    }
+  }
+`;

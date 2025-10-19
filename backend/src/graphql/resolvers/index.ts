@@ -8,6 +8,7 @@ import { notificationResolvers } from "@/graphql/resolvers/notification.resolver
 import { betResolvers } from "@/graphql/resolvers/bet.resolvers";
 import { betParticipantResolvers } from "@/graphql/resolvers/betParticipant.resolvers";
 import { betProofResolvers } from "@/graphql/resolvers/betProof.resolvers";
+import { betProofReviewResolvers } from "@/graphql/resolvers/betProofReview.resolvers";
 import { leaderboardResolvers } from "@/graphql/resolvers/leaderboard.resolvers";
 import { userResolvers } from "@/graphql/resolvers/user.resolvers";
 
@@ -29,6 +30,7 @@ export const resolvers = merge(
   betResolvers,
   betParticipantResolvers,
   betProofResolvers,
+  betProofReviewResolvers,
   leaderboardResolvers,
   userResolvers,
 );

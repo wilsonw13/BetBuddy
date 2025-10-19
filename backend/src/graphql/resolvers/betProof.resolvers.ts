@@ -3,6 +3,11 @@ import { prisma } from "@/config/prisma";
 import { Context } from "@types";
 
 export const betProofResolvers = {
+  BetProof: {
+    // Map database field 'image' to GraphQL field 'imageUrl'
+    imageUrl: (parent: any) => parent.image,
+  },
+
   Mutation: {
     submitProof: async (_: any, { input }: any, context: Context) => {
       if (!context.user) {
@@ -14,7 +19,7 @@ export const betProofResolvers = {
       const {
         betId,
         proofType,
-        image,
+        imageUrl,
         latitude,
         longitude,
         address,
@@ -43,7 +48,7 @@ export const betProofResolvers = {
           betId,
           userId: context.user.userId,
           proofType,
-          image,
+          image: imageUrl, // store as image in DB, but use imageUrl from input
           latitude,
           longitude,
           address,
@@ -65,7 +70,11 @@ export const betProofResolvers = {
         },
       });
 
-      return proof;
+      // Return proof with imageUrl field for frontend compatibility
+      return {
+        ...proof,
+        imageUrl: proof.image,
+      };
     },
 
     verifyProof: async (_: any, { proofId, verified }: any, context: Context) => {

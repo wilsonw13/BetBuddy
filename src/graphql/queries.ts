@@ -142,7 +142,30 @@ export const GET_MY_BETS = gql`
         id
         proofType
         imageUrl
+        latitude
+        longitude
+        address
         verified
+        aiSuggestionSuspicious
+        aiSuggestionReason
+        aiSuggestionConfidence
+        user {
+          id
+          displayName
+          profileImage
+        }
+        reviews {
+          id
+          isSuspicious
+          reason
+          confidence
+          reviewer {
+            id
+            displayName
+            profileImage
+          }
+          createdAt
+        }
         createdAt
       }
       createdAt
@@ -310,6 +333,23 @@ export const GET_GROUP_LEADERBOARD = gql`
       successRate
       successfulBets
       totalBets
+    }
+  }
+`;
+
+export const GET_BET_PROOF_REVIEWS = gql`
+  query GetBetProofReviews($betProofId: ID!) {
+    betProofReviews(betProofId: $betProofId) {
+      id
+      isSuspicious
+      reason
+      confidence
+      reviewer {
+        id
+        displayName
+        profileImage
+      }
+      createdAt
     }
   }
 `;

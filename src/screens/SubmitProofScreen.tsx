@@ -13,7 +13,6 @@ interface SubmitProofScreenProps {
   route: {
     params: {
       bet: Bet;
-      onProofSubmitted?: (proof: Proof) => void;
     };
   };
 }
@@ -216,10 +215,6 @@ export default function SubmitProofScreen({ navigation, route }: SubmitProofScre
 
       const { data } = await submitProofMutation({ variables: { input } });
       if (data?.submitProof) {
-        // If a callback is provided in navigation params, call it to trigger refetch
-        if (route.params?.onProofSubmitted) {
-          route.params.onProofSubmitted(data.submitProof);
-        }
         Alert.alert("Success", "Proof submitted successfully!", [
           {
             text: "OK",
