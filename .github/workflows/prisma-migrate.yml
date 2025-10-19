@@ -1,0 +1,175 @@
+name: Prisma Migrate and Post-Migrate
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/prisma/**"
+  workflow_dispatch:
+    inputs:
+      skip_backup:
+        description: "Skip database backup"
+        required: false
+        type: boolean
+        default: false
+
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  MAX_RETRIES: 3
+  RETRY_DELAY: 5
+
+jobs:
+  migrate:
+    runs-on: self-hosted
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify Docker is running
+        run: |
+          if ! docker info > /dev/null 2>&1; then
+            echo "❌ Docker daemon is not running"
+            echo "Please start Docker: sudo systemctl start docker"
+            exit 1
+          fi
+          echo "✅ Docker is running"
+
+      - name: Start Docker Compose services
+        run: |
+          echo "🚀 Starting Docker services..."
+          docker compose up -d
+
+      - name: Wait for database to be ready
+        run: |
+          echo "⏳ Waiting for database to be ready..."
+          MAX_ATTEMPTS=30
+          ATTEMPT=0
+
+          until docker compose exec -T db pg_isready -U ${POSTGRES_USER:-postgres} > /dev/null 2>&1; do
+            ATTEMPT=$((ATTEMPT + 1))
+            if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+              echo "❌ Database failed to become ready after $MAX_ATTEMPTS attempts"
+              docker compose logs db
+              exit 1
+            fi
+            echo "Waiting for database... (attempt $ATTEMPT/$MAX_ATTEMPTS)"
+            sleep 2
+          done
+
+          echo "✅ Database is ready"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing dependencies..."
+          if [ -f package-lock.json ]; then
+            npm ci
+          elif [ -f yarn.lock ]; then
+            yarn install --frozen-lockfile
+          elif [ -f pnpm-lock.yaml ]; then
+            npm install -g pnpm && pnpm install --frozen-lockfile
+          else
+            npm install
+          fi
+
+      - name: Verify Prisma schema
+        run: |
+          echo "🔍 Validating Prisma schema..."
+          npx prisma validate
+          npx prisma format --check
+
+      - name: Check migration status
+        id: migration_check
+        continue-on-error: true
+        run: |
+          echo "📊 Checking current migration status..."
+          npx prisma migrate status || echo "pending_migrations=true" >> $GITHUB_OUTPUT
+
+      - name: Backup database
+        if: ${{ !inputs.skip_backup }}
+        run: |
+          echo "💾 Creating database backup..."
+          BACKUP_FILE="backup_$(date +%Y%m%d_%H%M%S).sql"
+
+          docker compose exec -T db pg_dump -U ${POSTGRES_USER:-postgres} ${POSTGRES_DB:-mydb} > "$BACKUP_FILE"
+
+          if [ -f "$BACKUP_FILE" ]; then
+            echo "✅ Backup created: $BACKUP_FILE"
+            echo "backup_file=$BACKUP_FILE" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ Backup creation failed, but continuing..."
+          fi
+
+      - name: Run Prisma migrations
+        id: migrate
+        run: |
+          echo "🔄 Deploying migrations..."
+          npx prisma migrate deploy --schema=./prisma/schema.prisma
+          echo "✅ Migrations completed successfully"
+
+      - name: Run post-migration script
+        if: success()
+        run: |
+          if [ -f scripts/postprisma-migrate.sh ]; then
+            echo "🔧 Running post-migration script..."
+            bash scripts/postprisma-migrate.sh
+            echo "✅ Post-migration script completed"
+          else
+            echo "ℹ️ No post-migration script found, skipping..."
+          fi
+
+      - name: Verify migration
+        if: success()
+        run: |
+          echo "✅ Verifying migration status..."
+          npx prisma migrate status
+
+      - name: Generate Prisma Client
+        if: success()
+        run: |
+          echo "🏗️ Generating Prisma Client..."
+          npx prisma generate
+
+      - name: Cleanup old backups
+        if: success() && !inputs.skip_backup
+        run: |
+          echo "🧹 Cleaning up old backups (keeping last 5)..."
+          ls -t backup_*.sql 2>/dev/null | tail -n +6 | xargs -r rm -f
+          echo "✅ Cleanup completed"
+
+      - name: Report migration success
+        if: success()
+        run: |
+          echo "✅ ================================"
+          echo "✅ Migration completed successfully"
+          echo "✅ ================================"
+
+      - name: Rollback on failure
+        if: failure() && steps.migrate.outcome == 'failure'
+        run: |
+          echo "❌ Migration failed, checking for backup..."
+          if [ -f "${{ steps.backup.outputs.backup_file }}" ]; then
+            echo "🔄 Restoring from backup..."
+            cat "${{ steps.backup.outputs.backup_file }}" | docker compose exec -T db psql -U ${POSTGRES_USER:-postgres} ${POSTGRES_DB:-mydb}
+            echo "✅ Database restored from backup"
+          else
+            echo "⚠️ No backup available for rollback"
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ ================================"
+          echo "❌ Migration failed!"
+          echo "❌ ================================"
+          docker compose logs db --tail=50
