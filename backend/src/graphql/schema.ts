@@ -270,5 +270,6 @@ export const typeDefs = gql`
     deleteNotification(notificationId: ID!): SuccessResponse!
 
     updateProfileImage(image: String!): UpdateProfileImageResponse!
+    updateBannerImage(image: String!): UpdateProfileImageResponse!
   }
 `;

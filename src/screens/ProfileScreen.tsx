@@ -16,7 +16,7 @@ import { User, RedeemableItem, UserRank } from "@types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_UNREAD_NOTIFICATION_COUNT, GET_MY_FRIEND_REQUESTS } from "@/graphql/queries";
-import { UPDATE_PROFILE_IMAGE } from "@/graphql/mutations";
+import { UPDATE_PROFILE_IMAGE, UPDATE_BANNER_IMAGE } from "@/graphql/mutations";
 import * as ImagePicker from "expo-image-picker";
 
 import { GET_ME } from "@/graphql/queries";
@@ -112,6 +112,7 @@ export default function ProfileScreen({ navigation }: any) {
   });
   const [uploading, setUploading] = useState(false);
   const [updateProfileImage] = useMutation(UPDATE_PROFILE_IMAGE);
+  const [updateBannerImage] = useMutation(UPDATE_BANNER_IMAGE);
 
   // Loading state
   if (loading) {
@@ -236,6 +237,42 @@ export default function ProfileScreen({ navigation }: any) {
     }
   };
 
+  const handleChangeBannerImage = async () => {
+    // Request permission
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert("Permission required", "Please allow access to your photo library.");
+      return;
+    }
+    // Pick image
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [3, 1],
+      quality: 0.7,
+      base64: true,
+    });
+    if (pickerResult.canceled) return;
+    const asset = pickerResult.assets && pickerResult.assets[0];
+    if (!asset?.base64) {
+      Alert.alert("Error", "No image selected or image data missing.");
+      return;
+    }
+    setUploading(true);
+    try {
+      // Send base64 image to backend
+      await updateBannerImage({
+        variables: { image: asset.base64 },
+      });
+      await refetch(); // Refetch user data to update banner image
+      Alert.alert("Success", "Banner image updated!");
+    } catch (err) {
+      Alert.alert("Error", "Failed to update banner image.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const renderRedeemableItem = ({ item }: { item: RedeemableItem }) => (
     <TouchableOpacity
       style={styles.shopItem}
@@ -278,11 +315,16 @@ export default function ProfileScreen({ navigation }: any) {
       </View>
 
       <View style={styles.bannerContainer}>
-        {user.bannerImage ? (
-          <Image source={{ uri: user.bannerImage }} style={styles.banner} />
-        ) : (
-          <View style={[styles.banner, styles.bannerPlaceholder]} />
-        )}
+        <TouchableOpacity onPress={handleChangeBannerImage} disabled={uploading}>
+          {user.bannerImage ? (
+            <Image source={{ uri: user.bannerImage }} style={styles.banner} />
+          ) : (
+            <View style={[styles.banner, styles.bannerPlaceholder]} />
+          )}
+          {uploading && (
+            <ActivityIndicator style={{ position: "absolute", top: 40, left: "50%" }} size="small" color="#007AFF" />
+          )}
+        </TouchableOpacity>
       </View>
 
       <View style={styles.profileSection}>

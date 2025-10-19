@@ -362,3 +362,12 @@ export const UPDATE_PROFILE_IMAGE = gql`
     }
   }
 `;
+
+export const UPDATE_BANNER_IMAGE = gql`
+  mutation UpdateBannerImage($image: String!) {
+    updateBannerImage(image: $image) {
+      success
+      imageUrl
+    }
+  }
+`;

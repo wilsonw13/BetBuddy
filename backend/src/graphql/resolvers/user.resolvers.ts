@@ -20,5 +20,18 @@ export const userResolvers = {
       });
       return { success: true, imageUrl };
     },
+    async updateBannerImage(_: any, { image }: { image: string }, context: Context) {
+      if (!context.user) {
+        throw new GraphQLError("Not authenticated", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
+      const imageUrl = await uploadImageToStorage(image, context.user.userId + "-banner");
+      await prisma.user.update({
+        where: { id: context.user.userId },
+        data: { bannerImage: imageUrl },
+      });
+      return { success: true, imageUrl };
+    },
   },
 };
