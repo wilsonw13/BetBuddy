@@ -9,6 +9,7 @@ import {
   ScrollView,
   Modal,
   TextInput,
+  Image
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "@apollo/client";
@@ -263,8 +264,22 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
 
   const renderMember = ({ item }: { item: Member }) => (
     <View style={styles.memberCard}>
-      <View style={styles.memberAvatar}>
+      {/* <View style={styles.memberAvatar}>
         <Text style={styles.memberAvatarText}>{item.user.displayName.charAt(0).toUpperCase()}</Text>
+      </View> */}
+      <View style={styles.memberAvatar}>
+        {item.user.profileImage ? (
+          <Image
+            source={{
+              uri: item.user.profileImage.startsWith('data:')
+                ? item.user.profileImage
+                : `data:image/png;base64,${item.user.profileImage}`
+            }}
+            style={styles.memberAvatar}
+            />
+        ) : (
+          <Ionicons name="person" size={32} color="#8E8E93" />
+        )}
       </View>
       <View style={styles.memberInfo}>
         <Text style={styles.memberName}>{item.user.displayName}</Text>
