@@ -85,8 +85,14 @@ const getRankInfo = (rank: UserRank) => {
 };
 
 export default function ProfileScreen({ navigation }: any) {
-  // Call useQuery INSIDE the component
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const { data, loading, error } = useQuery(GET_ME);
+  const [, setUser] = useState<User | null>(null);
+  const [shopModalVisible, setShopModalVisible] = useState(false);
+  const { logout } = useAuth();
+  const { data: notificationData } = useQuery(GET_UNREAD_NOTIFICATION_COUNT, {
+    pollInterval: 10000, // Poll every 10 seconds
+  });
 
   // Loading state
   if (loading) {
@@ -120,18 +126,9 @@ export default function ProfileScreen({ navigation }: any) {
     totalBets: 25,
     bannerImage: null,
     friendGroups: ["Friends", "Groups"],
-  }; 
- 
- const [, setUser] = useState<User>(currentUser);
-  const [shopModalVisible, setShopModalVisible] = useState(false);
-  const { logout } = useAuth();
+  };
 
   const rankInfo = getRankInfo(user.rank);
-
-  const { data: notificationData } = useQuery(GET_UNREAD_NOTIFICATION_COUNT, {
-    pollInterval: 10000, // Poll every 10 seconds
-  });
-
   const unreadCount = notificationData?.unreadNotificationCount || 0;
 
   const handleSignOut = () => {
