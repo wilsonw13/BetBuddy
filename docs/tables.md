@@ -54,9 +54,13 @@ Fields:
 - id (String): Unique participant ID (UUID)
 - betId (String): Associated bet ID
 - userId (String): Participant’s user ID
-- status (String): Participation status (pending, accepted, declined)
+- status (String): Participation status (pending, accepted, declined) (default: pending)
 - acceptedAt (DateTime?): When participation was accepted
-- createdAt (DateTime): Participation creation timestamp
+- outcome (String?): Outcome (won, lost, null)
+- proofsSubmitted (Int): Count of submitted proofs (default: 0)
+- proofsVerified (Int): Count of peer-verified proofs (default: 0)
+- lastProofReminder (DateTime?): Last proof reminder timestamp
+- createdAt (DateTime): Participation creation timestamp (default: now)
 
 ## `bet_proofs`
 
@@ -132,8 +136,10 @@ Fields:
 - passwordHash (String?): Hashed password
 - googleId (String?): Google account ID (if linked)
 - displayName (String): User’s display name
-- profilePicture (String?): URL to profile picture
-- emailVerified (Boolean): Whether email is verified
-- createdAt (DateTime): Account creation timestamp
-- updatedAt (DateTime): Last update timestamp
-- lastLogin (DateTime?): Last login timestamp
+- profileImage (String?): Base64 encoded profile picture
+- bannerImage (String?): Base64 encoded banner image
+- emailVerified (Boolean): Whether email is verified (default: false)
+- points (Int): Points for rewards/shop (default: 0)
+- placeholderMoney (Float): Virtual currency for betting (default: 100)
+- createdAt (DateTime): Account creation timestamp (default: now)
+- updatedAt (DateTime): Last update timestamp (auto-updated)

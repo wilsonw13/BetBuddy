@@ -14,29 +14,31 @@ datasource db {
 }
 
 model User {
-  id              String   @id @default(uuid())
-  email           String   @unique
-  passwordHash    String?  @map("password_hash")
-  googleId        String?  @unique @map("google_id")
-  displayName     String   @unique @map("display_name")
-  profilePicture  String?  @map("profile_picture")
-  emailVerified   Boolean  @default(false) @map("email_verified")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
-  lastLogin       DateTime? @map("last_login")
+  id                 String     @id @default(uuid())
+  email              String     @unique
+  passwordHash       String?    @map("password_hash")
+  googleId           String?    @unique @map("google_id")
+  displayName        String     @unique @map("display_name")
+  profileImage       String?    @map("profile_image")
+  bannerImage        String?    @map("banner_image")
+  emailVerified      Boolean    @default(false) @map("email_verified")
+  points             Int        @default(0) // Points for rewards/shop
+  placeholderMoney   Float      @default(100) @map("placeholder_money") // Virtual currency for betting (will be real money later)
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime   @updatedAt @map("updated_at")
 
   // Relations
-  refreshTokens        RefreshToken[]
-  sentFriendRequests   FriendRequest[] @relation("SentFriendRequests")
-  receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
-  friendshipsInitiated Friendship[] @relation("FriendshipInitiator")
-  friendshipsReceived  Friendship[] @relation("FriendshipReceiver")
-  createdBets          Bet[] @relation("BetCreator")
-  participatingBets    BetParticipant[]
-  betProofs            BetProof[]
-  ownedGroups          BetGroup[] @relation("GroupOwner")
-  groupMemberships     BetGroupMember[]
-  notifications        Notification[]
+  refreshTokens          RefreshToken[]
+  sentFriendRequests     FriendRequest[]   @relation("SentFriendRequests")
+  receivedFriendRequests FriendRequest[]   @relation("ReceivedFriendRequests")
+  friendshipsInitiated   Friendship[]      @relation("FriendshipInitiator")
+  friendshipsReceived    Friendship[]      @relation("FriendshipReceiver")
+  createdBets            Bet[]             @relation("BetCreator")
+  participatingBets      BetParticipant[]
+  betProofs              BetProof[]
+  ownedGroups            BetGroup[]        @relation("GroupOwner")
+  groupMemberships       BetGroupMember[]
+  notifications          Notification[]
 
   @@index([email])
   @@index([googleId])
@@ -45,15 +47,15 @@ model User {
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  tokenHash String   @map("token_hash")
-  expiresAt DateTime @map("expires_at")
-  revoked   Boolean  @default(false)
-  createdAt DateTime @default(now()) @map("created_at")
+  id         String    @id @default(uuid())
+  userId     String    @map("user_id")
+  tokenHash  String    @map("token_hash")
+  expiresAt  DateTime  @map("expires_at")
+  revoked    Boolean   @default(false)
+  createdAt  DateTime  @default(now()) @map("created_at")
 
   // Relations
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([tokenHash])
@@ -114,14 +116,14 @@ model BetGroup {
 }
 
 model BetGroupMember {
-  id        String   @id @default(uuid())
-  groupId   String   @map("group_id")
-  userId    String   @map("user_id")
-  joinedAt  DateTime @default(now()) @map("joined_at")
+  id          String     @id @default(uuid())
+  groupId     String     @map("group_id")
+  userId      String     @map("user_id")
+  joinedAt    DateTime   @default(now()) @map("joined_at")
 
   // Relations
-  group     BetGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group       BetGroup   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, userId])
   @@index([groupId])
@@ -130,28 +132,31 @@ model BetGroupMember {
 }
 
 model Bet {
-  id             String   @id @default(uuid())
-  title          String
-  description    String?
-  betActivity    String   @map("bet_activity")
-  proofType      String   @map("proof_type") // live_photo, location
-  frequency      String   // 1x/week, 2x/week, etc
-  betLength      Int      @map("bet_length") // days
-  pointsStaked   Int      @map("points_staked")
-  startDate      DateTime @map("start_date")
-  endDate        DateTime @map("end_date")
-  status         String   @default("pending") // pending, active, completed, cancelled
-  creatorId      String   @map("creator_id")
-  groupId        String?  @map("group_id") // null for 1v1 bets
-  isGroupBet     Boolean  @default(false) @map("is_group_bet")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  betActivity     String    @map("bet_activity")
+  proofType       String    @map("proof_type") // live_photo, location
+  frequency       String    // 1x/week, 2x/week, etc
+  betLength       Int       @map("bet_length") // days
+  moneyStaked     Float     @default(0.0) @map("money_staked") // Placeholder money staked per participant (will be real money later)
+  pointsReward    Int       @default(10) @map("points_reward") // Points awarded to winners (not staked, just earned)
+  proofsRequired  Int       @default(1) @map("proofs_required") // Total number of proofs required to win
+  startDate       DateTime  @map("start_date")
+  endDate         DateTime  @map("end_date")
+  status          String    @default("pending") // pending, active, completed, cancelled
+  creatorId       String    @map("creator_id")
+  groupId         String?   @map("group_id") // null for 1v1 bets
+  isGroupBet      Boolean   @default(false) @map("is_group_bet")
+  autoSettled     Boolean   @default(false) @map("auto_settled")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  creator        User     @relation("BetCreator", fields: [creatorId], references: [id], onDelete: Cascade)
-  group          BetGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
-  participants   BetParticipant[]
-  proofs         BetProof[]
+  creator         User      @relation("BetCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  group           BetGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  participants    BetParticipant[]
+  proofs          BetProof[]
 
   @@index([creatorId])
   @@index([groupId])
@@ -162,16 +167,20 @@ model Bet {
 }
 
 model BetParticipant {
-  id             String   @id @default(uuid())
-  betId          String   @map("bet_id")
-  userId         String   @map("user_id")
-  status         String   @default("pending") // pending, accepted, declined
-  acceptedAt     DateTime? @map("accepted_at")
-  createdAt      DateTime @default(now()) @map("created_at")
+  id                 String    @id @default(uuid())
+  betId              String    @map("bet_id")
+  userId             String    @map("user_id")
+  status             String    @default("pending") // pending, accepted, declined
+  acceptedAt         DateTime? @map("accepted_at")
+  outcome            String?   // won, lost, null (ongoing/not determined)
+  proofsSubmitted    Int       @default(0) @map("proofs_submitted") // Count of submitted proofs
+  proofsVerified     Int       @default(0) @map("proofs_verified") // Count of peer-verified proofs
+  lastProofReminder  DateTime? @map("last_proof_reminder") // When user was last reminded to submit proof
+  createdAt          DateTime  @default(now()) @map("created_at")
 
   // Relations
-  bet            Bet      @relation(fields: [betId], references: [id], onDelete: Cascade)
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bet                Bet       @relation(fields: [betId], references: [id], onDelete: Cascade)
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([betId, userId])
   @@index([betId])
@@ -209,12 +218,12 @@ model BetProof {
 model Notification {
   id          String   @id @default(uuid())
   userId      String   @map("user_id")
-  type        String   // 'friend_request', 'group_invite', 'bet_invite'
+  type        String   // 'friend_request', 'group_invite', 'bet_invite', 'proof_reminder', 'peer_review_request'
   title       String
   message     String
   isRead      Boolean  @default(false) @map("is_read")
   actionUrl   String?  @map("action_url")
-  metadata    Json?    // Store additional data like betId, friendRequestId, groupId
+  metadata    Json?    // Store additional data like betId, friendRequestId, groupId, proofsRemaining, deadline
   createdAt   DateTime @default(now()) @map("created_at")
 
   // Relations

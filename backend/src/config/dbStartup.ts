@@ -9,11 +9,7 @@ to ensure all seed data, schema, and documentation are consistent.
 import { prisma } from "@/config/prisma";
 import bcrypt from "bcrypt";
 import { BCRYPT_ROUNDS, DEFAULT_USER_PASSWORD } from "@/config/env";
-
-/**
- * The default image URL used for bet proofs and backgrounds.
- */
-const DEFAULT_IMG_URL = "https://api.slingacademy.com/public/sample-photos/67.jpeg";
+import { getRandomBanner, getRandomProfilePicture } from "@/config/defaultImage";
 
 /**
  * Default date used for seed data.
@@ -51,30 +47,40 @@ const TABLE_SEED_DATA = {
       email: "chang@gmail.com",
       password: DEFAULT_USER_PASSWORD,
       displayName: "Chang",
+      profileImage: getRandomProfilePicture(),
+      bannerImage: getRandomBanner(),
     },
     {
       id: _uids[1],
       email: "ryan@gmail.com",
       password: DEFAULT_USER_PASSWORD,
       displayName: "Ryan",
+      profileImage: getRandomProfilePicture(),
+      bannerImage: getRandomBanner(),
     },
     {
       id: _uids[2],
       email: "anthony@gmail.com",
       password: DEFAULT_USER_PASSWORD,
       displayName: "Anthony",
+      profileImage: getRandomProfilePicture(),
+      bannerImage: getRandomBanner(),
     },
     {
       id: _uids[3],
       email: "wilson@gmail.com",
       password: DEFAULT_USER_PASSWORD,
       displayName: "Wilson",
+      profileImage: getRandomProfilePicture(),
+      bannerImage: getRandomBanner(),
     },
     {
       id: _uids[4],
       email: "friendless@gmail.com",
       password: DEFAULT_USER_PASSWORD,
       displayName: "Friendless",
+      profileImage: getRandomProfilePicture(),
+      bannerImage: getRandomBanner(),
     },
   ],
   friendships: [
@@ -239,7 +245,6 @@ const TABLE_SEED_DATA = {
       bet_id: _betids.touch_grass,
       user_id: _uids[0],
       proof_type: "live_photo",
-      image_url: DEFAULT_IMG_URL,
       latitude: 37.7749,
       longitude: -122.4194,
       address: "San Francisco, CA",
@@ -255,7 +260,6 @@ const TABLE_SEED_DATA = {
       bet_id: _betids.shower,
       user_id: _uids[1],
       proof_type: "live_photo",
-      image_url: DEFAULT_IMG_URL,
       latitude: 34.0522,
       longitude: -118.2437,
       address: "Los Angeles, CA",
@@ -267,6 +271,8 @@ const TABLE_SEED_DATA = {
       created_at: DEFAULT_DATE,
     },
   ],
+  refresh_tokens: [],
+  notifications: [],
 };
 
 /**
@@ -286,6 +292,8 @@ export async function seedDatabase(resetDb: boolean = false) {
     await prisma.friendRequest.deleteMany({});
     await prisma.friendship.deleteMany({});
     await prisma.user.deleteMany({});
+    await prisma.refreshToken.deleteMany({});
+    await prisma.notification.deleteMany({});
     console.log("[Seed] All tables cleared.");
   }
 
@@ -302,10 +310,34 @@ export async function seedDatabase(resetDb: boolean = false) {
         email: user.email,
         passwordHash: hashedPassword,
         displayName: user.displayName,
+        profileImage: user.profileImage,
+        bannerImage: user.bannerImage,
       },
     });
   }
   console.log("[Seed] Users seeded.");
+
+  // Seed refresh tokens
+  // console.log("[Seed] Seeding refresh tokens...");
+  // for (const token of TABLE_SEED_DATA.refresh_tokens ?? []) {
+  //   await prisma.refreshToken.upsert({
+  //     where: { id: token.id },
+  //     update: {},
+  //     create: token,
+  //   });
+  // }
+  // console.log("[Seed] Refresh tokens seeded.");
+
+  // Seed notifications
+  // console.log("[Seed] Seeding notifications...");
+  // for (const notification of TABLE_SEED_DATA.notifications ?? []) {
+  //   await prisma.notification.upsert({
+  //     where: { id: notification.id },
+  //     update: {},
+  //     create: notification,
+  //   });
+  // }
+  // console.log("[Seed] Notifications seeded.");
 
   // Seed friendships
   console.log("[Seed] Seeding friendships...");
@@ -394,14 +426,12 @@ export async function seedDatabase(resetDb: boolean = false) {
         proofType: bet.proofType,
         frequency: bet.frequency,
         betLength: bet.betLength,
-        pointsStaked: bet.pointsStaked,
         startDate: bet.startDate,
         endDate: bet.endDate,
         status: bet.status,
         creatorId: bet.creatorId,
         groupId: bet.groupId,
         isGroupBet: bet.isGroupBet,
-        // createdAt/updatedAt handled by Prisma
       },
     });
   }
@@ -424,7 +454,6 @@ export async function seedDatabase(resetDb: boolean = false) {
         userId: part.user_id,
         status: part.status,
         acceptedAt: part.accepted_at,
-        // createdAt handled by Prisma
       },
     });
   }
@@ -441,7 +470,6 @@ export async function seedDatabase(resetDb: boolean = false) {
         betId: proof.bet_id,
         userId: proof.user_id,
         proofType: proof.proof_type,
-        imageUrl: proof.image_url,
         latitude: proof.latitude,
         longitude: proof.longitude,
         address: proof.address,
