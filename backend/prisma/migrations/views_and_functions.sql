@@ -84,23 +84,20 @@ JOIN (
 
 
 
--- Leaderboard for a specific group, for a given owner (viewer)
--- Usage: SELECT * FROM leaderboard_group WHERE owner_id = '<uid>' AND group_id = '<groupId>';
+-- Leaderboard for a specific group
+-- Usage: SELECT * FROM leaderboard_group WHERE group_id = '<groupId>';
 CREATE OR REPLACE VIEW leaderboard_group AS
 SELECT
-  owner.id AS owner_id,
-  up.id AS member_id,
+  bgm.user_id AS member_id,
   up."displayName",
   up."profilePicture" AS profileImage,
   bgm.group_id,
-  RANK() OVER (PARTITION BY owner.id, bgm.group_id ORDER BY user_score(up."successfulBets"::INT, up."totalBets"::INT) DESC) AS leaderboardRank,
+  RANK() OVER (PARTITION BY bgm.group_id ORDER BY user_score(up."successfulBets"::INT, up."totalBets"::INT) DESC) AS leaderboardRank,
   user_score(up."successfulBets"::INT, up."totalBets"::INT) AS score,
   up."successRate",
   up."successfulBets",
   up."totalBets"
-FROM users owner
-JOIN bet_group_members bgm_owner ON bgm_owner.user_id = owner.id
-JOIN bet_group_members bgm ON bgm.group_id = bgm_owner.group_id
+FROM bet_group_members bgm
 JOIN (
   SELECT u.id, u.display_name AS "displayName", u.profile_image AS "profilePicture", u.banner_image,
          COALESCE(SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END), 0) AS "totalBets",

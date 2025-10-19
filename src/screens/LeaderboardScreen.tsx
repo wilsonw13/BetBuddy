@@ -1,21 +1,19 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { LeaderboardEntry, User } from "@/types";
 import { useQuery } from "@apollo/client";
-import { GET_MY_FRIENDS, GET_ME } from "@/graphql/queries";
+import {
+  GET_GLOBAL_LEADERBOARD,
+  GET_FRIEND_LEADERBOARD,
+  GET_GROUP_LEADERBOARD,
+  GET_ME,
+  GET_MY_BET_GROUPS,
+} from "@/graphql/queries";
 
-// We'll fetch friends from the backend and compute leaderboard from their stats
+// Fetch leaderboard entries directly from backend
 
-const calculateScore = (user: User): number => {
-  // Weighted average: 60% success rate, 40% total successful bets
-  const normalizedSuccessRate = user.successRate;
-  const normalizedSuccessfulBets = Math.min(user.successfulBets / 50, 1); // Cap at 50
-  return normalizedSuccessRate * 0.6 + normalizedSuccessfulBets * 0.4;
-};
-
-const getRankColor = (rank: string): string => {
-  switch (rank) {
+const getRankColor = (rank?: string): string => {
+  switch (rank ?? "beginner") {
     case "legendary":
       return "#FFD700";
     case "advanced":
@@ -35,102 +33,77 @@ const getRankIcon = (rank: number): string => {
 };
 
 export default function LeaderboardScreen() {
-  const [selectedGroup, setSelectedGroup] = useState("All Friends");
+  const [tab, setTab] = useState<"global" | "friend" | "group">("global");
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
 
+  // Get current user for friend leaderboard
   const { data: meData } = useQuery(GET_ME);
-  const { data, loading, error } = useQuery(GET_MY_FRIENDS);
+  const userId = meData?.me?.id;
 
-  // Build user list: include current user (if available) and friends
-  const users: User[] = [];
-  if (meData?.me) {
-    users.push({
-      id: meData.me.id,
-      name: meData.me.displayName,
-      profilePicture: meData.me.profilePicture,
-      successRate: 0,
-      totalBets: 0,
-      successfulBets: 0,
-      points: 0,
-      rank: "beginner",
-      friendGroups: [],
-      pranksActive: [],
-    } as User);
-  }
+  // Get user's groups for dropdown
+  const { data: groupsData } = useQuery(GET_MY_BET_GROUPS);
+  const groups = Array.isArray(groupsData?.myBetGroups) ? groupsData.myBetGroups : [];
 
-  if (data?.myFriends && Array.isArray(data.myFriends)) {
-    data.myFriends.forEach((f: any) => {
-      users.push({
-        id: f.id,
-        name: f.displayName,
-        profilePicture: f.profilePicture,
-        // The backend currently doesn't return stats in this query; default to zeros.
-        successRate: (f.successRate as number) || 0,
-        totalBets: (f.totalBets as number) || 0,
-        successfulBets: (f.successfulBets as number) || 0,
-        points: (f.points as number) || 0,
-        rank: (f.rank as string) || "beginner",
-        friendGroups: f.friendGroups || [],
-        pranksActive: f.pranksActive || [],
-      } as User);
-    });
-  }
+  // Fetch leaderboards
+  const { data: globalData, loading: globalLoading } = useQuery(GET_GLOBAL_LEADERBOARD);
+  const { data: friendData, loading: friendLoading } = useQuery(GET_FRIEND_LEADERBOARD, {
+    skip: !userId,
+    variables: { ownerId: userId },
+  });
+  const { data: groupData, loading: groupLoading } = useQuery(GET_GROUP_LEADERBOARD, {
+    skip: !selectedGroupId,
+    variables: { groupId: selectedGroupId },
+  });
 
-  const leaderboard: LeaderboardEntry[] = users
-    .map((user) => ({
-      user,
-      score: calculateScore(user),
-      rank: 0,
-    }))
-    .sort((a, b) => b.score - a.score)
-    .map((entry, index) => ({
-      ...entry,
-      rank: index + 1,
-    }));
+  let leaderboard: any[] = [];
+  if (tab === "global") leaderboard = Array.isArray(globalData?.globalLeaderboard) ? globalData.globalLeaderboard : [];
+  if (tab === "friend") leaderboard = Array.isArray(friendData?.friendLeaderboard) ? friendData.friendLeaderboard : [];
+  if (tab === "group") leaderboard = Array.isArray(groupData?.groupLeaderboard) ? groupData.groupLeaderboard : [];
 
-  const renderLeaderboardItem = ({ item }: { item: LeaderboardEntry }) => {
-    const isTopThree = item.rank <= 3;
-
+  const renderLeaderboardItem = ({ item }: { item: any }) => {
+    const rank = item.leaderboardRank ?? item.rank;
+    const isTopThree = rank <= 3;
     return (
       <TouchableOpacity style={[styles.leaderboardCard, isTopThree && styles.topThreeCard]}>
         <View style={styles.rankContainer}>
           {isTopThree ? (
-            <Text style={styles.rankEmoji}>{getRankIcon(item.rank)}</Text>
+            <Text style={styles.rankEmoji}>{getRankIcon(rank)}</Text>
           ) : (
-            <Text style={styles.rankNumber}>{item.rank}</Text>
+            <Text style={styles.rankNumber}>{rank}</Text>
           )}
         </View>
 
         <View style={styles.avatarContainer}>
-          {item.user.profilePicture ? (
-            <Image source={{ uri: item.user.profilePicture }} style={styles.avatar} />
+          {item.profileImage ? (
+            <Image source={{ uri: item.profileImage }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
               <Ionicons name="person" size={24} color="#8E8E93" />
             </View>
           )}
-          <View style={[styles.rankBadge, { backgroundColor: getRankColor(item.user.rank) }]}>
-            <Text style={styles.rankBadgeText}>{item.user.rank.charAt(0).toUpperCase()}</Text>
+          <View style={[styles.rankBadge, { backgroundColor: getRankColor() }]}>
+            <Text style={styles.rankBadgeText}>{item.displayName.charAt(0).toUpperCase()}</Text>
           </View>
         </View>
 
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>{item.user.name}</Text>
+          <Text style={styles.userName}>{item.displayName}</Text>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Ionicons name="trophy-outline" size={14} color="#8E8E93" />
               <Text style={styles.statText}>
-                {item.user.successfulBets}/{item.user.totalBets}
+                {item.successfulBets}/{item.totalBets}
               </Text>
             </View>
             <View style={styles.statItem}>
               <Ionicons name="trending-up" size={14} color="#8E8E93" />
-              <Text style={styles.statText}>{(item.user.successRate * 100).toFixed(0)}%</Text>
+              <Text style={styles.statText}>{(item.successRate * 100).toFixed(0)}%</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.pointsContainer}>
-          <Text style={styles.pointsValue}>{item.user.points}</Text>
+          <Text style={styles.pointsValue}>{item.score}</Text>
           <Text style={styles.pointsLabel}>pts</Text>
         </View>
       </TouchableOpacity>
@@ -141,10 +114,42 @@ export default function LeaderboardScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Rankings</Text>
-        <TouchableOpacity style={styles.groupSelector}>
-          <Text style={styles.groupSelectorText}>{selectedGroup}</Text>
-          <Ionicons name="chevron-down" size={20} color="#007AFF" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: "row", marginTop: 8 }}>
+          <TouchableOpacity
+            style={[styles.tabButton, tab === "global" && styles.tabButtonActive]}
+            onPress={() => setTab("global")}
+          >
+            <Text style={[styles.tabText, tab === "global" && styles.tabTextActive]}>Global</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, tab === "friend" && styles.tabButtonActive]}
+            onPress={() => setTab("friend")}
+          >
+            <Text style={[styles.tabText, tab === "friend" && styles.tabTextActive]}>Friend</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, tab === "group" && styles.tabButtonActive]}
+            onPress={() => setTab("group")}
+          >
+            <Text style={[styles.tabText, tab === "group" && styles.tabTextActive]}>Group</Text>
+          </TouchableOpacity>
+        </View>
+        {tab === "group" && (
+          <View style={{ marginTop: 12 }}>
+            <Text style={{ fontSize: 14, fontWeight: "600", marginBottom: 4 }}>Select Group:</Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+              {groups.map((group: any) => (
+                <TouchableOpacity
+                  key={group.id}
+                  style={[styles.groupDropdownItem, selectedGroupId === group.id && styles.groupDropdownItemActive]}
+                  onPress={() => setSelectedGroupId(group.id)}
+                >
+                  <Text style={{ color: selectedGroupId === group.id ? "#007AFF" : "#333" }}>{group.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
       </View>
 
       <View style={styles.legendContainer}>
@@ -172,7 +177,7 @@ export default function LeaderboardScreen() {
       <FlatList
         data={leaderboard}
         renderItem={renderLeaderboardItem}
-        keyExtractor={(item) => item.user.id}
+        keyExtractor={(item) => item.userId || item.friendId || item.memberId}
         contentContainerStyle={styles.listContainer}
       />
     </View>
@@ -180,6 +185,38 @@ export default function LeaderboardScreen() {
 }
 
 const styles = StyleSheet.create({
+  tabButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: "#F2F2F7",
+    marginRight: 8,
+  },
+  tabButtonActive: {
+    backgroundColor: "#007AFF",
+  },
+  tabText: {
+    fontSize: 14,
+    color: "#007AFF",
+    fontWeight: "600",
+  },
+  tabTextActive: {
+    color: "#fff",
+  },
+  groupDropdownItem: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    backgroundColor: "#F2F2F7",
+    marginRight: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
+  },
+  groupDropdownItemActive: {
+    backgroundColor: "#007AFF",
+    borderColor: "#007AFF",
+  },
   container: {
     flex: 1,
     backgroundColor: "#F2F2F7",

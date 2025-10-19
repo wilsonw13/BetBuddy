@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Modal, FlatList, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { User, RedeemableItem, UserRank } from "@/types";
+import { User, RedeemableItem, UserRank } from "@types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@apollo/client";
 import { GET_UNREAD_NOTIFICATION_COUNT } from "@/graphql/queries";
 
 import { GET_ME } from "@/graphql/queries";
-
 
 // Mock data - replace with real data from your backend
 const mockUser: User = {
@@ -201,16 +200,11 @@ export default function ProfileScreen({ navigation }: any) {
     <ScrollView style={styles.container}>
       {/* Notification Bell Header */}
       <View style={styles.notificationHeader}>
-        <TouchableOpacity
-          style={styles.notificationButton}
-          onPress={() => navigation.navigate("Notifications")}
-        >
+        <TouchableOpacity style={styles.notificationButton} onPress={() => navigation.navigate("Notifications")}>
           <Ionicons name="notifications" size={28} color="#000" />
           {unreadCount > 0 && (
             <View style={styles.notificationBadge}>
-              <Text style={styles.notificationBadgeText}>
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </Text>
+              <Text style={styles.notificationBadgeText}>{unreadCount > 99 ? "99+" : unreadCount}</Text>
             </View>
           )}
         </TouchableOpacity>
@@ -270,7 +264,7 @@ export default function ProfileScreen({ navigation }: any) {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Social</Text>
-        {user.friendGroups.map((group, index) => {
+        {user.friendGroups.map((group: string, index: number) => {
           const isGroups = group === "Groups";
           const navigationTarget = isGroups ? "BetGroups" : "FriendGroups";
           const iconName = isGroups ? "grid" : "people";

@@ -1,19 +1,10 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Alert,
-  ActivityIndicator,
-  ScrollView,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
-import * as Location from "expo-location";
-import { Bet, Proof } from "@/types";
-import { verifyBetPhoto } from "@/services/geminiService";
+import ImagePicker from "expo-image-picker";
+import Location from "expo-location";
+import { verifyBetPhoto } from "@/services/gemini.service";
+import { Bet, Proof } from "@types";
 
 interface SubmitProofScreenProps {
   navigation: any;
@@ -197,7 +188,7 @@ export default function SubmitProofScreen({ navigation, route }: SubmitProofScre
         [
           { text: "Cancel", style: "cancel" },
           { text: "Submit Anyway", onPress: () => submitProof() },
-        ]
+        ],
       );
     } else {
       submitProof();
@@ -208,7 +199,7 @@ export default function SubmitProofScreen({ navigation, route }: SubmitProofScre
     const proof: Proof = {
       id: Date.now().toString(),
       betId: bet.id,
-      userId: bet.userId1, // Assuming current user is userId1
+      userId: bet.userId1 ?? "", // Assuming current user is userId1
       timestamp: new Date(),
       proofType: bet.proofType,
       imageUri: imageUri || undefined,
@@ -278,11 +269,7 @@ export default function SubmitProofScreen({ navigation, route }: SubmitProofScre
                     verification.isSuspicious ? styles.verificationBadgeSuspicious : styles.verificationBadgeValid,
                   ]}
                 >
-                  <Ionicons
-                    name={verification.isSuspicious ? "warning" : "checkmark-circle"}
-                    size={20}
-                    color="white"
-                  />
+                  <Ionicons name={verification.isSuspicious ? "warning" : "checkmark-circle"} size={20} color="white" />
                   <Text style={styles.verificationBadgeText}>
                     {verification.isSuspicious ? "Needs Review" : "Looks Good"}
                   </Text>
@@ -302,20 +289,12 @@ export default function SubmitProofScreen({ navigation, route }: SubmitProofScre
             </View>
           ) : (
             <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={handleTakePhoto}
-                disabled={loading}
-              >
+              <TouchableOpacity style={styles.primaryButton} onPress={handleTakePhoto} disabled={loading}>
                 <Ionicons name="camera" size={24} color="white" />
                 <Text style={styles.primaryButtonText}>Take Photo</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={handlePickFromGallery}
-                disabled={loading}
-              >
+              <TouchableOpacity style={styles.secondaryButton} onPress={handlePickFromGallery} disabled={loading}>
                 <Ionicons name="images" size={24} color="#007AFF" />
                 <Text style={styles.secondaryButtonText}>Choose from Gallery</Text>
               </TouchableOpacity>
@@ -360,20 +339,12 @@ export default function SubmitProofScreen({ navigation, route }: SubmitProofScre
                   {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
                 </Text>
               </View>
-              <TouchableOpacity
-                style={styles.updateLocationButton}
-                onPress={handleGetLocation}
-                disabled={loading}
-              >
+              <TouchableOpacity style={styles.updateLocationButton} onPress={handleGetLocation} disabled={loading}>
                 <Ionicons name="refresh" size={20} color="#007AFF" />
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={handleGetLocation}
-              disabled={loading}
-            >
+            <TouchableOpacity style={styles.primaryButton} onPress={handleGetLocation} disabled={loading}>
               {loading ? (
                 <ActivityIndicator color="white" />
               ) : (

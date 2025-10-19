@@ -14,12 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_MY_FRIENDS, GET_MY_FRIEND_REQUESTS } from "@/graphql/queries";
-import {
-  SEND_FRIEND_REQUEST,
-  ACCEPT_FRIEND_REQUEST,
-  DECLINE_FRIEND_REQUEST,
-  REMOVE_FRIEND,
-} from "@/graphql/mutations";
+import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, DECLINE_FRIEND_REQUEST, REMOVE_FRIEND } from "@/graphql/mutations";
 
 interface Friend {
   id: string;
@@ -51,10 +46,18 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
   const [newGroupName, setNewGroupName] = useState("");
 
   // Fetch friends and friend requests
-  const { data: friendsData, loading: friendsLoading, refetch: refetchFriends } = useQuery(GET_MY_FRIENDS, {
+  const {
+    data: friendsData,
+    loading: friendsLoading,
+    refetch: refetchFriends,
+  } = useQuery(GET_MY_FRIENDS, {
     fetchPolicy: "network-only", // Always fetch from network, not cache
   });
-  const { data: requestsData, loading: requestsLoading, refetch: refetchRequests } = useQuery(GET_MY_FRIEND_REQUESTS, {
+  const {
+    data: requestsData,
+    loading: requestsLoading,
+    refetch: refetchRequests,
+  } = useQuery(GET_MY_FRIEND_REQUESTS, {
     fetchPolicy: "network-only", // Always fetch from network, not cache
   });
 
@@ -104,28 +107,24 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
   };
 
   const handleRemoveFriend = (friend: Friend) => {
-    Alert.alert(
-      "Remove Friend",
-      `Remove ${friend.displayName} from your friends?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Remove",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await removeFriend({
-                variables: { friendId: friend.id },
-              });
-              Alert.alert("Success", `${friend.displayName} removed from friends`);
-              refetchFriends();
-            } catch (error: any) {
-              Alert.alert("Error", error.message || "Failed to remove friend");
-            }
-          },
+    Alert.alert("Remove Friend", `Remove ${friend.displayName} from your friends?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Remove",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await removeFriend({
+              variables: { friendId: friend.id },
+            });
+            Alert.alert("Success", `${friend.displayName} removed from friends`);
+            refetchFriends();
+          } catch (error: any) {
+            Alert.alert("Error", error.message || "Failed to remove friend");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleAcceptRequest = async (request: FriendRequest) => {
@@ -139,10 +138,7 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
       console.log("Friend request accepted, refetching data...");
 
       // Refetch both queries to update the UI
-      const [requestsResult, friendsResult] = await Promise.all([
-        refetchRequests(),
-        refetchFriends(),
-      ]);
+      const [requestsResult, friendsResult] = await Promise.all([refetchRequests(), refetchFriends()]);
 
       console.log("Refetch complete - Friends:", friendsResult.data?.myFriends?.length);
       console.log("Refetch complete - Requests:", requestsResult.data?.myFriendRequests?.length);
@@ -188,10 +184,7 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
         <Text style={styles.friendName}>{item.displayName}</Text>
         <Text style={styles.friendEmail}>{item.email}</Text>
       </View>
-      <TouchableOpacity
-        onPress={() => handleRemoveFriend(item)}
-        style={styles.removeButton}
-      >
+      <TouchableOpacity onPress={() => handleRemoveFriend(item)} style={styles.removeButton}>
         <Ionicons name="close-circle" size={24} color="#FF3B30" />
       </TouchableOpacity>
     </TouchableOpacity>
@@ -250,13 +243,10 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Friends</Text>
           <Text style={styles.headerSubtitle}>
-            {friends.length} {friends.length === 1 ? 'friend' : 'friends'}
+            {friends.length} {friends.length === 1 ? "friend" : "friends"}
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={() => setFriendRequestsModalVisible(true)}
-          style={styles.headerButton}
-        >
+        <TouchableOpacity onPress={() => setFriendRequestsModalVisible(true)} style={styles.headerButton}>
           <Ionicons name="notifications-outline" size={24} color="#007AFF" />
           {friendRequests.length > 0 && (
             <View style={styles.notificationBadge}>
@@ -288,9 +278,7 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
           <View style={styles.emptyState}>
             <Ionicons name="people-outline" size={64} color="#C7C7CC" />
             <Text style={styles.emptyStateText}>No friends yet</Text>
-            <Text style={styles.emptyStateSubtext}>
-              Tap "Add Friend" to invite someone
-            </Text>
+            <Text style={styles.emptyStateSubtext}>Tap "Add Friend" to invite someone</Text>
           </View>
         }
       />
@@ -384,9 +372,7 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
                 <View style={styles.emptyState}>
                   <Ionicons name="notifications-off-outline" size={64} color="#C7C7CC" />
                   <Text style={styles.emptyStateText}>No friend requests</Text>
-                  <Text style={styles.emptyStateSubtext}>
-                    You're all caught up!
-                  </Text>
+                  <Text style={styles.emptyStateSubtext}>You're all caught up!</Text>
                 </View>
               }
             />

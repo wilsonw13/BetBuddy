@@ -55,7 +55,7 @@ export default function BetGroupsScreen({ navigation }: any) {
 
   // Fetch bet groups
   const {
-    data: groupsData, 
+    data: groupsData,
     loading: groupsLoading,
     refetch: refetchGroups,
   } = useQuery(GET_MY_BET_GROUPS, {
@@ -63,10 +63,7 @@ export default function BetGroupsScreen({ navigation }: any) {
   });
 
   // Fetch friends for member selection
-  const {
-    data: friendsData,
-    loading: friendsLoading,
-  } = useQuery(GET_MY_FRIENDS, {
+  const { data: friendsData, loading: friendsLoading } = useQuery(GET_MY_FRIENDS, {
     fetchPolicy: "cache-first",
   });
 
@@ -96,23 +93,23 @@ export default function BetGroupsScreen({ navigation }: any) {
       Alert.alert("Error", "Please enter a group name");
       return;
     }
-  
+
     try {
       const input: any = {
         name: newGroupName,
         description: newGroupDescription || null,
       };
-  
+
       if (selectedMembers.length > 0) {
-        input.memberDisplayNames = selectedMembers;  // <-- Changed from memberUsernames
+        input.memberDisplayNames = selectedMembers; // <-- Changed from memberUsernames
       }
-  
+
       console.log("Creating group with input:", input);
-  
+
       const result = await createBetGroup({
         variables: { input },
       });
-  
+
       Alert.alert("Success", `Group "${newGroupName}" created successfully!`);
       setNewGroupName("");
       setNewGroupDescription("");
@@ -128,9 +125,7 @@ export default function BetGroupsScreen({ navigation }: any) {
 
   const toggleMemberSelection = (displayName: string) => {
     setSelectedMembers((prev) =>
-      prev.includes(displayName)
-        ? prev.filter((u) => u !== displayName)
-        : [...prev, displayName]
+      prev.includes(displayName) ? prev.filter((u) => u !== displayName) : [...prev, displayName],
     );
   };
 
@@ -168,7 +163,7 @@ export default function BetGroupsScreen({ navigation }: any) {
 
   const renderFriendSelector = ({ item }: { item: Friend }) => {
     const isSelected = selectedMembers.includes(item.displayName);
-    
+
     return (
       <TouchableOpacity
         style={[styles.friendItem, isSelected && styles.friendItemSelected]}
@@ -176,9 +171,7 @@ export default function BetGroupsScreen({ navigation }: any) {
       >
         <View style={styles.friendInfo}>
           <View style={styles.friendAvatar}>
-            <Text style={styles.friendAvatarText}>
-              {item.displayName.charAt(0).toUpperCase()}
-            </Text>
+            <Text style={styles.friendAvatarText}>{item.displayName.charAt(0).toUpperCase()}</Text>
           </View>
           <View>
             <Text style={styles.friendName}>{item.displayName}</Text>
@@ -255,16 +248,18 @@ export default function BetGroupsScreen({ navigation }: any) {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Create Bet Group</Text>
-              <TouchableOpacity onPress={() => {
-                setCreateGroupModalVisible(false);
-                setNewGroupName("");
-                setNewGroupDescription("");
-                setSelectedMembers([]);
-              }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setCreateGroupModalVisible(false);
+                  setNewGroupName("");
+                  setNewGroupDescription("");
+                  setSelectedMembers([]);
+                }}
+              >
                 <Ionicons name="close" size={28} color="#000" />
               </TouchableOpacity>
             </View>
-            
+
             <ScrollView style={styles.modalBody}>
               <Text style={styles.modalLabel}>Group Name</Text>
               <TextInput
@@ -286,10 +281,8 @@ export default function BetGroupsScreen({ navigation }: any) {
                 textAlignVertical="top"
               />
 
-              <Text style={styles.modalLabel}>
-                Add Members (Optional) - {selectedMembers.length} selected
-              </Text>
-              
+              <Text style={styles.modalLabel}>Add Members (Optional) - {selectedMembers.length} selected</Text>
+
               {friendsLoading ? (
                 <View style={styles.friendsLoading}>
                   <ActivityIndicator size="small" color="#007AFF" />
@@ -302,16 +295,14 @@ export default function BetGroupsScreen({ navigation }: any) {
               ) : (
                 <View style={styles.friendsList}>
                   {friends.map((friend) => (
-                    <View key={friend.id}>
-                      {renderFriendSelector({ item: friend })}
-                    </View>
+                    <View key={friend.id}>{renderFriendSelector({ item: friend })}</View>
                   ))}
                 </View>
               )}
 
-              <TouchableOpacity 
-                style={[styles.modalButton, { marginTop: 20, marginBottom: 20 }]} 
-                onPress={handleCreateGroup} 
+              <TouchableOpacity
+                style={[styles.modalButton, { marginTop: 20, marginBottom: 20 }]}
+                onPress={handleCreateGroup}
                 disabled={creatingGroup}
               >
                 {creatingGroup ? (

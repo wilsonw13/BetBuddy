@@ -10,7 +10,6 @@ export const GET_ME = gql`
       emailVerified
       createdAt
       updatedAt
-      lastLogin
     }
   }
 `;
@@ -261,5 +260,52 @@ export const GET_MY_NOTIFICATIONS = gql`
 export const GET_UNREAD_NOTIFICATION_COUNT = gql`
   query GetUnreadNotificationCount {
     unreadNotificationCount
+  }
+`;
+
+export const GET_GLOBAL_LEADERBOARD = gql`
+  query GetGlobalLeaderboard {
+    globalLeaderboard {
+      userId
+      displayName
+      profileImage
+      leaderboardRank
+      score
+      successRate
+      successfulBets
+      totalBets
+    }
+  }
+`;
+
+export const GET_FRIEND_LEADERBOARD = gql`
+  query GetFriendLeaderboard($ownerId: ID!) {
+    friendLeaderboard(ownerId: $ownerId) {
+      ownerId
+      friendId
+      displayName
+      profileImage
+      leaderboardRank
+      score
+      successRate
+      successfulBets
+      totalBets
+    }
+  }
+`;
+
+export const GET_GROUP_LEADERBOARD = gql`
+  query GetGroupLeaderboard($groupId: ID!) {
+    groupLeaderboard(groupId: $groupId) {
+      memberId
+      displayName
+      profileImage
+      groupId
+      leaderboardRank
+      score
+      successRate
+      successfulBets
+      totalBets
+    }
   }
 `;

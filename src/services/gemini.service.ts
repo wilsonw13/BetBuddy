@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import {readAsStringAsync} from 'expo-file-system/legacy';
+import { readAsStringAsync } from "expo-file-system/legacy";
 
 // Initialize the Gemini AI
 // IMPORTANT: Replace with your actual API key or use environment variables
@@ -8,7 +8,6 @@ const genAI_for_text = new GoogleGenerativeAI(API_KEY_for_text);
 
 const API_KEY_for_image = "AIzaSyAuvUVOtUR_anMcVEVQEdcUy8mw3_C2kLM";
 const genAI_for_image = new GoogleGenerativeAI(API_KEY_for_image);
-
 
 export interface PhotoVerificationResult {
   isSuspicious: boolean;
@@ -24,13 +23,13 @@ export interface PhotoVerificationResult {
  * @returns Verification result with suspicious flag and reasoning
  */
 export async function verifyBetPhoto(imageUri: string, betContext: string): Promise<PhotoVerificationResult> {
-    try {
-        const model = genAI_for_image.getGenerativeModel({ model: "gemini-2.5-flash" });
+  try {
+    const model = genAI_for_image.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-        // Convert image to base64 (in a real app, you'd fetch and convert the image)
-        const imageBase64 = await imageUriToBase64(imageUri);
+    // Convert image to base64 (in a real app, you'd fetch and convert the image)
+    const imageBase64 = await imageUriToBase64(imageUri);
 
-        const prompt = `You are a bet verification assistant. Analyze this image to determine if it's legitimate proof for a bet about: "${betContext}".
+    const prompt = `You are a bet verification assistant. Analyze this image to determine if it's legitimate proof for a bet about: "${betContext}".
 
 Look for signs that this photo might be:
 1. A screenshot from the internet
@@ -53,50 +52,49 @@ Essentially, you are only supposed to care that the apparent location of the pic
 
 Be strict but fair. If the photo looks legitimate, mark it as not suspicious.`;
 
-        const result = await model.generateContent({
-            contents: [
-                {
-                    role: "user",
-                    parts: [
-                        {
-                            inlineData: {
-                                mimeType: "image/jpeg",
-                                data: imageBase64,
-                            },
-                        },
-                        { text: prompt },
-                    ],
-                },
-            ],
-        });
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              inlineData: {
+                mimeType: "image/jpeg",
+                data: imageBase64,
+              },
+            },
+            { text: prompt },
+          ],
+        },
+      ],
+    });
 
-        const text = result.response.text();
+    const text = result.response.text();
 
-        // Parse the JSON response
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            const verification: PhotoVerificationResult = JSON.parse(jsonMatch[0]);
-            return verification;
-        }
-
-        // Fallback if parsing fails
-        return {
-            isSuspicious: false,
-            confidence: 0.5,
-            reason: "Unable to fully analyze the image",
-            suggestions: ["Manual verification recommended"],
-        };
-    } catch (error) {
-        console.error("Error verifying photo with Gemini:", error);
-        return {
-            isSuspicious: false,
-            confidence: 0,
-            reason: "Verification service unavailable",
-            suggestions: ["Please verify manually"],
-        };
+    // Parse the JSON response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const verification: PhotoVerificationResult = JSON.parse(jsonMatch[0]);
+      return verification;
     }
-}
 
+    // Fallback if parsing fails
+    return {
+      isSuspicious: false,
+      confidence: 0.5,
+      reason: "Unable to fully analyze the image",
+      suggestions: ["Manual verification recommended"],
+    };
+  } catch (error) {
+    console.error("Error verifying photo with Gemini:", error);
+    return {
+      isSuspicious: false,
+      confidence: 0,
+      reason: "Verification service unavailable",
+      suggestions: ["Please verify manually"],
+    };
+  }
+}
 
 /**
  * Suggest bet ideas based on user interests and activity history
@@ -152,14 +150,13 @@ Return ONLY a JSON array of strings, like:
   }
 }
 
-
 /**
  * Convert image URI to Base64 string (React Native)
  * @param uri - Image URI (remote URL or local file URI)
  * @returns Base64 encoded string
  */
 export async function imageUriToBase64(uri: string): Promise<string> {
-  if (uri.startsWith('http')) {
+  if (uri.startsWith("http")) {
     // Fetch remote image
     const response = await fetch(uri);
     const blob = await response.blob();
@@ -168,7 +165,7 @@ export async function imageUriToBase64(uri: string): Promise<string> {
       const reader = new FileReader();
       reader.onloadend = () => {
         // reader.result is "data:<mime>;base64,XXXX"
-        const base64 = (reader.result as string).split(',')[1];
+        const base64 = (reader.result as string).split(",")[1];
         resolve(base64);
       };
       reader.onerror = reject;
@@ -176,7 +173,7 @@ export async function imageUriToBase64(uri: string): Promise<string> {
     });
   } else {
     // Local file using legacy import
-    const base64 = await readAsStringAsync(uri, { encoding: 'base64' });
+    const base64 = await readAsStringAsync(uri, { encoding: "base64" });
     return base64;
   }
 }

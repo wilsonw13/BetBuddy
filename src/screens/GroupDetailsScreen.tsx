@@ -73,9 +73,7 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
   const { data: friendsData } = useQuery(GET_MY_FRIENDS);
   const friends = friendsData?.myFriends || [];
 
-  const group: BetGroup | undefined = groupsData?.myBetGroups?.find(
-    (g: BetGroup) => g.id === groupId
-  );
+  const group: BetGroup | undefined = groupsData?.myBetGroups?.find((g: BetGroup) => g.id === groupId);
 
   // Mutations
   const [updateBetGroup, { loading: updating }] = useMutation(UPDATE_BET_GROUP, {
@@ -109,17 +107,13 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
 
   const [leaveGroup, { loading: leaving }] = useMutation(LEAVE_GROUP, {
     onCompleted: () => {
-      Alert.alert("Success", "You have left the group", [
-        { text: "OK", onPress: () => navigation.goBack() },
-      ]);
+      Alert.alert("Success", "You have left the group", [{ text: "OK", onPress: () => navigation.goBack() }]);
     },
   });
 
   const [deleteGroup, { loading: deleting }] = useMutation(DELETE_GROUP, {
     onCompleted: () => {
-      Alert.alert("Success", "Group deleted successfully", [
-        { text: "OK", onPress: () => navigation.goBack() },
-      ]);
+      Alert.alert("Success", "Group deleted successfully", [{ text: "OK", onPress: () => navigation.goBack() }]);
     },
   });
 
@@ -134,7 +128,7 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
 
   // Get friends not already in group
   const availableFriendsToInvite = friends.filter(
-    (friend: any) => !group?.members.some((m) => m.user.id === friend.id)
+    (friend: any) => !group?.members.some((m) => m.user.id === friend.id),
   );
 
   const handleEditGroup = () => {
@@ -195,96 +189,78 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
   };
 
   const handleKickMember = (memberId: string, memberName: string) => {
-    Alert.alert(
-      "Remove Member",
-      `Are you sure you want to remove ${memberName} from this group?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Remove",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await removeGroupMember({
-                variables: { groupId, userId: memberId },
-              });
-            } catch (error: any) {
-              Alert.alert("Error", error.message || "Failed to remove member");
-            }
-          },
+    Alert.alert("Remove Member", `Are you sure you want to remove ${memberName} from this group?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Remove",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await removeGroupMember({
+              variables: { groupId, userId: memberId },
+            });
+          } catch (error: any) {
+            Alert.alert("Error", error.message || "Failed to remove member");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleLeaveGroup = () => {
-    Alert.alert(
-      "Leave Group",
-      "Are you sure you want to leave this group?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Leave",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await leaveGroup({ variables: { groupId } });
-            } catch (error: any) {
-              Alert.alert("Error", error.message || "Failed to leave group");
-            }
-          },
+    Alert.alert("Leave Group", "Are you sure you want to leave this group?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Leave",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await leaveGroup({ variables: { groupId } });
+          } catch (error: any) {
+            Alert.alert("Error", error.message || "Failed to leave group");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleDeleteGroup = () => {
-    Alert.alert(
-      "Delete Group",
-      "Are you sure you want to delete this group? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteGroup({ variables: { groupId } });
-            } catch (error: any) {
-              Alert.alert("Error", error.message || "Failed to delete group");
-            }
-          },
+    Alert.alert("Delete Group", "Are you sure you want to delete this group? This action cannot be undone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteGroup({ variables: { groupId } });
+          } catch (error: any) {
+            Alert.alert("Error", error.message || "Failed to delete group");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleCancelBet = (betId: string, betTitle: string) => {
-    Alert.alert(
-      "Cancel Bet",
-      `Are you sure you want to cancel "${betTitle}"?`,
-      [
-        { text: "No", style: "cancel" },
-        {
-          text: "Yes, Cancel",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await cancelBet({ variables: { betId } });
-            } catch (error: any) {
-              Alert.alert("Error", error.message || "Failed to cancel bet");
-            }
-          },
+    Alert.alert("Cancel Bet", `Are you sure you want to cancel "${betTitle}"?`, [
+      { text: "No", style: "cancel" },
+      {
+        text: "Yes, Cancel",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await cancelBet({ variables: { betId } });
+          } catch (error: any) {
+            Alert.alert("Error", error.message || "Failed to cancel bet");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const toggleMemberToInvite = (displayName: string) => {
     setSelectedMembersToInvite((prev) =>
-      prev.includes(displayName)
-        ? prev.filter((d) => d !== displayName)
-        : [...prev, displayName]
+      prev.includes(displayName) ? prev.filter((d) => d !== displayName) : [...prev, displayName],
     );
   };
 
@@ -302,10 +278,7 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
       <View style={[styles.container, styles.loadingContainer]}>
         <Ionicons name="alert-circle" size={64} color="#FF3B30" />
         <Text style={styles.errorText}>Group not found</Text>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>Go Back</Text>
         </TouchableOpacity>
       </View>
@@ -315,16 +288,12 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
   const renderMember = ({ item }: { item: Member }) => (
     <View style={styles.memberCard}>
       <View style={styles.memberAvatar}>
-        <Text style={styles.memberAvatarText}>
-          {item.user.displayName.charAt(0).toUpperCase()}
-        </Text>
+        <Text style={styles.memberAvatarText}>{item.user.displayName.charAt(0).toUpperCase()}</Text>
       </View>
       <View style={styles.memberInfo}>
         <Text style={styles.memberName}>{item.user.displayName}</Text>
         <Text style={styles.memberEmail}>{item.user.email}</Text>
-        <Text style={styles.memberJoined}>
-          Joined {new Date(item.joinedAt).toLocaleDateString()}
-        </Text>
+        <Text style={styles.memberJoined}>Joined {new Date(item.joinedAt).toLocaleDateString()}</Text>
       </View>
       {group.owner.id === item.user.id && (
         <View style={styles.ownerBadge}>
@@ -346,10 +315,7 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.headerBackButton}
-        >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBackButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
@@ -358,10 +324,7 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
             {group.members.length} {group.members.length === 1 ? "member" : "members"}
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={() => setSettingsModalVisible(true)}
-          style={styles.settingsButton}
-        >
+        <TouchableOpacity onPress={() => setSettingsModalVisible(true)} style={styles.settingsButton}>
           <Ionicons name="settings" size={24} color="#000" />
         </TouchableOpacity>
       </View>
@@ -415,9 +378,7 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
             <View style={styles.emptyState}>
               <Ionicons name="trophy-outline" size={48} color="#C7C7CC" />
               <Text style={styles.emptyStateText}>No bets yet</Text>
-              <Text style={styles.emptyStateSubtext}>
-                Create a bet to get started
-              </Text>
+              <Text style={styles.emptyStateSubtext}>Create a bet to get started</Text>
             </View>
           ) : (
             <View style={styles.betsContainer}>
@@ -529,11 +490,7 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
                 numberOfLines={3}
                 textAlignVertical="top"
               />
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handleSaveEdit}
-                disabled={updating}
-              >
+              <TouchableOpacity style={styles.saveButton} onPress={handleSaveEdit} disabled={updating}>
                 {updating ? (
                   <ActivityIndicator color="white" />
                 ) : (
@@ -556,17 +513,17 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Invite Members</Text>
-              <TouchableOpacity onPress={() => {
-                setInviteMembersModalVisible(false);
-                setSelectedMembersToInvite([]);
-              }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setInviteMembersModalVisible(false);
+                  setSelectedMembersToInvite([]);
+                }}
+              >
                 <Ionicons name="close" size={28} color="#000" />
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalBody}>
-              <Text style={styles.label}>
-                Select Friends to Invite ({selectedMembersToInvite.length} selected)
-              </Text>
+              <Text style={styles.label}>Select Friends to Invite ({selectedMembersToInvite.length} selected)</Text>
               {availableFriendsToInvite.length === 0 ? (
                 <View style={styles.emptyState}>
                   <Text style={styles.emptyStateText}>All friends are already members</Text>
@@ -581,9 +538,7 @@ export default function GroupDetailsScreen({ route, navigation }: any) {
                       onPress={() => toggleMemberToInvite(friend.displayName)}
                     >
                       <View style={styles.friendAvatar}>
-                        <Text style={styles.friendAvatarText}>
-                          {friend.displayName.charAt(0).toUpperCase()}
-                        </Text>
+                        <Text style={styles.friendAvatarText}>{friend.displayName.charAt(0).toUpperCase()}</Text>
                       </View>
                       <View style={styles.friendInfo}>
                         <Text style={styles.friendName}>{friend.displayName}</Text>

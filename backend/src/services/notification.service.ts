@@ -1,4 +1,4 @@
-import { prisma } from "../index";
+import { prisma } from "@/config/prisma";
 
 export interface CreateNotificationInput {
   userId: string;
@@ -24,7 +24,7 @@ export async function createNotification(input: CreateNotificationInput) {
 
 export async function createNotificationForMultipleUsers(
   userIds: string[],
-  input: Omit<CreateNotificationInput, "userId">
+  input: Omit<CreateNotificationInput, "userId">,
 ) {
   return await prisma.notification.createMany({
     data: userIds.map((userId) => ({

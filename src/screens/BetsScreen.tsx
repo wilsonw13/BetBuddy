@@ -14,8 +14,8 @@ import {
   SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Bet, BetFrequency, ProofType } from "@/types";
-import { suggestBets } from "@/services/geminiService";
+import { BetFrequency, ProofType } from "@types";
+import { suggestBets } from "@/services/gemini.service";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_MY_FRIENDS, GET_MY_BET_GROUPS, GET_MY_BETS, GET_ME } from "@/graphql/queries";
 import { CREATE_BET } from "@/graphql/mutations";
@@ -65,17 +65,17 @@ export default function BetsScreen({ navigation }: any) {
   // Filter out cancelled, completed bets, and bets where user declined
   const bets = allBets.filter((bet: any) => {
     // Debug: log all bet statuses
-    if (bet.status === 'cancelled') {
+    if (bet.status === "cancelled") {
       console.log("FILTERING OUT cancelled bet:", bet.id, bet.title);
     }
 
-    if (bet.status === 'cancelled' || bet.status === 'completed') {
+    if (bet.status === "cancelled" || bet.status === "completed") {
       return false;
     }
 
     // Check if current user declined this bet
     const userParticipant = bet.participants?.find((p: any) => p.user.id === currentUserId);
-    if (userParticipant && userParticipant.status === 'declined') {
+    if (userParticipant && userParticipant.status === "declined") {
       return false;
     }
 
@@ -123,7 +123,7 @@ export default function BetsScreen({ navigation }: any) {
 
   const parseSuggestionToFrequency = (suggestion: string): BetFrequency => {
     const lowerSuggestion = suggestion.toLowerCase();
-    if (lowerSuggestion.includes("daily") || lowerSuggestion.includes("every day")) return "daily";
+    if (lowerSuggestion.includes("daily") || lowerSuggestion.includes("every day")) return "1x/day";
     if (lowerSuggestion.includes("4x") || lowerSuggestion.includes("4 times")) return "4x/week";
     if (lowerSuggestion.includes("3x") || lowerSuggestion.includes("3 times")) return "3x/week";
     if (lowerSuggestion.includes("2x") || lowerSuggestion.includes("twice")) return "2x/week";
@@ -234,11 +234,12 @@ export default function BetsScreen({ navigation }: any) {
     const daysLeft = Math.ceil((endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
     // Get participant names (excluding the current user if possible)
-    const participantNames = item.participants
-      ?.map((p: any) => p.user.displayName)
-      .filter((name: string, index: number, self: string[]) => self.indexOf(name) === index)
-      .slice(0, 2)
-      .join(", ") || "Unknown";
+    const participantNames =
+      item.participants
+        ?.map((p: any) => p.user.displayName)
+        .filter((name: string, index: number, self: string[]) => self.indexOf(name) === index)
+        .slice(0, 2)
+        .join(", ") || "Unknown";
 
     return (
       <TouchableOpacity
@@ -373,11 +374,7 @@ export default function BetsScreen({ navigation }: any) {
                     style={[styles.betModeButton, betMode === "individual" && styles.betModeButtonActive]}
                     onPress={() => setBetMode("individual")}
                   >
-                    <Ionicons
-                      name="people"
-                      size={18}
-                      color={betMode === "individual" ? "#007AFF" : "#8E8E93"}
-                    />
+                    <Ionicons name="people" size={18} color={betMode === "individual" ? "#007AFF" : "#8E8E93"} />
                     <Text style={[styles.betModeText, betMode === "individual" && styles.betModeTextActive]}>
                       Individual Friends
                     </Text>
@@ -386,14 +383,8 @@ export default function BetsScreen({ navigation }: any) {
                     style={[styles.betModeButton, betMode === "group" && styles.betModeButtonActive]}
                     onPress={() => setBetMode("group")}
                   >
-                    <Ionicons
-                      name="people-circle"
-                      size={18}
-                      color={betMode === "group" ? "#007AFF" : "#8E8E93"}
-                    />
-                    <Text style={[styles.betModeText, betMode === "group" && styles.betModeTextActive]}>
-                      Bet Group
-                    </Text>
+                    <Ionicons name="people-circle" size={18} color={betMode === "group" ? "#007AFF" : "#8E8E93"} />
+                    <Text style={[styles.betModeText, betMode === "group" && styles.betModeTextActive]}>Bet Group</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -402,7 +393,11 @@ export default function BetsScreen({ navigation }: any) {
                     {selectedFriends.length > 0 && (
                       <View style={styles.selectedFriendsContainer}>
                         <Text style={styles.selectedFriendsLabel}>Selected ({selectedFriends.length})</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectedFriendsScroll}>
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          style={styles.selectedFriendsScroll}
+                        >
                           {selectedFriends.map((friend) => (
                             <TouchableOpacity
                               key={friend.id}
@@ -481,10 +476,7 @@ export default function BetsScreen({ navigation }: any) {
                 ) : (
                   <>
                     {selectedGroup ? (
-                      <TouchableOpacity
-                        style={styles.selectedGroupContainer}
-                        onPress={() => setSelectedGroup(null)}
-                      >
+                      <TouchableOpacity style={styles.selectedGroupContainer} onPress={() => setSelectedGroup(null)}>
                         <View style={styles.selectedGroupInfo}>
                           <Ionicons name="people-circle" size={32} color="#007AFF" />
                           <View style={styles.selectedGroupDetails}>

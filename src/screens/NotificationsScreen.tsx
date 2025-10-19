@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_MY_NOTIFICATIONS, GET_UNREAD_NOTIFICATION_COUNT, GET_MY_BETS } from "@/graphql/queries";
@@ -32,11 +24,7 @@ interface Notification {
 }
 
 export default function NotificationsScreen({ navigation }: any) {
-  const {
-    data,
-    loading,
-    refetch,
-  } = useQuery(GET_MY_NOTIFICATIONS, {
+  const { data, loading, refetch } = useQuery(GET_MY_NOTIFICATIONS, {
     fetchPolicy: "network-only",
   });
 
@@ -67,10 +55,7 @@ export default function NotificationsScreen({ navigation }: any) {
   });
 
   const [acceptBet] = useMutation(ACCEPT_BET, {
-    refetchQueries: [
-      { query: GET_MY_BETS },
-      { query: GET_MY_NOTIFICATIONS },
-    ],
+    refetchQueries: [{ query: GET_MY_BETS }, { query: GET_MY_NOTIFICATIONS }],
     awaitRefetchQueries: true,
     onCompleted: () => {
       Alert.alert("Success", "Bet accepted!");
@@ -79,10 +64,7 @@ export default function NotificationsScreen({ navigation }: any) {
   });
 
   const [declineBet] = useMutation(DECLINE_BET, {
-    refetchQueries: [
-      { query: GET_MY_BETS },
-      { query: GET_MY_NOTIFICATIONS },
-    ],
+    refetchQueries: [{ query: GET_MY_BETS }, { query: GET_MY_NOTIFICATIONS }],
     awaitRefetchQueries: true,
     onCompleted: () => {
       Alert.alert("Success", "Bet declined");
@@ -171,16 +153,10 @@ export default function NotificationsScreen({ navigation }: any) {
       onPress={() => handleNotificationPress(item)}
     >
       <View style={styles.notificationIcon}>
-        <Ionicons
-          name={getNotificationIcon(item.type)}
-          size={24}
-          color={item.isRead ? "#8E8E93" : "#007AFF"}
-        />
+        <Ionicons name={getNotificationIcon(item.type)} size={24} color={item.isRead ? "#8E8E93" : "#007AFF"} />
       </View>
       <View style={styles.notificationContent}>
-        <Text style={[styles.notificationTitle, !item.isRead && styles.notificationTitleUnread]}>
-          {item.title}
-        </Text>
+        <Text style={[styles.notificationTitle, !item.isRead && styles.notificationTitleUnread]}>{item.title}</Text>
         <Text style={styles.notificationMessage}>{item.message}</Text>
 
         {/* Show bet details if it's a bet invitation */}
@@ -250,14 +226,9 @@ export default function NotificationsScreen({ navigation }: any) {
           </TouchableOpacity>
         )}
 
-        <Text style={styles.notificationTime}>
-          {new Date(item.createdAt).toLocaleString()}
-        </Text>
+        <Text style={styles.notificationTime}>{new Date(item.createdAt).toLocaleString()}</Text>
       </View>
-      <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={() => handleDelete(item.id)}
-      >
+      <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
         <Ionicons name="close" size={20} color="#8E8E93" />
       </TouchableOpacity>
     </TouchableOpacity>
@@ -304,9 +275,7 @@ export default function NotificationsScreen({ navigation }: any) {
           <View style={styles.emptyState}>
             <Ionicons name="notifications-off-outline" size={64} color="#C7C7CC" />
             <Text style={styles.emptyStateText}>No notifications</Text>
-            <Text style={styles.emptyStateSubtext}>
-              You're all caught up!
-            </Text>
+            <Text style={styles.emptyStateSubtext}>You're all caught up!</Text>
           </View>
         }
       />

@@ -13,7 +13,7 @@ generator client {
 view leaderboard_global {
   user_id         String
   displayName     String
-  profileImage    String?
+  profileImage    String
   leaderboardRank Int
   score           Int
   successRate     Float
@@ -27,7 +27,7 @@ view leaderboard_friends {
   owner_id        String
   friend_id       String
   displayName     String
-  profileImage    String?
+  profileImage    String
   leaderboardRank Int
   score           Int
   successRate     Float
@@ -38,10 +38,9 @@ view leaderboard_friends {
 }
 
 view leaderboard_group {
-  owner_id        String
   member_id       String
   displayName     String
-  profileImage    String?
+  profileImage    String
   group_id        String
   leaderboardRank Int
   score           Int
@@ -49,7 +48,7 @@ view leaderboard_group {
   successfulBets  Int
   totalBets       Int
 
-  @@unique([owner_id, member_id, group_id])
+  @@unique([member_id, group_id])
 }
 
 datasource db {
@@ -60,11 +59,10 @@ datasource db {
 model User {
   id                 String     @id @default(uuid())
   email              String     @unique
-  passwordHash       String?    @map("password_hash")
-  googleId           String?    @unique @map("google_id")
+  passwordHash       String     @map("password_hash")
   displayName        String     @unique @map("display_name")
-  profileImage       String?    @map("profile_image")
-  bannerImage        String?    @map("banner_image")
+  profileImage       String     @map("profile_image")
+  bannerImage        String     @map("banner_image")
   emailVerified      Boolean    @default(false) @map("email_verified")
   points             Int        @default(0)
   placeholderMoney   Float      @default(100) @map("placeholder_money")
@@ -85,7 +83,6 @@ model User {
   notifications          Notification[]
 
   @@index([email])
-  @@index([googleId])
   @@index([displayName])
   @@map("users")
 }
@@ -145,7 +142,7 @@ model Friendship {
 model BetGroup {
   id          String   @id @default(uuid())
   name        String
-  description String?
+  description String   @default("")
   ownerId     String   @map("owner_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -178,7 +175,7 @@ model BetGroupMember {
 model Bet {
   id              String    @id @default(uuid())
   title           String
-  description     String?
+  description     String    @default("")
   betActivity     String    @map("bet_activity")
   proofType       String    @map("proof_type")
   frequency       String
@@ -238,7 +235,7 @@ model BetProof {
   betId                   String    @map("bet_id")
   userId                  String    @map("user_id")
   proofType               String    @map("proof_type")
-  imageUrl                String?   @map("image_url")
+  image                   String?
   latitude                Float?
   longitude               Float?
   address                 String?

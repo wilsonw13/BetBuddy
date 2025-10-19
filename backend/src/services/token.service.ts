@@ -1,8 +1,8 @@
-import jwt from "jsonwebtoken";
+import jwt, { Secret, SignOptions } from "jsonwebtoken";
 import crypto from "crypto";
 import { prisma } from "@/config/prisma";
-import { TokenPayload } from "@/types";
 import { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, JWT_ACCESS_EXPIRES_IN, JWT_REFRESH_EXPIRES_IN } from "@/config/env";
+import { TokenPayload } from "@types";
 
 export class TokenService {
   private accessSecret: string;
@@ -11,8 +11,8 @@ export class TokenService {
   private refreshExpiresIn: string;
 
   constructor() {
-    this.accessSecret = JWT_ACCESS_SECRET || "access_secret";
-    this.refreshSecret = JWT_REFRESH_SECRET || "refresh_secret";
+    this.accessSecret = JWT_ACCESS_SECRET;
+    this.refreshSecret = JWT_REFRESH_SECRET;
     this.accessExpiresIn = JWT_ACCESS_EXPIRES_IN || "15m";
     this.refreshExpiresIn = JWT_REFRESH_EXPIRES_IN || "7d";
   }
@@ -25,9 +25,13 @@ export class TokenService {
       type: "access",
     };
 
-    return jwt.sign(payload, this.accessSecret, {
-      expiresIn: this.accessExpiresIn,
-    });
+    return jwt.sign(
+      payload,
+      this.accessSecret as Secret,
+      {
+        expiresIn: this.accessExpiresIn,
+      } as SignOptions,
+    );
   }
 
   // Generate refresh token (long-lived)
@@ -38,9 +42,13 @@ export class TokenService {
       type: "refresh",
     };
 
-    const token = jwt.sign(payload, this.refreshSecret, {
-      expiresIn: this.refreshExpiresIn,
-    });
+    const token = jwt.sign(
+      payload,
+      this.refreshSecret as Secret,
+      {
+        expiresIn: this.refreshExpiresIn,
+      } as SignOptions,
+    );
 
     // Hash and store refresh token in database
     const tokenHash = this.hashToken(token);

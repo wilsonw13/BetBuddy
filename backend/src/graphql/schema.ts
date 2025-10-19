@@ -8,11 +8,10 @@ export const typeDefs = gql`
     id: ID!
     email: String!
     displayName: String!
-    profilePicture: String
+    profileImage: String
     emailVerified: Boolean!
     createdAt: DateTime!
     updatedAt: DateTime!
-    lastLogin: DateTime
   }
 
   type AuthPayload {
@@ -44,7 +43,8 @@ export const typeDefs = gql`
     id: ID!
     email: String!
     displayName: String!
-    profilePicture: String
+    profileImage: String
+    bannerImage: String
     createdAt: DateTime!
   }
 
@@ -59,6 +59,7 @@ export const typeDefs = gql`
     name: String!
     description: String
     owner: User!
+    bannerImage: String
     members: [BetGroupMember!]!
     bets: [Bet!]!
     createdAt: DateTime!
@@ -73,7 +74,7 @@ export const typeDefs = gql`
     proofType: String!
     frequency: String!
     betLength: Int!
-    pointsStaked: Int!
+    moneyStaked: Float!
     startDate: DateTime!
     endDate: DateTime!
     status: String!
@@ -124,6 +125,41 @@ export const typeDefs = gql`
     createdAt: DateTime!
   }
 
+  type LeaderboardEntry {
+    userId: ID!
+    displayName: String!
+    profileImage: String!
+    leaderboardRank: Int!
+    score: Int!
+    successRate: Float!
+    successfulBets: Int!
+    totalBets: Int!
+  }
+
+  type FriendLeaderboardEntry {
+    ownerId: ID!
+    friendId: ID!
+    displayName: String!
+    profileImage: String!
+    leaderboardRank: Int!
+    score: Int!
+    successRate: Float!
+    successfulBets: Int!
+    totalBets: Int!
+  }
+
+  type GroupLeaderboardEntry {
+    memberId: ID!
+    displayName: String!
+    profileImage: String!
+    groupId: ID!
+    leaderboardRank: Int!
+    score: Int!
+    successRate: Float!
+    successfulBets: Int!
+    totalBets: Int!
+  }
+
   input RegisterInput {
     email: String!
     password: String!
@@ -133,10 +169,6 @@ export const typeDefs = gql`
   input LoginInput {
     email: String!
     password: String!
-  }
-
-  input GoogleAuthInput {
-    idToken: String!
   }
 
   input RefreshTokenInput {
@@ -156,7 +188,7 @@ export const typeDefs = gql`
     proofType: String!
     frequency: String!
     betLength: Int!
-    pointsStaked: Int!
+    moneyStaked: Int!
     startDate: DateTime!
     participantDisplayNames: [String!]
     groupId: ID
@@ -192,12 +224,15 @@ export const typeDefs = gql`
 
     myBetGroups: [BetGroup!]!
     betGroup(id: ID!): BetGroup
+
+    globalLeaderboard: [LeaderboardEntry!]!
+    friendLeaderboard(ownerId: ID!): [FriendLeaderboardEntry!]!
+    groupLeaderboard(groupId: ID!): [GroupLeaderboardEntry!]!
   }
 
   type Mutation {
     register(input: RegisterInput!): AuthPayload!
     login(input: LoginInput!): AuthPayload!
-    googleAuth(input: GoogleAuthInput!): AuthPayload!
     refreshToken(input: RefreshTokenInput!): TokenPayload!
     logout(refreshToken: String!): SuccessResponse!
     logoutAll: SuccessResponse!

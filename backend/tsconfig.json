@@ -4,7 +4,6 @@
     "module": "commonjs",
     "lib": ["ES2020"],
     "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -15,10 +14,15 @@
     "declarationMap": true,
     "sourceMap": true,
     "types": ["node", "jest"],
+    "rootDir": "../",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@types": [
+        "../types" // automatically uses index.ts
+      ]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../types"],
   "exclude": ["node_modules", "dist"]
 }

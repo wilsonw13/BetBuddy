@@ -2,11 +2,11 @@ import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import { typeDefs } from "@/graphql/schema";
 import { resolvers } from "@/graphql/resolvers";
-import { tokenService } from "@/services/tokenService";
+import { tokenService } from "@/services/token.service";
 import { disconnectPrisma } from "@/config/prisma";
 import { NODE_ENV, HOST, PORT } from "@/config/env";
-import { Context } from "@/types";
-import { seedDatabase } from "@/config/dbStartup";
+import { seedDatabase } from "@/config/seedDatabase";
+import { Context } from "@types";
 
 const server = new ApolloServer({
   typeDefs,
