@@ -238,6 +238,7 @@ export const typeDefs = gql`
     myFriends: [Friend!]!
     myFriendRequests: [FriendRequest!]!
     sentFriendRequests: [FriendRequest!]!
+    geminiSuggestBets(userInterests: [String!]!, pastBets: [String!]!): [String!]!
 
     myBets: [Bet!]!
     pendingBets: [Bet!]!
@@ -293,5 +294,6 @@ export const typeDefs = gql`
 
     updateProfileImage(image: String!): UpdateProfileImageResponse!
     updateBannerImage(image: String!): UpdateProfileImageResponse!
+    geminiVerifyBetPhoto(imageUrl: String!, betContext: String!): JSON
   }
 `;

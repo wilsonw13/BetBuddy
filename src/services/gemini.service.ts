@@ -1,14 +1,3 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { readAsStringAsync } from "expo-file-system/legacy";
-
-// Initialize the Gemini AI
-// IMPORTANT: Replace with your actual API key or use environment variables
-const API_KEY_for_text = "AIzaSyBW7eZfYb0_p9uIj5jBMTF5N30T0xZE6ow";
-const genAI_for_text = new GoogleGenerativeAI(API_KEY_for_text);
-
-const API_KEY_for_image = "AIzaSyAuvUVOtUR_anMcVEVQEdcUy8mw3_C2kLM";
-const genAI_for_image = new GoogleGenerativeAI(API_KEY_for_image);
-
 export interface PhotoVerificationResult {
   isSuspicious: boolean;
   confidence: number;
@@ -16,166 +5,33 @@ export interface PhotoVerificationResult {
   suggestions: string[];
 }
 
-/**
- * Verify a photo for bet proof using Gemini AI
- * @param imageUri - The URI of the image to verify
- * @param betContext - Context about the bet (e.g., "gym workout", "running")
- * @returns Verification result with suspicious flag and reasoning
- */
-export async function verifyBetPhoto(imageUri: string, betContext: string): Promise<PhotoVerificationResult> {
-  try {
-    const model = genAI_for_image.getGenerativeModel({ model: "gemini-2.5-flash" });
+import { gql } from "@apollo/client";
+import { apolloClient } from "../config/apolloClient";
 
-    // Convert image to base64 (in a real app, you'd fetch and convert the image)
-    const imageBase64 = await imageUriToBase64(imageUri);
-
-    const prompt = `You are a bet verification assistant. Analyze this image to determine if it's legitimate proof for a bet about: "${betContext}".
-
-Look for signs that this photo might be:
-1. A screenshot from the internet
-2. An old photo being reused
-3. Not actually showing the claimed activity
-4. Manipulated or edited
-5. Not matching the bet requirements
-
-Respond in JSON format with:
-{
-  "isSuspicious": boolean,
-  "confidence": number (0-1),
-  "reason": "Brief explanation",
-  "suggestions": ["suggestion1", "suggestion2"]
-}
-
-Because you are verifying a single instance, you are not to care about frequency in the betting.
-These photos are also generally not meant to be selfies, so you should not hold the fact that the bettor is not in the picture against them.
-Essentially, you are only supposed to care that the apparent location of the picture is an appropriate place to complete the bet.
-
-Be strict but fair. If the photo looks legitimate, mark it as not suspicious.`;
-
-    const result = await model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              inlineData: {
-                mimeType: "image/jpeg",
-                data: imageBase64,
-              },
-            },
-            { text: prompt },
-          ],
-        },
-      ],
-    });
-
-    const text = result.response.text();
-
-    // Parse the JSON response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const verification: PhotoVerificationResult = JSON.parse(jsonMatch[0]);
-      return verification;
+export async function verifyBetPhoto(imageUrl: string, betContext: string): Promise<PhotoVerificationResult> {
+  const mutation = gql`
+    mutation GeminiVerifyBetPhoto($imageUrl: String!, $betContext: String!) {
+      geminiVerifyBetPhoto(imageUrl: $imageUrl, betContext: $betContext)
     }
-
-    // Fallback if parsing fails
-    return {
-      isSuspicious: false,
-      confidence: 0.5,
-      reason: "Unable to fully analyze the image",
-      suggestions: ["Manual verification recommended"],
-    };
-  } catch (error) {
-    console.error("Error verifying photo with Gemini:", error);
-    return {
-      isSuspicious: false,
-      confidence: 0,
-      reason: "Verification service unavailable",
-      suggestions: ["Please verify manually"],
-    };
-  }
+  `;
+  const { data } = await apolloClient.mutate({
+    mutation,
+    variables: { imageUrl, betContext },
+  });
+  return data.geminiVerifyBetPhoto;
 }
 
-/**
- * Suggest bet ideas based on user interests and activity history
- * @param userInterests - Array of user interests
- * @param pastBets - Array of past bet activities
- * @returns Array of suggested bet activities
- */
 export async function suggestBets(userInterests: string[], pastBets: string[]): Promise<string[]> {
-  try {
-    const model = genAI_for_text.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-    const prompt = `You are a bet suggestion assistant. Based on these user interests: ${userInterests.join(
-      ", ",
-    )} and past bets: ${pastBets.join(", ")}, suggest 5 creative and achievable bet ideas.
-
-Requirements:
-- Bets should be measurable and verifiable
-- Include a mix of fitness, productivity, and lifestyle activities
-- Make them challenging but achievable
-- Avoid repeating past bets exactly
-
-Return ONLY a JSON array of strings, like:
-["Bet idea 1", "Bet idea 2", "Bet idea 3", "Bet idea 4", "Bet idea 5"]`;
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-
-    // Parse the JSON response
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (jsonMatch) {
-      const suggestions: string[] = JSON.parse(jsonMatch[0]);
-      return suggestions;
+  const query = gql`
+    query GeminiSuggestBets($userInterests: [String!]!, $pastBets: [String!]!) {
+      geminiSuggestBets(userInterests: $userInterests, pastBets: $pastBets)
     }
-
-    // Fallback suggestions
-    return [
-      "Go to gym 3x per week",
-      "Read for 30 minutes daily",
-      "Cook at home 5 days a week",
-      "Run 10 miles per week",
-      "Meditate 10 minutes daily",
-    ];
-  } catch (error) {
-    console.error("Error generating bet suggestions:", error);
-    return [
-      "Go to gym 3x per week",
-      "Read for 30 minutes daily",
-      "Cook at home 5 days a week",
-      "Run 10 miles per week",
-      "Meditate 10 minutes daily",
-    ];
-  }
-}
-
-/**
- * Convert image URI to Base64 string (React Native)
- * @param uri - Image URI (remote URL or local file URI)
- * @returns Base64 encoded string
- */
-export async function imageUriToBase64(uri: string): Promise<string> {
-  if (uri.startsWith("http")) {
-    // Fetch remote image
-    const response = await fetch(uri);
-    const blob = await response.blob();
-
-    return await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        // reader.result is "data:<mime>;base64,XXXX"
-        const base64 = (reader.result as string).split(",")[1];
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  } else {
-    // Local file using legacy import
-    const base64 = await readAsStringAsync(uri, { encoding: "base64" });
-    return base64;
-  }
+  `;
+  const { data } = await apolloClient.query({
+    query,
+    variables: { userInterests, pastBets },
+  });
+  return data.geminiSuggestBets;
 }
 
 export default {
