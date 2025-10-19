@@ -3,6 +3,7 @@ INSTRUCTIONS FOR AI AGENTS:
 Whenever you update this file, also update:
   - backend/prisma/schema.prisma
   - docs/tables.md
+  - backend/prisma/migrations/views_and_functions.sql
 to ensure all seed data, schema, and documentation are consistent.
 */
 

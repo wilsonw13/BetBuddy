@@ -62,5 +62,6 @@ web-build/
 # TypeScript
 *.tsbuildinfo
 
-# Prisma Migrations
-**/prisma/migrations
+# Track custom SQL migrations, ignore Prisma-generated migrations
+**/prisma/migrations/*
+!**/prisma/migrations/*.sql

@@ -3,14 +3,37 @@ INSTRUCTIONS FOR AI AGENTS:
 Whenever you update this file, also update:
 	- backend/prisma/schema.prisma
 	- backend/src/config/dbStartup.ts
-to ensure all documentation, schema, and seed data are consistent.
+	- backend/prisma/migrations/views_and_functions.sql
+to ensure all documentation, schema, seed data, and views/functions are consistent.
 
 Whenever you update this file changes, update this file to:
 1. Sort all tables alphabetically by name.
 2. For each table, briefly explain its purpose.
 3. For each field, briefly explain its name, type, and purpose.
 4. Ensure formatting matches the current style (table name as heading, purpose, then fields list).
+5. Whenever you update any view or function, also update backend/prisma/migrations/views_and_functions.sql.
 -->
+
+## VIEWS
+
+Purpose: Database views for computed or aggregated data (e.g., user profiles, leaderboards).
+Instructions: Whenever you update any view, also update: - backend/prisma/migrations/views_and_functions.sql - backend/prisma/schema.prisma (if view columns/types affect Prisma models) - backend/src/config/dbStartup.ts (if seed logic interacts with views)
+
+List views here with a brief description and their columns:
+
+- `user_profile_view`: Aggregated user profile data for frontend use.
+  - Columns: id, displayName, profileImage, bannerImage, points, placeholderMoney, ...
+- `leaderboard_view`: Leaderboard data with computed scores.
+  - Columns: userId, displayName, score, rank, ...
+
+## FUNCTIONS
+
+Purpose: Database functions for custom logic (e.g., score calculation).
+Instructions: Whenever you update any function, also update: - backend/prisma/migrations/views_and_functions.sql
+
+List functions here with a brief description and their parameters/return types:
+
+- `calculate_user_score(userId TEXT) RETURNS INTEGER`: Computes leaderboard score for a user.
 
 ## `bets`
 

@@ -2,6 +2,7 @@
 // Whenever you update this file, also update:
 //   - docs/tables.md
 //   - backend/src/config/dbStartup.ts
+//   - backend/prisma/migrations/views_and_functions.sql
 // to ensure all schema, documentation, and seed data are consistent.
 
 generator client {
