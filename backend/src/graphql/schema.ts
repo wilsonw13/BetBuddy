@@ -9,6 +9,7 @@ export const typeDefs = gql`
     email: String!
     displayName: String!
     profileImage: String
+    bannerImage: String
     emailVerified: Boolean!
     createdAt: DateTime!
     updatedAt: DateTime!

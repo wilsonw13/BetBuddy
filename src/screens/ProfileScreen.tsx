@@ -85,6 +85,7 @@ const getRankInfo = (rank: UserRank) => {
 
 export default function ProfileScreen({ navigation }: any) {
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
+
   const { data, loading, error } = useQuery(GET_ME);
   const [, setUser] = useState<User | null>(null);
   const [shopModalVisible, setShopModalVisible] = useState(false);
@@ -113,7 +114,7 @@ export default function ProfileScreen({ navigation }: any) {
   }
 
   const currentUser = data.me;
-
+ // console.log("Current User Data:", data.me);
   // Mock data for now since the backend doesn't have these fields yet
   const user = {
     ...currentUser,
@@ -123,9 +124,19 @@ export default function ProfileScreen({ navigation }: any) {
     successRate: 0.68,
     successfulBets: 17,
     totalBets: 25,
-    bannerImage: null,
+    bannerImage: currentUser.bannerImage
+      ? currentUser.bannerImage.startsWith("data:")
+        ? currentUser.bannerImage
+        : `data:image/png;base64,${currentUser.bannerImage}`
+      : null,
     friendGroups: ["Friends", "Groups"],
+    profileImage: currentUser.profileImage
+      ? currentUser.profileImage.startsWith("data:")
+        ? currentUser.profileImage
+        : `data:image/png;base64,${currentUser.profileImage}`
+      : null,
   };
+ //console.log(user)
 
   const rankInfo = getRankInfo(user.rank);
   const unreadCount = notificationData?.unreadNotificationCount || 0;

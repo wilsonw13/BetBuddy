@@ -7,9 +7,11 @@ export const GET_ME = gql`
       email
       displayName
       profileImage
+      bannerImage
       emailVerified
       createdAt
       updatedAt
+      
     }
   }
 `;
