@@ -145,7 +145,7 @@ export const typeDefs = gql`
     betLength: Int!
     pointsStaked: Int!
     startDate: DateTime!
-    participantDisplayNames: [String!]!
+    participantDisplayNames: [String!]
     groupId: ID
   }
 

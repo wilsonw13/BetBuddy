@@ -1291,23 +1291,77 @@ export const resolvers = {
         groupId,
       } = input;
 
+      // Validate that either participantDisplayNames or groupId is provided
+      if (!participantDisplayNames && !groupId) {
+        throw new GraphQLError("Either participantDisplayNames or groupId must be provided", {
+          extensions: { code: "BAD_USER_INPUT" },
+        });
+      }
+
       // Calculate end date
       const start = new Date(startDate);
       const end = new Date(start.getTime() + betLength * 24 * 60 * 60 * 1000);
 
-      // Find all participants by displayName
-      const participants = await prisma.user.findMany({
-        where: {
-          displayName: {
-            in: participantDisplayNames,
-          },
-        },
-      });
+      let participants: any[] = [];
 
-      if (participants.length !== participantDisplayNames.length) {
-        throw new GraphQLError("One or more participant display names not found", {
-          extensions: { code: "USER_NOT_FOUND" },
+      // If groupId is provided, get all members from the group
+      if (groupId) {
+        const group = await prisma.betGroup.findUnique({
+          where: { id: groupId },
+          include: {
+            members: {
+              include: {
+                user: true,
+              },
+            },
+          },
         });
+
+        if (!group) {
+          throw new GraphQLError("Bet group not found", {
+            extensions: { code: "GROUP_NOT_FOUND" },
+          });
+        }
+
+        // Add all group members as participants, plus the creator if not already in group
+        participants = group.members.map((member) => member.user);
+
+        // Check if creator is in the group members
+        const creatorInGroup = participants.some((p) => p.id === context.user!.userId);
+        if (!creatorInGroup) {
+          const creator = await prisma.user.findUnique({
+            where: { id: context.user.userId },
+          });
+          if (creator) {
+            participants.push(creator);
+          }
+        }
+      } else if (participantDisplayNames && participantDisplayNames.length > 0) {
+        // Find all participants by displayName
+        participants = await prisma.user.findMany({
+          where: {
+            displayName: {
+              in: participantDisplayNames,
+            },
+          },
+        });
+
+        if (participants.length !== participantDisplayNames.length) {
+          throw new GraphQLError("One or more participant display names not found", {
+            extensions: { code: "USER_NOT_FOUND" },
+          });
+        }
+
+        // Ensure creator is included in participants
+        const creatorIncluded = participants.some((p) => p.id === context.user!.userId);
+        if (!creatorIncluded) {
+          const creator = await prisma.user.findUnique({
+            where: { id: context.user.userId },
+          });
+          if (creator) {
+            participants.push(creator);
+          }
+        }
       }
 
       // Create bet with participants
