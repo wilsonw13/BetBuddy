@@ -6,5 +6,6 @@
       "@/*": ["./src/*"],
       "@types": ["./types"]
     }
-  }
+  },
+  "include": ["src"]
 }

@@ -220,8 +220,8 @@ export default function ProfileScreen({ navigation }: any) {
 
       <View style={styles.profileSection}>
         <View style={styles.avatarContainer}>
-          {user.profilePicture ? (
-            <Image source={{ uri: user.profilePicture }} style={styles.avatar} />
+          {user.profileImage ? (
+            <Image source={{ uri: user.profileImage }} style={styles.avatar} />
           ) : (
             <View style={[styles.avatar, styles.avatarPlaceholder]}>
               <Ionicons name="person" size={48} color="#8E8E93" />

@@ -10,7 +10,8 @@
     "start:android": "expo start --android",
     "start:ios": "expo start --ios",
     "start:web": "expo start --web",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@apollo/client": "3.13.0",

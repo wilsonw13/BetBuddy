@@ -6,7 +6,7 @@ export const GET_ME = gql`
       id
       email
       displayName
-      profilePicture
+      profileImage
       emailVerified
       createdAt
       updatedAt
@@ -26,7 +26,7 @@ export const GET_MY_FRIENDS = gql`
       id
       email
       displayName
-      profilePicture
+      profileImage
       createdAt
     }
   }
@@ -41,7 +41,7 @@ export const GET_MY_FRIEND_REQUESTS = gql`
         id
         email
         displayName
-        profilePicture
+        profileImage
       }
       createdAt
       updatedAt
@@ -58,7 +58,7 @@ export const GET_SENT_FRIEND_REQUESTS = gql`
         id
         email
         displayName
-        profilePicture
+        profileImage
       }
       createdAt
       updatedAt
@@ -76,7 +76,7 @@ export const GET_MY_BET_GROUPS = gql`
         id
         email
         displayName
-        profilePicture
+        profileImage
       }
       members {
         id
@@ -84,7 +84,7 @@ export const GET_MY_BET_GROUPS = gql`
           id
           email
           displayName
-          profilePicture
+          profileImage
         }
         joinedAt
       }
@@ -118,7 +118,7 @@ export const GET_MY_BETS = gql`
         id
         email
         displayName
-        profilePicture
+        profileImage
       }
       group {
         id
@@ -133,7 +133,7 @@ export const GET_MY_BETS = gql`
           id
           email
           displayName
-          profilePicture
+          profileImage
         }
       }
       proofs {
@@ -168,7 +168,7 @@ export const GET_PENDING_BETS = gql`
         id
         email
         displayName
-        profilePicture
+        profileImage
       }
       group {
         id
@@ -183,7 +183,7 @@ export const GET_PENDING_BETS = gql`
           id
           email
           displayName
-          profilePicture
+          profileImage
         }
       }
       createdAt
@@ -211,7 +211,7 @@ export const GET_ACTIVE_BETS = gql`
         id
         email
         displayName
-        profilePicture
+        profileImage
       }
       group {
         id
@@ -226,7 +226,7 @@ export const GET_ACTIVE_BETS = gql`
           id
           email
           displayName
-          profilePicture
+          profileImage
         }
       }
       proofs {

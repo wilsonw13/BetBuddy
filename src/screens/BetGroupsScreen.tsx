@@ -15,37 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_MY_BET_GROUPS, GET_MY_FRIENDS } from "@/graphql/queries";
 import { CREATE_BET_GROUP, ADD_GROUP_MEMBERS, REMOVE_GROUP_MEMBER } from "@/graphql/mutations";
-
-interface BetGroup {
-  id: string;
-  name: string;
-  description?: string;
-  owner: {
-    id: string;
-    displayName: string;
-    email: string;
-  };
-  members: Array<{
-    id: string;
-    user: {
-      id: string;
-      displayName: string;
-      email: string;
-      profilePicture?: string;
-    };
-    joinedAt: string;
-  }>;
-  bets: Array<any>;
-  createdAt: string;
-}
-
-interface Friend {
-  id: string;
-  email: string;
-  displayName: string;
-  profilePicture?: string;
-  createdAt: string;
-}
+import { BetGroup, Friend } from "@types";
 
 export default function BetGroupsScreen({ navigation }: any) {
   const [createGroupModalVisible, setCreateGroupModalVisible] = useState(false);

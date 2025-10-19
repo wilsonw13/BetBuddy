@@ -7,7 +7,7 @@ export const REGISTER = gql`
         id
         email
         displayName
-        profilePicture
+        profileImage
         emailVerified
         createdAt
         updatedAt
@@ -25,7 +25,7 @@ export const LOGIN = gql`
         id
         email
         displayName
-        profilePicture
+        profileImage
         emailVerified
         createdAt
         updatedAt
@@ -43,7 +43,7 @@ export const GOOGLE_AUTH = gql`
         id
         email
         displayName
-        profilePicture
+        profileImage
         emailVerified
         createdAt
         updatedAt
@@ -90,13 +90,13 @@ export const SEND_FRIEND_REQUEST = gql`
         id
         email
         displayName
-        profilePicture
+        profileImage
       }
       toUser {
         id
         email
         displayName
-        profilePicture
+        profileImage
       }
       createdAt
       updatedAt
@@ -141,7 +141,7 @@ export const CREATE_BET_GROUP = gql`
         id
         email
         displayName
-        profilePicture
+        profileImage
       }
       members {
         id
@@ -149,7 +149,7 @@ export const CREATE_BET_GROUP = gql`
           id
           email
           displayName
-          profilePicture
+          profileImage
         }
         joinedAt
       }
@@ -174,7 +174,7 @@ export const ADD_GROUP_MEMBERS = gql`
         id
         email
         displayName
-        profilePicture
+        profileImage
       }
       members {
         id
@@ -182,7 +182,7 @@ export const ADD_GROUP_MEMBERS = gql`
           id
           email
           displayName
-          profilePicture
+          profileImage
         }
         joinedAt
       }
@@ -216,7 +216,7 @@ export const UPDATE_BET_GROUP = gql`
         id
         email
         displayName
-        profilePicture
+        profileImage
       }
       members {
         id
@@ -224,7 +224,7 @@ export const UPDATE_BET_GROUP = gql`
           id
           email
           displayName
-          profilePicture
+          profileImage
         }
         joinedAt
       }
@@ -276,7 +276,7 @@ export const CREATE_BET = gql`
         id
         email
         displayName
-        profilePicture
+        profileImage
       }
       group {
         id
@@ -291,7 +291,7 @@ export const CREATE_BET = gql`
           id
           email
           displayName
-          profilePicture
+          profileImage
         }
       }
       createdAt

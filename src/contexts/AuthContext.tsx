@@ -8,11 +8,10 @@ interface User {
   id: string;
   email: string;
   displayName: string;
-  profilePicture?: string;
+  profileImage: string;
   emailVerified: boolean;
   createdAt: string;
   updatedAt: string;
-  lastLogin?: string;
 }
 
 interface AuthContextType {

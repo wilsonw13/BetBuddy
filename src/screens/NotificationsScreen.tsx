@@ -12,16 +12,7 @@ import {
   ACCEPT_BET,
   DECLINE_BET,
 } from "@/graphql/mutations";
-
-interface Notification {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  isRead: boolean;
-  metadata: any;
-  createdAt: string;
-}
+import { Notification } from "@types";
 
 export default function NotificationsScreen({ navigation }: any) {
   const { data, loading, refetch } = useQuery(GET_MY_NOTIFICATIONS, {

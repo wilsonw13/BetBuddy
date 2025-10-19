@@ -19,24 +19,7 @@ import { suggestBets } from "@/services/gemini.service";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_MY_FRIENDS, GET_MY_BET_GROUPS, GET_MY_BETS, GET_ME } from "@/graphql/queries";
 import { CREATE_BET } from "@/graphql/mutations";
-
-interface Friend {
-  id: string;
-  email: string;
-  displayName: string;
-  profilePicture?: string;
-  createdAt: string;
-}
-
-interface BetGroup {
-  id: string;
-  name: string;
-  description?: string;
-  members: {
-    id: string;
-    user: Friend;
-  }[];
-}
+import { Friend, BetGroup } from "@types";
 
 export default function BetsScreen({ navigation }: any) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -444,8 +427,8 @@ export default function BetsScreen({ navigation }: any) {
                                   onPress={() => handleSelectFriend(friend)}
                                 >
                                   <View style={styles.friendAvatarSmall}>
-                                    {friend.profilePicture ? (
-                                      <Image source={{ uri: friend.profilePicture }} style={styles.friendAvatarImage} />
+                                    {friend.profileImage ? (
+                                      <Image source={{ uri: friend.profileImage }} style={styles.friendAvatarImage} />
                                     ) : (
                                       <Ionicons name="person" size={20} color="#8E8E93" />
                                     )}

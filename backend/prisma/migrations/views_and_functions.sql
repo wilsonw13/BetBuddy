@@ -16,7 +16,7 @@ CREATE OR REPLACE VIEW user_profile AS
 SELECT
   u.id,
   u.display_name AS "displayName",
-  u.profile_image AS "profilePicture",
+  u.profile_image AS "profileImage",
   u.banner_image AS "bannerImage",
   COALESCE(SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END), 0) AS "totalBets",
   COALESCE(SUM(CASE WHEN b.status = 'completed' AND b.points_reward > 0 THEN 1 ELSE 0 END), 0) AS "successfulBets",
@@ -38,7 +38,7 @@ CREATE OR REPLACE VIEW leaderboard_global AS
 SELECT
   up.id AS user_id,
   up."displayName",
-  up."profilePicture" AS profileImage,
+  up."profileImage",
   RANK() OVER (ORDER BY user_score(up."successfulBets"::INT, up."totalBets"::INT) DESC) AS leaderboardRank,
   user_score(up."successfulBets"::INT, up."totalBets"::INT) AS score,
   up."successRate",
@@ -55,7 +55,7 @@ SELECT
   owner.id AS owner_id,
   up.id AS friend_id,
   up."displayName",
-  up."profilePicture" AS profileImage,
+  up."profileImage",
   RANK() OVER (PARTITION BY owner.id ORDER BY user_score(up."successfulBets"::INT, up."totalBets"::INT) DESC) AS leaderboardRank,
   user_score(up."successfulBets"::INT, up."totalBets"::INT) AS score,
   up."successRate",
@@ -63,7 +63,7 @@ SELECT
   up."totalBets"
 FROM users owner
 JOIN (
-  SELECT u.id, u.display_name AS "displayName", u.profile_image AS "profilePicture", u.banner_image,
+  SELECT u.id, u.display_name AS "displayName", u.profile_image AS "profileImage", u.banner_image,
          COALESCE(SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END), 0) AS "totalBets",
          COALESCE(SUM(CASE WHEN b.status = 'completed' AND b.points_reward > 0 THEN 1 ELSE 0 END), 0) AS "successfulBets",
          CASE WHEN SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END) > 0
@@ -90,7 +90,7 @@ CREATE OR REPLACE VIEW leaderboard_group AS
 SELECT
   bgm.user_id AS member_id,
   up."displayName",
-  up."profilePicture" AS profileImage,
+  up."profileImage",
   bgm.group_id,
   RANK() OVER (PARTITION BY bgm.group_id ORDER BY user_score(up."successfulBets"::INT, up."totalBets"::INT) DESC) AS leaderboardRank,
   user_score(up."successfulBets"::INT, up."totalBets"::INT) AS score,
@@ -99,7 +99,7 @@ SELECT
   up."totalBets"
 FROM bet_group_members bgm
 JOIN (
-  SELECT u.id, u.display_name AS "displayName", u.profile_image AS "profilePicture", u.banner_image,
+  SELECT u.id, u.display_name AS "displayName", u.profile_image AS "profileImage", u.banner_image,
          COALESCE(SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END), 0) AS "totalBets",
          COALESCE(SUM(CASE WHEN b.status = 'completed' AND b.points_reward > 0 THEN 1 ELSE 0 END), 0) AS "successfulBets",
          CASE WHEN SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END) > 0

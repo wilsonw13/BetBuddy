@@ -21,31 +21,7 @@ import {
   DELETE_GROUP,
   CANCEL_BET,
 } from "@/graphql/mutations";
-
-interface Member {
-  id: string;
-  user: {
-    id: string;
-    displayName: string;
-    email: string;
-    profilePicture?: string;
-  };
-  joinedAt: string;
-}
-
-interface BetGroup {
-  id: string;
-  name: string;
-  description?: string;
-  owner: {
-    id: string;
-    displayName: string;
-    email: string;
-  };
-  members: Member[];
-  bets: Array<any>;
-  createdAt: string;
-}
+import { Member, BetGroup } from "@types";
 
 export default function GroupDetailsScreen({ route, navigation }: any) {
   const { groupId, groupName } = route.params;

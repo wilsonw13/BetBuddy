@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Alert, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { verifyBetPhoto } from "@/services/geminiService";
-import { Proof } from "@/types";
+import { verifyBetPhoto } from "@/services/gemini.service";
+import { Proof } from "@types";
 
 interface PhotoVerificationScreenProps {
   betId: string;
@@ -30,7 +30,7 @@ export default function PhotoVerificationScreen({
       return;
     }
 
-    const result = await ImagePicker.launchImagePickerAsync({
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],

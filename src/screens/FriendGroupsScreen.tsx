@@ -15,27 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_MY_FRIENDS, GET_MY_FRIEND_REQUESTS } from "@/graphql/queries";
 import { SEND_FRIEND_REQUEST, ACCEPT_FRIEND_REQUEST, DECLINE_FRIEND_REQUEST, REMOVE_FRIEND } from "@/graphql/mutations";
-
-interface Friend {
-  id: string;
-  email: string;
-  displayName: string;
-  profilePicture?: string;
-  createdAt: string;
-}
-
-interface FriendRequest {
-  id: string;
-  status: string;
-  fromUser: {
-    id: string;
-    email: string;
-    displayName: string;
-    profilePicture?: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
+import { Friend, FriendRequest } from "@types";
 
 export default function FriendGroupsScreen({ navigation, route }: any) {
   const groupName = route?.params?.groupName || "All Friends";
@@ -174,8 +154,8 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
       }}
     >
       <View style={styles.friendAvatar}>
-        {item.profilePicture ? (
-          <Image source={{ uri: item.profilePicture }} style={styles.avatarImage} />
+        {item.profileImage ? (
+          <Image source={{ uri: item.profileImage }} style={styles.avatarImage} />
         ) : (
           <Ionicons name="person" size={32} color="#8E8E93" />
         )}
@@ -193,8 +173,8 @@ export default function FriendGroupsScreen({ navigation, route }: any) {
   const renderFriendRequest = ({ item }: { item: FriendRequest }) => (
     <View style={styles.requestCard}>
       <View style={styles.friendAvatar}>
-        {item.fromUser.profilePicture ? (
-          <Image source={{ uri: item.fromUser.profilePicture }} style={styles.avatarImage} />
+        {item.fromUser.profileImage ? (
+          <Image source={{ uri: item.fromUser.profileImage }} style={styles.avatarImage} />
         ) : (
           <Ionicons name="person" size={32} color="#8E8E93" />
         )}
