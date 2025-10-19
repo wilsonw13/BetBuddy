@@ -1,3 +1,5 @@
+import { gql } from "@apollo/client";
+
 export const SUBMIT_PROOF = gql`
   mutation SubmitProof($input: SubmitProofInput!) {
     submitProof(input: $input) {
@@ -23,7 +25,6 @@ export const SUBMIT_PROOF = gql`
     }
   }
 `;
-import { gql } from "@apollo/client";
 
 export const REGISTER = gql`
   mutation Register($input: RegisterInput!) {
@@ -349,6 +350,15 @@ export const DELETE_NOTIFICATION = gql`
     deleteNotification(notificationId: $notificationId) {
       success
       message
+    }
+  }
+`;
+
+export const UPDATE_PROFILE_IMAGE = gql`
+  mutation UpdateProfileImage($image: String!) {
+    updateProfileImage(image: $image) {
+      success
+      imageUrl
     }
   }
 `;

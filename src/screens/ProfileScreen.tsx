@@ -1,10 +1,23 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Modal, FlatList, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Modal,
+  FlatList,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { User, RedeemableItem, UserRank } from "@types";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { GET_UNREAD_NOTIFICATION_COUNT, GET_MY_FRIEND_REQUESTS } from "@/graphql/queries";
+import { UPDATE_PROFILE_IMAGE } from "@/graphql/mutations";
+import * as ImagePicker from "expo-image-picker";
 
 import { GET_ME } from "@/graphql/queries";
 
@@ -86,7 +99,7 @@ const getRankInfo = (rank: UserRank) => {
 export default function ProfileScreen({ navigation }: any) {
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
 
-  const { data, loading, error } = useQuery(GET_ME);
+  const { data, loading, error, refetch } = useQuery(GET_ME);
   const [, setUser] = useState<User | null>(null);
   const [shopModalVisible, setShopModalVisible] = useState(false);
   const { logout } = useAuth();
@@ -97,6 +110,8 @@ export default function ProfileScreen({ navigation }: any) {
     pollInterval: 10000, // Poll every 10 seconds
     fetchPolicy: "network-only",
   });
+  const [uploading, setUploading] = useState(false);
+  const [updateProfileImage] = useMutation(UPDATE_PROFILE_IMAGE);
 
   // Loading state
   if (loading) {
@@ -118,7 +133,7 @@ export default function ProfileScreen({ navigation }: any) {
   }
 
   const currentUser = data.me;
- // console.log("Current User Data:", data.me);
+  // console.log("Current User Data:", data.me);
   // Mock data for now since the backend doesn't have these fields yet
   const user = {
     ...currentUser,
@@ -140,7 +155,7 @@ export default function ProfileScreen({ navigation }: any) {
         : `data:image/png;base64,${currentUser.profileImage}`
       : null,
   };
- //console.log(user)
+  //console.log(user)
 
   const rankInfo = getRankInfo(user.rank);
   const friendRequestCount = friendRequestsData?.myFriendRequests?.length || 0;
@@ -183,6 +198,42 @@ export default function ProfileScreen({ navigation }: any) {
         },
       },
     ]);
+  };
+
+  const handleChangeProfileImage = async () => {
+    // Request permission
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert("Permission required", "Please allow access to your photo library.");
+      return;
+    }
+    // Pick image
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+      base64: true,
+    });
+    if (pickerResult.canceled) return;
+    const asset = pickerResult.assets && pickerResult.assets[0];
+    if (!asset?.base64) {
+      Alert.alert("Error", "No image selected or image data missing.");
+      return;
+    }
+    setUploading(true);
+    try {
+      // Send base64 image to backend
+      await updateProfileImage({
+        variables: { image: asset.base64 },
+      });
+      await refetch(); // Refetch user data to update profile image
+      Alert.alert("Success", "Profile image updated!");
+    } catch (err) {
+      Alert.alert("Error", "Failed to update profile image.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const renderRedeemableItem = ({ item }: { item: RedeemableItem }) => (
@@ -236,16 +287,21 @@ export default function ProfileScreen({ navigation }: any) {
 
       <View style={styles.profileSection}>
         <View style={styles.avatarContainer}>
-          {user.profileImage ? (
-            <Image source={{ uri: user.profileImage }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Ionicons name="person" size={48} color="#8E8E93" />
+          <TouchableOpacity onPress={handleChangeProfileImage} disabled={uploading}>
+            {user.profileImage ? (
+              <Image source={{ uri: user.profileImage }} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                <Ionicons name="person" size={48} color="#8E8E93" />
+              </View>
+            )}
+            {uploading && (
+              <ActivityIndicator style={{ position: "absolute", top: 40, left: 40 }} size="small" color="#007AFF" />
+            )}
+            <View style={[styles.rankBadge, { backgroundColor: rankInfo.color }]}>
+              <Ionicons name={rankInfo.icon as any} size={20} color="white" />
             </View>
-          )}
-          <View style={[styles.rankBadge, { backgroundColor: rankInfo.color }]}>
-            <Ionicons name={rankInfo.icon as any} size={20} color="white" />
-          </View>
+          </TouchableOpacity>
         </View>
 
         <Text style={styles.userName}>{user.name}</Text>

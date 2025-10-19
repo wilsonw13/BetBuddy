@@ -209,6 +209,11 @@ export const typeDefs = gql`
     aiSuggestionConfidence: Float
   }
 
+  type UpdateProfileImageResponse {
+    success: Boolean!
+    imageUrl: String
+  }
+
   type Query {
     me: User
     health: String!
@@ -263,5 +268,7 @@ export const typeDefs = gql`
     markNotificationAsRead(notificationId: ID!): SuccessResponse!
     markAllNotificationsAsRead: SuccessResponse!
     deleteNotification(notificationId: ID!): SuccessResponse!
+
+    updateProfileImage(image: String!): UpdateProfileImageResponse!
   }
 `;

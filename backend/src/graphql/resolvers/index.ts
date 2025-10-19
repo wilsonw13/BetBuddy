@@ -9,6 +9,7 @@ import { betResolvers } from "@/graphql/resolvers/bet.resolvers";
 import { betParticipantResolvers } from "@/graphql/resolvers/betParticipant.resolvers";
 import { betProofResolvers } from "@/graphql/resolvers/betProof.resolvers";
 import { leaderboardResolvers } from "@/graphql/resolvers/leaderboard.resolvers";
+import { userResolvers } from "@/graphql/resolvers/user.resolvers";
 
 const baseResolvers = {
   DateTime: DateTimeResolver,
@@ -29,4 +30,5 @@ export const resolvers = merge(
   betParticipantResolvers,
   betProofResolvers,
   leaderboardResolvers,
+  userResolvers,
 );
