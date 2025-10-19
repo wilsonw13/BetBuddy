@@ -10,6 +10,20 @@ generator client {
   previewFeatures = ["views"]
 }
 
+view user_profile {
+  id              String
+  displayName     String
+  profileImage    String
+  bannerImage     String
+  totalBets       Int
+  successfulBets  Int
+  successRate     Float
+  points          Int
+  friendGroups    String[]
+
+  @@unique([id])
+}
+
 view leaderboard_global {
   user_id         String
   displayName     String
@@ -78,6 +92,7 @@ model User {
   createdBets            Bet[]             @relation("BetCreator")
   participatingBets      BetParticipant[]
   betProofs              BetProof[]
+  betProofReviews        BetProofReview[]
   ownedGroups            BetGroup[]        @relation("GroupOwner")
   groupMemberships       BetGroupMember[]
   notifications          Notification[]
@@ -254,11 +269,30 @@ model BetProof {
   // Relations
   bet                     Bet      @relation(fields: [betId], references: [id], onDelete: Cascade)
   user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews                 BetProofReview[]
 
   @@index([betId])
   @@index([userId])
   @@index([createdAt])
   @@map("bet_proofs")
+}
+
+model BetProofReview {
+  id             String    @id @default(uuid())
+  betProofId     String    @map("bet_proof_id")
+  reviewerId     String    @map("reviewer_id")
+  isSuspicious   Boolean   @map("is_suspicious")
+  reason         String?
+  confidence     Float?
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  betProof       BetProof  @relation(fields: [betProofId], references: [id], onDelete: Cascade)
+  reviewer       User      @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@index([betProofId])
+  @@index([reviewerId])
+  @@map("bet_proof_reviews")
 }
 
 model Notification {
