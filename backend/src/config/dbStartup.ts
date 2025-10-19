@@ -85,39 +85,39 @@ const TABLE_SEED_DATA = {
     },
   ],
   friendships: [
-    { user1_id: _uids[0], user2_id: _uids[1] },
-    { user1_id: _uids[0], user2_id: _uids[2] },
-    { user1_id: _uids[0], user2_id: _uids[3] },
-    { user1_id: _uids[1], user2_id: _uids[2] },
-    { user1_id: _uids[1], user2_id: _uids[3] },
-    { user1_id: _uids[2], user2_id: _uids[3] },
+    { user1Id: _uids[0], user2Id: _uids[1] },
+    { user1Id: _uids[0], user2Id: _uids[2] },
+    { user1Id: _uids[0], user2Id: _uids[3] },
+    { user1Id: _uids[1], user2Id: _uids[2] },
+    { user1Id: _uids[1], user2Id: _uids[3] },
+    { user1Id: _uids[2], user2Id: _uids[3] },
   ],
-  friend_requests: [
+  friendRequests: [
     {
-      from_user_id: _uids[4],
-      to_user_id: _uids[0],
+      fromUserId: _uids[4],
+      toUserId: _uids[0],
     },
     {
-      from_user_id: _uids[4],
-      to_user_id: _uids[2],
+      fromUserId: _uids[4],
+      toUserId: _uids[2],
     },
     {
-      from_user_id: _uids[4],
-      to_user_id: _uids[3],
+      fromUserId: _uids[4],
+      toUserId: _uids[3],
     },
   ],
-  bet_groups: [
+  betGroups: [
     {
       id: _bgid_1,
       name: "Cool Kids",
       description: "A group for cool kids to place bets.",
-      owner_id: _uids[0],
+      ownerId: _uids[0],
     },
   ],
-  bet_group_members: [
-    { bet_group_id: _bgid_1, user_id: _uids[0] },
-    { bet_group_id: _bgid_1, user_id: _uids[2] },
-    { bet_group_id: _bgid_1, user_id: _uids[3] },
+  betGroupMembers: [
+    { groupId: _bgid_1, userId: _uids[0] },
+    { groupId: _bgid_1, userId: _uids[2] },
+    { groupId: _bgid_1, userId: _uids[3] },
   ],
   bets: [
     {
@@ -128,7 +128,9 @@ const TABLE_SEED_DATA = {
       proofType: "live_photo",
       frequency: "daily",
       betLength: 7,
-      pointsStaked: 100,
+      moneyStaked: 100,
+      pointsReward: 10,
+      proofsRequired: 1,
       startDate: DEFAULT_DATE,
       endDate: DEFAULT_BET_END_DATE,
       status: "active",
@@ -144,7 +146,9 @@ const TABLE_SEED_DATA = {
       proofType: "live_photo",
       frequency: "daily",
       betLength: 7,
-      pointsStaked: 50,
+      moneyStaked: 50,
+      pointsReward: 10,
+      proofsRequired: 1,
       startDate: DEFAULT_DATE,
       endDate: DEFAULT_BET_END_DATE,
       status: "pending",
@@ -160,7 +164,9 @@ const TABLE_SEED_DATA = {
       proofType: "live_photo",
       frequency: "1x/week",
       betLength: 7,
-      pointsStaked: 75,
+      moneyStaked: 75,
+      pointsReward: 10,
+      proofsRequired: 1,
       startDate: DEFAULT_DATE,
       endDate: DEFAULT_BET_END_DATE,
       status: "pending",
@@ -176,7 +182,9 @@ const TABLE_SEED_DATA = {
       proofType: "live_photo",
       frequency: "daily",
       betLength: 7,
-      pointsStaked: 60,
+      moneyStaked: 60,
+      pointsReward: 10,
+      proofsRequired: 1,
       startDate: DEFAULT_DATE,
       endDate: DEFAULT_BET_END_DATE,
       status: "pending",
@@ -192,7 +200,9 @@ const TABLE_SEED_DATA = {
       proofType: "live_photo",
       frequency: "daily",
       betLength: 7,
-      pointsStaked: 80,
+      moneyStaked: 80,
+      pointsReward: 10,
+      proofsRequired: 1,
       startDate: DEFAULT_DATE,
       endDate: DEFAULT_BET_END_DATE,
       status: "pending",
@@ -201,75 +211,75 @@ const TABLE_SEED_DATA = {
       isGroupBet: false,
     },
   ],
-  bet_participants: [
+  betParticipants: [
     // For bet 1 (group bet)
     {
       id: "bpid_1",
-      bet_id: _betids.touch_grass,
-      user_id: _uids[0],
+      betId: _betids.touch_grass,
+      userId: _uids[0],
       status: "accepted",
-      accepted_at: DEFAULT_DATE,
+      acceptedAt: DEFAULT_DATE,
     },
     {
       id: "bpid_2",
-      bet_id: _betids.touch_grass,
-      user_id: _uids[2],
+      betId: _betids.touch_grass,
+      userId: _uids[2],
       status: "accepted",
-      accepted_at: DEFAULT_DATE,
+      acceptedAt: DEFAULT_DATE,
     },
     {
       id: "bpid_3",
-      bet_id: _betids.touch_grass,
-      user_id: _uids[3],
+      betId: _betids.touch_grass,
+      userId: _uids[3],
       status: "pending",
-      accepted_at: null,
+      acceptedAt: null,
     },
     // For bet 2 (1v1)
     {
       id: "bpid_4",
-      bet_id: _betids.shower,
-      user_id: _uids[1],
+      betId: _betids.shower,
+      userId: _uids[1],
       status: "accepted",
-      accepted_at: DEFAULT_DATE,
+      acceptedAt: DEFAULT_DATE,
     },
     {
       id: "bpid_5",
-      bet_id: _betids.shower,
-      user_id: _uids[0],
+      betId: _betids.shower,
+      userId: _uids[0],
       status: "pending",
-      accepted_at: null,
+      acceptedAt: null,
     },
   ],
-  bet_proofs: [
+  betProofs: [
     {
       id: "bprf_1",
-      bet_id: _betids.touch_grass,
-      user_id: _uids[0],
-      proof_type: "live_photo",
+      betId: _betids.touch_grass,
+      userId: _uids[0],
+      proofType: "live_photo",
       latitude: 37.7749,
       longitude: -122.4194,
       address: "San Francisco, CA",
       verified: true,
-      verified_by: _uids[2],
-      ai_suggestion_suspicious: false,
-      ai_suggestion_reason: null,
-      ai_suggestion_confidence: 0.98,
-      created_at: DEFAULT_DATE,
+      verifiedBy: _uids[2],
+      aiSuggestionSuspicious: false,
+      aiSuggestionReason: null,
+      aiSuggestionConfidence: 0.98,
+      createdAt: DEFAULT_DATE,
     },
     {
       id: "bprf_2",
-      bet_id: _betids.shower,
-      user_id: _uids[1],
-      proof_type: "live_photo",
+      betId: _betids.shower,
+      userId: _uids[1],
+      proofType: "live_photo",
       latitude: 34.0522,
       longitude: -118.2437,
       address: "Los Angeles, CA",
       verified: false,
-      verified_by: null,
-      ai_suggestion_suspicious: true,
-      ai_suggestion_reason: "Photo appears to be reused",
-      ai_suggestion_confidence: 0.75,
-      created_at: DEFAULT_DATE,
+      verifiedBy: null,
+      aiSuggestionSuspicious: true,
+      aiSuggestionReason: "Photo appears to be reused",
+      aiSuggestionConfidence: 0.75,
+      createdAt: DEFAULT_DATE,
     },
   ],
   refresh_tokens: [],
@@ -346,14 +356,14 @@ export async function seedDatabase(resetDb: boolean = false) {
     await prisma.friendship.upsert({
       where: {
         user1Id_user2Id: {
-          user1Id: friendship.user1_id,
-          user2Id: friendship.user2_id,
+          user1Id: friendship.user1Id,
+          user2Id: friendship.user2Id,
         },
       },
       update: {},
       create: {
-        user1Id: friendship.user1_id,
-        user2Id: friendship.user2_id,
+        user1Id: friendship.user1Id,
+        user2Id: friendship.user2Id,
       },
     });
   }
@@ -361,18 +371,18 @@ export async function seedDatabase(resetDb: boolean = false) {
 
   // Seed friend requests
   console.log("[Seed] Seeding friend requests...");
-  for (const req of TABLE_SEED_DATA.friend_requests) {
+  for (const req of TABLE_SEED_DATA.friendRequests) {
     await prisma.friendRequest.upsert({
       where: {
         fromUserId_toUserId: {
-          fromUserId: req.from_user_id,
-          toUserId: req.to_user_id,
+          fromUserId: req.fromUserId,
+          toUserId: req.toUserId,
         },
       },
       update: {},
       create: {
-        fromUserId: req.from_user_id,
-        toUserId: req.to_user_id,
+        fromUserId: req.fromUserId,
+        toUserId: req.toUserId,
       },
     });
   }
@@ -380,7 +390,7 @@ export async function seedDatabase(resetDb: boolean = false) {
 
   // Seed bet groups
   console.log("[Seed] Seeding bet groups...");
-  for (const group of TABLE_SEED_DATA.bet_groups) {
+  for (const group of TABLE_SEED_DATA.betGroups) {
     await prisma.betGroup.upsert({
       where: { id: group.id },
       update: {},
@@ -388,7 +398,7 @@ export async function seedDatabase(resetDb: boolean = false) {
         id: group.id,
         name: group.name,
         description: group.description,
-        ownerId: group.owner_id,
+        ownerId: group.ownerId,
       },
     });
   }
@@ -396,18 +406,18 @@ export async function seedDatabase(resetDb: boolean = false) {
 
   // Seed bet group members
   console.log("[Seed] Seeding bet group members...");
-  for (const member of TABLE_SEED_DATA.bet_group_members) {
+  for (const member of TABLE_SEED_DATA.betGroupMembers) {
     await prisma.betGroupMember.upsert({
       where: {
         groupId_userId: {
-          groupId: member.bet_group_id,
-          userId: member.user_id,
+          groupId: member.groupId,
+          userId: member.userId,
         },
       },
       update: {},
       create: {
-        groupId: member.bet_group_id,
-        userId: member.user_id,
+        groupId: member.groupId,
+        userId: member.userId,
       },
     });
   }
@@ -427,6 +437,9 @@ export async function seedDatabase(resetDb: boolean = false) {
         proofType: bet.proofType,
         frequency: bet.frequency,
         betLength: bet.betLength,
+        moneyStaked: bet.moneyStaked,
+        pointsReward: bet.pointsReward,
+        proofsRequired: bet.proofsRequired,
         startDate: bet.startDate,
         endDate: bet.endDate,
         status: bet.status,
@@ -440,21 +453,21 @@ export async function seedDatabase(resetDb: boolean = false) {
 
   // Seed bet participants
   console.log("[Seed] Seeding bet participants...");
-  for (const part of TABLE_SEED_DATA.bet_participants) {
+  for (const part of TABLE_SEED_DATA.betParticipants) {
     await prisma.betParticipant.upsert({
       where: {
         betId_userId: {
-          betId: part.bet_id,
-          userId: part.user_id,
+          betId: part.betId,
+          userId: part.userId,
         },
       },
       update: {},
       create: {
         id: part.id,
-        betId: part.bet_id,
-        userId: part.user_id,
+        betId: part.betId,
+        userId: part.userId,
         status: part.status,
-        acceptedAt: part.accepted_at,
+        acceptedAt: part.acceptedAt,
       },
     });
   }
@@ -462,24 +475,24 @@ export async function seedDatabase(resetDb: boolean = false) {
 
   // Seed bet proofs
   console.log("[Seed] Seeding bet proofs...");
-  for (const proof of TABLE_SEED_DATA.bet_proofs) {
+  for (const proof of TABLE_SEED_DATA.betProofs) {
     await prisma.betProof.upsert({
       where: { id: proof.id },
       update: {},
       create: {
         id: proof.id,
-        betId: proof.bet_id,
-        userId: proof.user_id,
-        proofType: proof.proof_type,
+        betId: proof.betId,
+        userId: proof.userId,
+        proofType: proof.proofType,
         latitude: proof.latitude,
         longitude: proof.longitude,
         address: proof.address,
         verified: proof.verified,
-        verifiedBy: proof.verified_by,
-        aiSuggestionSuspicious: proof.ai_suggestion_suspicious,
-        aiSuggestionReason: proof.ai_suggestion_reason,
-        aiSuggestionConfidence: proof.ai_suggestion_confidence,
-        createdAt: proof.created_at,
+        verifiedBy: proof.verifiedBy,
+        aiSuggestionSuspicious: proof.aiSuggestionSuspicious,
+        aiSuggestionReason: proof.aiSuggestionReason,
+        aiSuggestionConfidence: proof.aiSuggestionConfidence,
+        createdAt: proof.createdAt,
       },
     });
   }
