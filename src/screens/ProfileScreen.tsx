@@ -19,7 +19,7 @@ import { GET_UNREAD_NOTIFICATION_COUNT, GET_MY_FRIEND_REQUESTS } from "@/graphql
 import { UPDATE_PROFILE_IMAGE, UPDATE_BANNER_IMAGE } from "@/graphql/mutations";
 import * as ImagePicker from "expo-image-picker";
 
-import { GET_ME } from "@/graphql/queries";
+import { GET_ME, GET_GLOBAL_LEADERBOARD } from "@/graphql/queries";
 
 // Mock data - replace with real data from your backend
 const mockUser: User = {
@@ -100,6 +100,11 @@ export default function ProfileScreen({ navigation }: any) {
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
 
   const { data, loading, error, refetch } = useQuery(GET_ME);
+  const {
+    data: leaderboardData,
+    loading: leaderboardLoading,
+    error: leaderboardError,
+  } = useQuery(GET_GLOBAL_LEADERBOARD);
   const [, setUser] = useState<User | null>(null);
   const [shopModalVisible, setShopModalVisible] = useState(false);
   const { logout } = useAuth();
@@ -134,16 +139,23 @@ export default function ProfileScreen({ navigation }: any) {
   }
 
   const currentUser = data.me;
+
+  const myLeaderboardEntry = leaderboardData?.globalLeaderboard?.find((entry: any) => {
+    return entry.userId === currentUser.id;
+  });
   // console.log("Current User Data:", data.me);
   // Mock data for now since the backend doesn't have these fields yet
+  const { profileImage, bannerImage, ...withoutImages } = myLeaderboardEntry || {};
   const user = {
     ...currentUser,
     name: currentUser.displayName,
     rank: "beginner" as UserRank,
-    points: 1250,
-    successRate: 0.68,
-    successfulBets: 17,
-    totalBets: 25,
+
+    points: myLeaderboardEntry?.score ?? 69,
+    leaderboardRank: myLeaderboardEntry?.leaderboardRank ?? 69,
+    successfulBets: myLeaderboardEntry?.successfulBets ?? 69,
+    totalBets: myLeaderboardEntry?.totalBets ?? 69,
+
     bannerImage: currentUser.bannerImage
       ? currentUser.bannerImage.startsWith("data:")
         ? currentUser.bannerImage
@@ -358,8 +370,8 @@ export default function ProfileScreen({ navigation }: any) {
           <Text style={styles.statLabel}>Points</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>{(user.successRate * 100).toFixed(0)}%</Text>
-          <Text style={styles.statLabel}>Success Rate</Text>
+          <Text style={styles.statValue}>{user.leaderboardRank.toFixed(0)}%</Text>
+          <Text style={styles.statLabel}>Rank</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statValue}>{user.successfulBets}</Text>
