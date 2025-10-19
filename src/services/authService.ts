@@ -30,6 +30,7 @@ class AuthService {
   private accessToken: string | null = null;
   private isRefreshing = false;
   private refreshSubscribers: ((token: string) => void)[] = [];
+  private currentUser: User | null = null;
 
   constructor() {
     this.api = axios.create({
@@ -114,10 +115,17 @@ class AuthService {
       await this.storeTokens(accessToken, refreshToken);
       this.accessToken = accessToken;
 
+      this.currentUser = user;
+      console.log("Logged in user:", user);
+
       return response.data.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.error || error.message || "Registration failed");
     }
+  }
+
+  getCurrentUser(): User | null {
+    return this.currentUser;
   }
 
   // Login with email/password
@@ -135,6 +143,9 @@ class AuthService {
       const { accessToken, refreshToken, user } = response.data.data;
       await this.storeTokens(accessToken, refreshToken);
       this.accessToken = accessToken;
+
+      this.currentUser = user;
+      console.log("Logged in user:", user);
 
       return response.data.data;
     } catch (error: any) {
@@ -156,6 +167,9 @@ class AuthService {
       const { accessToken, refreshToken, user } = response.data.data;
       await this.storeTokens(accessToken, refreshToken);
       this.accessToken = accessToken;
+
+      this.currentUser = user;
+      console.log("Logged in user:", user);
 
       return response.data.data;
     } catch (error: any) {

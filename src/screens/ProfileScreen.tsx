@@ -6,6 +6,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@apollo/client";
 import { GET_UNREAD_NOTIFICATION_COUNT } from "@/graphql/queries";
 
+import { GET_ME } from "@/graphql/queries";
+
+
 // Mock data - replace with real data from your backend
 const mockUser: User = {
   id: "currentUser",
@@ -82,7 +85,44 @@ const getRankInfo = (rank: UserRank) => {
 };
 
 export default function ProfileScreen({ navigation }: any) {
-  const [user, setUser] = useState<User>(mockUser);
+  // Call useQuery INSIDE the component
+  const { data, loading, error } = useQuery(GET_ME);
+
+  // Loading state
+  if (loading) {
+    return (
+      <View>
+        <Text>Loading profile...</Text>
+      </View>
+    );
+  }
+
+  // Error state
+  if (error || !data?.me) {
+    return (
+      <View>
+        <Ionicons name="alert-circle" size={64} color="#FF3B30" />
+        <Text>Failed to load profile</Text>
+      </View>
+    );
+  }
+
+  const currentUser = data.me;
+
+  // Mock data for now since the backend doesn't have these fields yet
+  const user = {
+    ...currentUser,
+    name: currentUser.displayName,
+    rank: "beginner" as UserRank,
+    points: 1250,
+    successRate: 0.68,
+    successfulBets: 17,
+    totalBets: 25,
+    bannerImage: null,
+    friendGroups: ["Friends", "Groups"],
+  }; 
+ 
+ const [, setUser] = useState<User>(currentUser);
   const [shopModalVisible, setShopModalVisible] = useState(false);
   const { logout } = useAuth();
 
